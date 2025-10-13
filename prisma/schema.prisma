@@ -9,15 +9,19 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  emailVerified     Boolean            @default(false)
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  role              Roles              @default(EMPLOYEE)
+  employeeKits      EmployeeKit[]
+  jobs              Job[]
+  inventoryRequests InventoryRequest[]
 }
 
 model Account {
@@ -54,4 +58,115 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+enum Roles {
+  OWNER
+  ADMIN
+  EMPLOYEE
+}
+
+// Inventory Management Models
+model Product {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  unit        String          // e.g., "bottles", "liters", "pieces"
+  costPerUnit Float
+  stockLevel  Float           @default(0)
+  minStock    Float           @default(0) // Alert threshold
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  kitProducts KitProduct[]
+  jobUsage    JobProductUsage[]
+}
+
+model Kit {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  products     KitProduct[]
+  employeeKits EmployeeKit[]
+}
+
+model KitProduct {
+  id        String   @id @default(cuid())
+  kitId     String
+  productId String
+  quantity  Float    // Quantity of this product in the kit
+  kit       Kit      @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kitId, productId])
+}
+
+model EmployeeKit {
+  id         String   @id @default(cuid())
+  userId     String
+  kitId      String
+  assignedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kit        Kit      @relation(fields: [kitId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kitId])
+}
+
+model Job {
+  id           String            @id @default(cuid())
+  employeeId   String
+  clientName   String
+  location     String?
+  description  String?
+  startTime    DateTime
+  endTime      DateTime?
+  status       JobStatus         @default(IN_PROGRESS)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  employee     User              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  productUsage JobProductUsage[]
+}
+
+model JobProductUsage {
+  id         String   @id @default(cuid())
+  jobId      String
+  productId  String
+  quantity   Float    // Amount used
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, productId])
+}
+
+model InventoryRequest {
+  id         String        @id @default(cuid())
+  employeeId String
+  productId  String?
+  kitId      String?
+  quantity   Float
+  reason     String?
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  employee   User          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+enum JobStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FULFILLED
 }
