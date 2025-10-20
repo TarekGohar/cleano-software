@@ -16,7 +16,7 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (session.data?.session) {
-      router.replace("/");
+      router.replace("/dashboard");
     }
   }, [session.data?.session, router]);
 
@@ -28,7 +28,7 @@ export default function SignInPage() {
       const res = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
 
       if (res.error) {
@@ -36,7 +36,7 @@ export default function SignInPage() {
         return;
       }
 
-      router.push("/");
+      router.push("/dashboard");
     } catch (err) {
       setError("Unexpected error. Please try again.");
     } finally {
@@ -92,8 +92,7 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-foreground text-background py-2 font-medium disabled:opacity-60"
-          >
+            className="w-full rounded-md bg-foreground text-background py-2 font-medium disabled:opacity-60">
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>

@@ -156,15 +156,15 @@ A comprehensive inventory tracking and management portal for cleaning businesses
 /                          → Landing page (redirects to dashboard if logged in)
 /sign-in                   → Login page
 /sign-up                   → Registration page
-/dashboard                 → Main dashboard (role-based view)
-/dashboard/products        → Product inventory management (Admin)
-/dashboard/kits            → Kit management (Admin)
-/dashboard/employees       → Employee management (Admin)
-/dashboard/requests        → Review inventory requests (Admin)
-/dashboard/analytics       → Analytics dashboard (Admin)
-/dashboard/jobs            → Job logging and history (All users)
-/dashboard/my-kits         → View assigned kits (All users)
-/dashboard/my-requests     → Request inventory (All users)
+                 → Main dashboard (role-based view)
+/products        → Product inventory management (Admin)
+/kits            → Kit management (Admin)
+/employees       → Employee management (Admin)
+/requests        → Review inventory requests (Admin)
+/analytics       → Analytics dashboard (Admin)
+/jobs            → Job logging and history (All users)
+/my-kits         → View assigned kits (All users)
+/my-requests     → Request inventory (All users)
 ```
 
 ## Development

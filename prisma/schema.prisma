@@ -14,13 +14,14 @@ model User {
   email             String             @unique
   emailVerified     Boolean            @default(false)
   image             String?
+  phone             String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   accounts          Account[]
   sessions          Session[]
   role              Roles              @default(EMPLOYEE)
-  employeeKits      EmployeeKit[]
-  jobs              Job[]
+  jobs              Job[]              @relation("EmployeeJobs")
+  cleaningJobs      Job[]              @relation("JobCleaners")
   inventoryRequests InventoryRequest[]
 }
 
@@ -77,58 +78,43 @@ model Product {
   minStock    Float           @default(0) // Alert threshold
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
-  kitProducts KitProduct[]
   jobUsage    JobProductUsage[]
 }
 
-model Kit {
-  id           String        @id @default(cuid())
-  name         String
-  description  String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  products     KitProduct[]
-  employeeKits EmployeeKit[]
-}
-
-model KitProduct {
-  id        String   @id @default(cuid())
-  kitId     String
-  productId String
-  quantity  Float    // Quantity of this product in the kit
-  kit       Kit      @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([kitId, productId])
-}
-
-model EmployeeKit {
-  id         String   @id @default(cuid())
-  userId     String
-  kitId      String
-  assignedAt DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kit        Kit      @relation(fields: [kitId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, kitId])
-}
 
 model Job {
-  id           String            @id @default(cuid())
-  employeeId   String
-  clientName   String
-  location     String?
-  description  String?
-  startTime    DateTime
-  endTime      DateTime?
-  status       JobStatus         @default(IN_PROGRESS)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  employee     User              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  productUsage JobProductUsage[]
+  id              String            @id @default(cuid())
+  employeeId      String
+  clientName      String
+  location        String?
+  description     String?
+  jobType         String?           // R (Residential), C (Commercial), PC (Post-Construction), F (Follow-up)
+  jobDate         DateTime?
+  startTime       DateTime
+  endTime         DateTime?
+  status          JobStatus         @default(IN_PROGRESS)
+  
+  // Pricing & Payment
+  price           Float?
+  employeePay     Float?
+  totalTip        Float?
+  parking         Float?
+  paymentReceived Boolean           @default(false)
+  invoiceSent     Boolean           @default(false)
+  
+  // Additional cleaners (many-to-many relation with User)
+  cleaners        User[]            @relation("JobCleaners")
+  
+  notes           String?
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  employee        User              @relation("EmployeeJobs", fields: [employeeId], references: [id], onDelete: Cascade)
+  productUsage    JobProductUsage[]
+  
+  @@index([jobDate])
+  @@index([clientName])
+  @@index([status])
 }
 
 model JobProductUsage {

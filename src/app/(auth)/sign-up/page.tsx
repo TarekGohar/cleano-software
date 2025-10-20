@@ -17,7 +17,7 @@ export default function SignUpPage() {
 
   useEffect(() => {
     if (session.data?.session) {
-      router.replace("/");
+      router.replace("/dashboard");
     }
   }, [session.data?.session, router]);
 
@@ -30,7 +30,7 @@ export default function SignUpPage() {
         name,
         email,
         password,
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
 
       if (res.error) {
@@ -39,7 +39,7 @@ export default function SignUpPage() {
       }
 
       // autoSignIn may be enabled by default; either way, go home
-      router.push("/");
+      router.push("/dashboard");
     } catch (err) {
       setError("Unexpected error. Please try again.");
     } finally {
@@ -115,8 +115,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-foreground text-background py-2 font-medium disabled:opacity-60"
-          >
+            className="w-full rounded-md bg-foreground text-background py-2 font-medium disabled:opacity-60">
             {loading ? "Creating account..." : "Sign up"}
           </button>
         </form>
