@@ -12,43 +12,44 @@ model User {
   id                String             @id @default(cuid())
   name              String
   email             String             @unique
-  emailVerified     Boolean            @default(false)
   image             String?
-  phone             String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  accounts          Account[]
-  sessions          Session[]
+  phone             String?
   role              Roles              @default(EMPLOYEE)
-  jobs              Job[]              @relation("EmployeeJobs")
-  cleaningJobs      Job[]              @relation("JobCleaners")
+  emailVerified     Boolean            @default(false)
+  accounts          Account[]
+  assignedProducts  EmployeeProduct[]
   inventoryRequests InventoryRequest[]
+  jobs              Job[]              @relation("EmployeeJobs")
+  sessions          Session[]
+  cleaningJobs      Job[]              @relation("JobCleaners")
 }
 
 model Account {
   id           String    @id @default(cuid())
-  accountId    String
-  providerId   String
   userId       String
   accessToken  String?
-  refreshToken String?
-  idToken      String?
-  expiresAt    DateTime?
-  password     String?
+  accountId    String
   createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+  idToken      String?
+  password     String?
+  providerId   String
+  refreshToken String?
   updatedAt    DateTime  @updatedAt
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
   id        String   @id @default(cuid())
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
   userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  ipAddress String?
+  token     String   @unique
+  updatedAt DateTime @updatedAt
+  userAgent String?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -61,26 +62,19 @@ model Verification {
   updatedAt  DateTime @updatedAt
 }
 
-enum Roles {
-  OWNER
-  ADMIN
-  EMPLOYEE
-}
-
-// Inventory Management Models
 model Product {
-  id          String          @id @default(cuid())
-  name        String
-  description String?
-  unit        String          // e.g., "bottles", "liters", "pieces"
-  costPerUnit Float
-  stockLevel  Float           @default(0)
-  minStock    Float           @default(0) // Alert threshold
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  jobUsage    JobProductUsage[]
+  id               String            @id @default(cuid())
+  name             String
+  description      String?
+  unit             String
+  costPerUnit      Float
+  stockLevel       Float             @default(0)
+  minStock         Float             @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  employeeProducts EmployeeProduct[]
+  jobUsage         JobProductUsage[]
 }
-
 
 model Job {
   id              String            @id @default(cuid())
@@ -88,45 +82,39 @@ model Job {
   clientName      String
   location        String?
   description     String?
-  jobType         String?           // R (Residential), C (Commercial), PC (Post-Construction), F (Follow-up)
+  jobType         String?
   jobDate         DateTime?
   startTime       DateTime
   endTime         DateTime?
   status          JobStatus         @default(IN_PROGRESS)
-  
-  // Pricing & Payment
   price           Float?
   employeePay     Float?
   totalTip        Float?
   parking         Float?
   paymentReceived Boolean           @default(false)
   invoiceSent     Boolean           @default(false)
-  
-  // Additional cleaners (many-to-many relation with User)
-  cleaners        User[]            @relation("JobCleaners")
-  
   notes           String?
-  
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   employee        User              @relation("EmployeeJobs", fields: [employeeId], references: [id], onDelete: Cascade)
   productUsage    JobProductUsage[]
-  
+  cleaners        User[]            @relation("JobCleaners")
+
   @@index([jobDate])
   @@index([clientName])
   @@index([status])
 }
 
 model JobProductUsage {
-  id         String   @id @default(cuid())
-  jobId      String
-  productId  String
-  quantity   Float    // Amount used
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  jobId     String
+  productId String
+  quantity  Float
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, productId])
 }
@@ -142,6 +130,29 @@ model InventoryRequest {
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   employee   User          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeProduct {
+  id         String   @id @default(cuid())
+  employeeId String
+  productId  String
+  quantity   Float
+  assignedAt DateTime @default(now())
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  employee   User     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, productId])
+  @@index([employeeId])
+  @@index([productId])
+}
+
+enum Roles {
+  OWNER
+  ADMIN
+  EMPLOYEE
 }
 
 enum JobStatus {

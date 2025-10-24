@@ -3,6 +3,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import Link from "next/link";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
+import { Plus, AlertTriangle, CheckCircle2, FileText } from "lucide-react";
 
 export default async function JobsPage() {
   const session = await auth.api.getSession({
@@ -15,7 +19,8 @@ export default async function JobsPage() {
 
   // Check user role - admins/owners can see all jobs
   const isAdmin =
-    session.user.role === "ADMIN" || session.user.role === "OWNER";
+    (session.user as any).role === "ADMIN" ||
+    (session.user as any).role === "OWNER";
 
   const jobs = await db.job.findMany({
     where: isAdmin
@@ -44,78 +49,70 @@ export default async function JobsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Cleaning Jobs</h1>
-        <Link
-          href="/jobs/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          + Create New Job
-        </Link>
-      </div>
+      <Card variant="default" className="mb-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold" style={{ color: "#005F6A" }}>
+            Cleaning Jobs
+          </h1>
+          <Link href="/jobs/new">
+            <Button variant="primary">
+              <Plus className="w-4 h-4 mr-2" />
+              Create New Job
+            </Button>
+          </Link>
+        </div>
+      </Card>
 
       <div className="grid gap-4 mb-6 md:grid-cols-3">
-        <div className="bg-white rounded-lg shadow p-6">
+        <Card variant="default">
           <div className="text-sm font-medium text-gray-500 mb-1">
             Total Jobs
           </div>
-          <div className="text-2xl font-bold">{jobs.length}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-2xl font-bold" style={{ color: "#005F6A" }}>
+            {jobs.length}
+          </div>
+        </Card>
+        <Card variant="default">
           <div className="text-sm font-medium text-gray-500 mb-1">
             Completed
           </div>
           <div className="text-2xl font-bold text-green-600">
             {completedJobs.length}
           </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        </Card>
+        <Card variant="default">
           <div className="text-sm font-medium text-gray-500 mb-1">
             Total Revenue
           </div>
-          <div className="text-2xl font-bold text-blue-600">
+          <div className="text-2xl font-bold" style={{ color: "#77C8CC" }}>
             ${totalRevenue.toFixed(2)}
           </div>
-        </div>
+        </Card>
       </div>
 
       {pendingPayment.length > 0 && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-yellow-400"
-                viewBox="0 0 20 20"
-                fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                {pendingPayment.length} completed job
-                {pendingPayment.length !== 1 ? "s" : ""} pending payment
-              </p>
-            </div>
+        <Card variant="warning" className="mb-6">
+          <div className="flex items-start">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mr-3 mt-0.5" />
+            <p className="text-sm text-yellow-700">
+              {pendingPayment.length} completed job
+              {pendingPayment.length !== 1 ? "s" : ""} pending payment
+            </p>
           </div>
-        </div>
+        </Card>
       )}
 
       {jobs.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
+        <Card variant="default" className="p-12 text-center">
           <p className="text-gray-500 mb-4">
             No jobs created yet. Start by creating your first cleaning job.
           </p>
-          <Link
-            href="/jobs/new"
-            className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Create Your First Job
+          <Link href="/jobs/new">
+            <Button variant="primary">Create Your First Job</Button>
           </Link>
-        </div>
+        </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <Card variant="default">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -158,20 +155,18 @@ export default async function JobsPage() {
                       {job.clientName}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded ${
+                      <Badge
+                        variant={
                           job.jobType === "R"
-                            ? "bg-blue-100 text-blue-800"
+                            ? "secondary"
                             : job.jobType === "C"
-                            ? "bg-purple-100 text-purple-800"
+                            ? "default"
                             : job.jobType === "PC"
-                            ? "bg-orange-100 text-orange-800"
-                            : job.jobType === "F"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-gray-100 text-gray-600"
-                        }`}>
+                            ? "warning"
+                            : "default"
+                        }>
                         {job.jobType || "-"}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       <div
@@ -188,55 +183,45 @@ export default async function JobsPage() {
                       {job.price ? `$${job.price.toFixed(2)}` : "-"}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      <Badge
+                        variant={
                           job.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800"
+                            ? "success"
                             : job.status === "IN_PROGRESS"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}>
+                            ? "secondary"
+                            : "default"
+                        }>
                         {job.status.replace("_", " ")}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center space-x-2">
-                        {job.paymentReceived ? (
-                          <span
-                            className="text-green-600"
-                            title="Payment Received">
-                            ✓
-                          </span>
-                        ) : (
-                          <span
-                            className="text-gray-300"
-                            title="Payment Pending">
-                            ✓
-                          </span>
-                        )}
-                        {job.invoiceSent ? (
-                          <span className="text-blue-600" title="Invoice Sent">
-                            📄
-                          </span>
-                        ) : (
-                          <span
-                            className="text-gray-300"
-                            title="Invoice Not Sent">
-                            📄
-                          </span>
-                        )}
+                        <div title="Payment Received">
+                          {job.paymentReceived ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <CheckCircle2 className="w-5 h-5 text-gray-300" />
+                          )}
+                        </div>
+                        <div title="Invoice Sent">
+                          {job.invoiceSent ? (
+                            <FileText className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <FileText className="w-5 h-5 text-gray-300" />
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        href={`/jobs/${job.id}`}
-                        className="text-blue-600 hover:text-blue-900 mr-3">
-                        View
+                    <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <Link href={`/jobs/${job.id}`}>
+                        <Button variant="ghost" size="sm">
+                          View
+                        </Button>
                       </Link>
-                      <Link
-                        href={`/jobs/new?edit=${job.id}`}
-                        className="text-gray-600 hover:text-gray-900">
-                        Edit
+                      <Link href={`/jobs/new?edit=${job.id}`}>
+                        <Button variant="ghost" size="sm">
+                          Edit
+                        </Button>
                       </Link>
                     </td>
                   </tr>
@@ -244,7 +229,7 @@ export default async function JobsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

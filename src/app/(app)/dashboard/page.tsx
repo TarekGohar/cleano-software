@@ -44,7 +44,7 @@ export default async function DashboardPage() {
         )}
 
         <DashboardCard
-          title="My Jobs"
+          title="Jobs"
           description="Log and track your jobs"
           href="/jobs"
         />

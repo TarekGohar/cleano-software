@@ -32,7 +32,7 @@ export default async function DashboardLayout({
                 Cleano
               </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <NavLink href="">Dashboard</NavLink>
+                <NavLink href="/dashboard">Dashboard</NavLink>
                 {isAdmin && (
                   <>
                     <NavLink href="/products">Products</NavLink>
@@ -41,7 +41,7 @@ export default async function DashboardLayout({
                     <NavLink href="/analytics">Analytics</NavLink>
                   </>
                 )}
-                <NavLink href="/jobs">My Jobs</NavLink>
+                <NavLink href="/jobs">Jobs</NavLink>
                 <NavLink href="/my-requests">My Requests</NavLink>
               </div>
             </div>

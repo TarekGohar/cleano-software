@@ -2,8 +2,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { FeatureCard } from "@/components/ui/FeatureCard";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 export default async function HomePage() {
   const session = await auth.api.getSession({
@@ -40,32 +40,32 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3 mt-16">
-            <FeatureCard
+            <Card
               icon="📦"
               title="Inventory Management"
               description="Track products, stock levels, and costs in real-time"
             />
-            <FeatureCard
+            <Card
               icon="🧰"
               title="Kit Assignment"
               description="Create and assign product kits to your cleaning team"
             />
-            <FeatureCard
+            <Card
               icon="📊"
               title="Usage Analytics"
               description="Monitor product usage and employee performance"
             />
-            <FeatureCard
+            <Card
               icon="💼"
               title="Job Tracking"
               description="Log jobs and track product consumption per client"
             />
-            <FeatureCard
+            <Card
               icon="📝"
               title="Request System"
               description="Employees can request inventory when they need it"
             />
-            <FeatureCard
+            <Card
               icon="⚡"
               title="Real-time Alerts"
               description="Get notified when stock levels are running low"

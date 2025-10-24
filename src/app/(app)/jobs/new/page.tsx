@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
 import CleanerSelector from "./CleanerSelector";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
+import Textarea from "@/components/ui/Textarea";
 
 export default async function JobFormPage({
   searchParams,
@@ -269,8 +274,8 @@ export default async function JobFormPage({
 
   return (
     <div className="max-w-5xl mx-auto text-black">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">
+      <Card variant="default" className="mb-6">
+        <h1 className="text-3xl font-bold" style={{ color: "#005F6A" }}>
           {isEditing ? "Edit Cleaning Job" : "Create New Cleaning Job"}
         </h1>
         <p className="text-gray-600 mt-1">
@@ -278,7 +283,7 @@ export default async function JobFormPage({
             ? "Update the details for your cleaning job"
             : "Fill in the details for your cleaning job"}
         </p>
-      </div>
+      </Card>
 
       <form action={saveJob} className="space-y-6">
         {/* Hidden field for job ID when editing */}
@@ -286,8 +291,12 @@ export default async function JobFormPage({
           <input type="hidden" name="jobId" value={existingJob.id} />
         )}
         {/* Basic Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+        <Card variant="default">
+          <h2
+            className="text-xl font-semibold mb-4"
+            style={{ color: "#005F6A" }}>
+            Basic Information
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
@@ -295,13 +304,12 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Client Name <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 type="text"
                 id="clientName"
                 name="clientName"
                 required
                 defaultValue={existingJob?.clientName || ""}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., Alexis Juarez"
               />
             </div>
@@ -312,17 +320,18 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Job Type
               </label>
-              <select
+              <Select
                 id="jobType"
                 name="jobType"
                 defaultValue={existingJob?.jobType || ""}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select Type</option>
-                <option value="R">R - Residential</option>
-                <option value="C">C - Commercial</option>
-                <option value="PC">PC - Post Construction</option>
-                <option value="F">F - Follow-up</option>
-              </select>
+                options={[
+                  { value: "", label: "Select Type" },
+                  { value: "R", label: "R - Residential" },
+                  { value: "C", label: "C - Commercial" },
+                  { value: "PC", label: "PC - Post Construction" },
+                  { value: "F", label: "F - Follow-up" },
+                ]}
+              />
             </div>
 
             <div>
@@ -331,12 +340,11 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Location
               </label>
-              <input
+              <Input
                 type="text"
                 id="location"
                 name="location"
                 defaultValue={existingJob?.location || ""}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Address or area"
               />
             </div>
@@ -347,21 +355,24 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
-              <textarea
+              <Textarea
                 id="description"
                 name="description"
                 rows={2}
                 defaultValue={existingJob?.description || ""}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Brief description of the job..."
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Date & Time */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Date & Time</h2>
+        <Card variant="default">
+          <h2
+            className="text-xl font-semibold mb-4"
+            style={{ color: "#005F6A" }}>
+            Date & Time
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label
@@ -369,7 +380,7 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Job Date
               </label>
-              <input
+              <Input
                 type="date"
                 id="jobDate"
                 name="jobDate"
@@ -378,7 +389,6 @@ export default async function JobFormPage({
                     ? new Date(existingJob.jobDate).toISOString().split("T")[0]
                     : ""
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -388,7 +398,7 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Start Time
               </label>
-              <input
+              <Input
                 type="time"
                 id="startTime"
                 name="startTime"
@@ -400,7 +410,6 @@ export default async function JobFormPage({
                         .slice(0, 5)
                     : ""
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -410,7 +419,7 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 End Time
               </label>
-              <input
+              <Input
                 type="time"
                 id="endTime"
                 name="endTime"
@@ -422,15 +431,18 @@ export default async function JobFormPage({
                         .slice(0, 5)
                     : ""
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Team & Hours */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Team</h2>
+        <Card variant="default">
+          <h2
+            className="text-xl font-semibold mb-4"
+            style={{ color: "#005F6A" }}>
+            Team
+          </h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <CleanerSelector
@@ -439,11 +451,15 @@ export default async function JobFormPage({
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Product Usage */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Product Usage</h2>
+        <Card variant="default">
+          <h2
+            className="text-xl font-semibold mb-4"
+            style={{ color: "#005F6A" }}>
+            Product Usage
+          </h2>
           <div className="space-y-3 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
             {allProducts.map((product) => {
               const usage = currentUsage.get(product.id);
@@ -459,35 +475,39 @@ export default async function JobFormPage({
                         {product.unit}
                       </div>
                     </div>
-                    <input
+                    <Input
                       type="number"
                       name={`quantity_${product.id}`}
                       step="0.01"
                       min="0"
                       max={product.stockLevel + (usage?.quantity || 0)}
                       defaultValue={usage?.quantity || 0}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-24"
                     />
                     <span className="text-sm text-gray-600 ml-2 mt-2">
                       {product.unit}
                     </span>
                   </div>
-                  <input
+                  <Input
                     type="text"
                     name={`notes_${product.id}`}
                     placeholder="Optional notes"
                     defaultValue={usage?.notes || ""}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="text-sm"
                   />
                 </div>
               );
             })}
           </div>
-        </div>
+        </Card>
 
         {/* Pricing & Payment */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Pricing & Payment</h2>
+        <Card variant="default">
+          <h2
+            className="text-xl font-semibold mb-4"
+            style={{ color: "#005F6A" }}>
+            Pricing & Payment
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
@@ -497,14 +517,14 @@ export default async function JobFormPage({
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   id="price"
                   name="price"
                   defaultValue={existingJob?.price || ""}
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  className="pl-7"
                 />
               </div>
             </div>
@@ -517,14 +537,14 @@ export default async function JobFormPage({
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   id="employeePay"
                   name="employeePay"
                   defaultValue={existingJob?.employeePay || ""}
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  className="pl-7"
                 />
               </div>
             </div>
@@ -537,14 +557,14 @@ export default async function JobFormPage({
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   id="totalTip"
                   name="totalTip"
                   defaultValue={existingJob?.totalTip || ""}
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  className="pl-7"
                 />
               </div>
             </div>
@@ -557,14 +577,14 @@ export default async function JobFormPage({
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   id="parking"
                   name="parking"
                   defaultValue={existingJob?.parking || ""}
-                  className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  className="pl-7"
                 />
               </div>
             </div>
@@ -593,11 +613,15 @@ export default async function JobFormPage({
               </label>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Notes & Status */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Additional Details</h2>
+        <Card variant="default">
+          <h2
+            className="text-xl font-semibold mb-4"
+            style={{ color: "#005F6A" }}>
+            Additional Details
+          </h2>
           <div className="space-y-4">
             <div>
               <label
@@ -605,12 +629,11 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Notes
               </label>
-              <textarea
+              <Textarea
                 id="notes"
                 name="notes"
                 rows={3}
                 defaultValue={existingJob?.notes || ""}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Any additional notes or special requirements..."
               />
             </div>
@@ -621,42 +644,39 @@ export default async function JobFormPage({
                 className="block text-sm font-medium text-gray-700 mb-1">
                 Status
               </label>
-              <select
+              <Select
                 id="status"
                 name="status"
                 defaultValue={existingJob?.status || "IN_PROGRESS"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="CANCELLED">Cancelled</option>
-              </select>
+                options={[
+                  { value: "IN_PROGRESS", label: "In Progress" },
+                  { value: "COMPLETED", label: "Completed" },
+                  { value: "CANCELLED", label: "Cancelled" },
+                ]}
+              />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex justify-between">
           {isEditing && existingJob && (
             <form action={deleteJob}>
               <input type="hidden" name="jobId" value={existingJob.id} />
-              <button
-                type="submit"
-                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+              <Button type="submit" variant="destructive">
                 Delete Job
-              </button>
+              </Button>
             </form>
           )}
           <div className={`flex space-x-4 ${!isEditing ? "ml-auto" : ""}`}>
-            <a
-              href={isEditing ? `/jobs/${existingJob?.id}` : "/jobs"}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-              Cancel
+            <a href={isEditing ? `/jobs/${existingJob?.id}` : "/jobs"}>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
             </a>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <Button type="submit" variant="primary">
               {isEditing ? "Update Job" : "Create Job"}
-            </button>
+            </Button>
           </div>
         </div>
       </form>

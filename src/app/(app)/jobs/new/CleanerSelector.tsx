@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import { X } from "lucide-react";
 
 interface User {
   id: string;
@@ -65,7 +68,7 @@ export default function CleanerSelector({
 
       {/* Search Input */}
       <div className="relative">
-        <input
+        <Input
           id="cleaner-search"
           type="text"
           value={searchTerm}
@@ -74,7 +77,6 @@ export default function CleanerSelector({
             setIsDropdownOpen(true);
           }}
           onFocus={() => setIsDropdownOpen(true)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Search by name or email..."
         />
 
@@ -124,7 +126,12 @@ export default function CleanerSelector({
             {selectedCleaners.map((cleaner) => (
               <div
                 key={cleaner.id}
-                className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                className="flex items-center justify-between rounded-lg px-4 py-2"
+                style={{
+                  backgroundColor: "#E6F4F5",
+                  borderColor: "#77C8CC",
+                  borderWidth: "1px",
+                }}>
                 <div>
                   <div className="font-medium text-gray-900">
                     {cleaner.name}
@@ -136,18 +143,7 @@ export default function CleanerSelector({
                   onClick={() => handleRemoveCleaner(cleaner.id)}
                   className="ml-4 text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded p-1"
                   aria-label={`Remove ${cleaner.name}`}>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             ))}

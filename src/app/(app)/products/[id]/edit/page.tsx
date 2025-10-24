@@ -3,6 +3,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
+import Button from "@/components/ui/Button";
+import { ArrowLeft } from "lucide-react";
 
 export default async function EditProductPage({
   params,
@@ -19,8 +24,9 @@ export default async function EditProductPage({
     redirect("/sign-in");
   }
 
-  if (session.user.role === "EMPLOYEE") {
-    redirect("");
+  const userRole = (session.user as any).role;
+  if (userRole === "EMPLOYEE") {
+    redirect("/dashboard");
   }
 
   const product = await db.product.findUnique({
@@ -69,139 +75,154 @@ export default async function EditProductPage({
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6">Edit Product</h1>
-
-      <form
-        action={updateProduct}
-        className="bg-white rounded-lg shadow p-6 space-y-6">
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1">
-            Product Name *
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            defaultValue={product.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+    <div className="max-w-2xl space-y-6">
+      {/* Header */}
+      <Card variant="default">
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            href="/products"
+            submit={false}
+            className="!px-0">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Products
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
         </div>
+      </Card>
 
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-1">
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={3}
-            defaultValue={product.description || ""}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+      {/* Edit Form */}
+      <Card variant="default">
+        <form action={updateProduct} className="space-y-6">
           <div>
             <label
-              htmlFor="unit"
-              className="block text-sm font-medium text-gray-700 mb-1">
-              Unit *
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1.5">
+              Product Name *
             </label>
-            <input
+            <Input
               type="text"
-              id="unit"
-              name="unit"
+              id="name"
+              name="name"
               required
-              defaultValue={product.unit}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              defaultValue={product.name}
+              variant="default"
+              size="md"
             />
           </div>
 
           <div>
             <label
-              htmlFor="costPerUnit"
-              className="block text-sm font-medium text-gray-700 mb-1">
-              Cost per Unit ($) *
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 mb-1.5">
+              Description
             </label>
-            <input
-              type="number"
-              id="costPerUnit"
-              name="costPerUnit"
-              required
-              step="0.01"
-              min="0"
-              defaultValue={product.costPerUnit}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="stockLevel"
-              className="block text-sm font-medium text-gray-700 mb-1">
-              Stock Level *
-            </label>
-            <input
-              type="number"
-              id="stockLevel"
-              name="stockLevel"
-              required
-              step="0.01"
-              min="0"
-              defaultValue={product.stockLevel}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Textarea
+              id="description"
+              name="description"
+              rows={3}
+              defaultValue={product.description || ""}
+              variant="default"
+              size="md"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="minStock"
-              className="block text-sm font-medium text-gray-700 mb-1">
-              Minimum Stock Alert *
-            </label>
-            <input
-              type="number"
-              id="minStock"
-              name="minStock"
-              required
-              step="0.01"
-              min="0"
-              defaultValue={product.minStock}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="unit"
+                className="block text-sm font-medium text-gray-700 mb-1.5">
+                Unit *
+              </label>
+              <Input
+                type="text"
+                id="unit"
+                name="unit"
+                required
+                defaultValue={product.unit}
+                variant="default"
+                size="md"
+              />
+            </div>
 
-        <div className="flex justify-between">
-          <form action={deleteProduct}>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-              Delete Product
-            </button>
-          </form>
-          <div className="flex space-x-4">
-            <a
-              href="/products"
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-              Cancel
-            </a>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Update Product
-            </button>
+            <div>
+              <label
+                htmlFor="costPerUnit"
+                className="block text-sm font-medium text-gray-700 mb-1.5">
+                Cost per Unit ($) *
+              </label>
+              <Input
+                type="number"
+                id="costPerUnit"
+                name="costPerUnit"
+                required
+                step="0.01"
+                min="0"
+                defaultValue={product.costPerUnit}
+                variant="default"
+                size="md"
+              />
+            </div>
           </div>
-        </div>
-      </form>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="stockLevel"
+                className="block text-sm font-medium text-gray-700 mb-1.5">
+                Stock Level *
+              </label>
+              <Input
+                type="number"
+                id="stockLevel"
+                name="stockLevel"
+                required
+                step="0.01"
+                min="0"
+                defaultValue={product.stockLevel}
+                variant="default"
+                size="md"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="minStock"
+                className="block text-sm font-medium text-gray-700 mb-1.5">
+                Minimum Stock Alert *
+              </label>
+              <Input
+                type="number"
+                id="minStock"
+                name="minStock"
+                required
+                step="0.01"
+                min="0"
+                defaultValue={product.minStock}
+                variant="default"
+                size="md"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-gray-100">
+            <form action={deleteProduct}>
+              <Button type="submit" variant="destructive" size="md">
+                Delete Product
+              </Button>
+            </form>
+            <div className="flex gap-3">
+              <Button variant="outline" size="md" href="/products">
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" size="md">
+                Update Product
+              </Button>
+            </div>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }
