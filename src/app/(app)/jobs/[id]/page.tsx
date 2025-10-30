@@ -14,6 +14,11 @@ import {
   Clock,
   DollarSign,
   Users,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Package,
+  Pencil,
 } from "lucide-react";
 
 export default async function JobPage({
@@ -58,7 +63,7 @@ export default async function JobPage({
   }
 
   // Calculate total cost of products used
-  const totalCost = job.productUsage.reduce((sum, usage) => {
+  const totalProductCost = job.productUsage.reduce((sum, usage) => {
     return sum + usage.quantity * usage.product.costPerUnit;
   }, 0);
 
@@ -72,43 +77,53 @@ export default async function JobPage({
         )
       : null;
 
+  // Calculate net profit
+  const netProfit =
+    (job.price || 0) -
+    (job.employeePay || 0) -
+    (job.parking || 0) -
+    totalProductCost;
+
   return (
-    <div>
-      <Card variant="default" className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <Card variant="default">
+        <div className="flex items-start gap-4">
           <Link href="/jobs">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold" style={{ color: "#005F6A" }}>
+            <h1 className="text-3xl font-bold text-gray-900">
               {job.clientName}
             </h1>
             {job.location && (
-              <div className="flex items-center gap-2 text-gray-600 mt-1">
+              <div className="flex items-center gap-2 text-gray-600 mt-2">
                 <MapPin className="w-4 h-4" />
                 <span>{job.location}</span>
               </div>
             )}
+            {job.description && (
+              <p className="text-gray-600 mt-2">{job.description}</p>
+            )}
           </div>
           <Link href={`/jobs/new?edit=${job.id}`}>
-            <Button variant="primary">Edit Job</Button>
+            <Button variant="primary">
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit Job
+            </Button>
           </Link>
         </div>
 
-        {job.description && (
-          <p className="text-gray-600 italic mb-3">{job.description}</p>
-        )}
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-4">
           <Badge
             variant={
               job.status === "COMPLETED"
                 ? "success"
                 : job.status === "IN_PROGRESS"
                 ? "secondary"
-                : "default"
+                : "error"
             }>
             {job.status.replace("_", " ")}
           </Badge>
@@ -137,113 +152,144 @@ export default async function JobPage({
         </div>
       </Card>
 
-      {/* Payment Status Alerts */}
+      {/* Payment Status Alert */}
       {job.status === "COMPLETED" && !job.paymentReceived && (
-        <Card variant="warning" className="mb-6">
-          <div className="flex items-start">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mr-3 mt-0.5" />
-            <p className="text-sm text-yellow-700">
+        <Card variant="warning">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+            <p className="text-sm text-yellow-700 font-medium">
               Payment pending for this completed job
             </p>
           </div>
         </Card>
       )}
 
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        {job.price !== null && (
-          <Card variant="default">
-            <div className="text-sm font-medium text-gray-500 mb-1">Price</div>
-            <div className="text-2xl font-bold" style={{ color: "#005F6A" }}>
-              ${job.price.toFixed(2)}
+      {/* Financial Overview */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card variant="default">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <DollarSign className="w-5 h-5 text-green-600" />
             </div>
-          </Card>
-        )}
-
-        {job.employeePay !== null && (
-          <Card variant="default">
-            <div className="text-sm font-medium text-gray-500 mb-1">
-              Employee Pay
-            </div>
-            <div className="text-2xl font-bold text-red-600">
-              -${job.employeePay.toFixed(2)}
-            </div>
-          </Card>
-        )}
+            <div className="text-sm font-medium text-gray-500">Price</div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900">
+            {job.price !== null ? `$${job.price.toFixed(2)}` : "-"}
+          </div>
+        </Card>
 
         <Card variant="default">
-          <div className="text-sm font-medium text-gray-500 mb-1">
-            Payment Status
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <DollarSign className="w-5 h-5 text-red-600" />
+            </div>
+            <div className="text-sm font-medium text-gray-500">
+              Employee Pay
+            </div>
           </div>
-          <div className="flex items-center space-x-4 mt-2">
-            <div className="flex items-center">
-              {job.paymentReceived ? (
-                <span className="text-green-600 flex items-center text-sm font-medium">
-                  ✓ Paid
-                </span>
-              ) : (
-                <span className="text-gray-400 flex items-center text-sm font-medium">
-                  ✗ Unpaid
-                </span>
-              )}
+          <div className="text-2xl font-bold text-red-600">
+            {job.employeePay !== null ? `-$${job.employeePay.toFixed(2)}` : "-"}
+          </div>
+        </Card>
+
+        <Card variant="default">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Package className="w-5 h-5 text-purple-600" />
             </div>
-            <div className="flex items-center">
-              {job.invoiceSent ? (
-                <span className="text-blue-600 flex items-center text-sm font-medium">
-                  📄 Invoiced
-                </span>
-              ) : (
-                <span className="text-gray-400 flex items-center text-sm font-medium">
-                  📄 Not Invoiced
-                </span>
-              )}
+            <div className="text-sm font-medium text-gray-500">
+              Product Cost
             </div>
+          </div>
+          <div className="text-2xl font-bold text-purple-600">
+            {totalProductCost > 0 ? `-$${totalProductCost.toFixed(2)}` : "-"}
+          </div>
+        </Card>
+
+        <Card
+          variant="default"
+          className={
+            netProfit > 0 ? "bg-green-50 border-green-200" : "bg-gray-50"
+          }>
+          <div className="flex items-center gap-3 mb-2">
+            <div
+              className={`p-2 rounded-lg ${
+                netProfit > 0 ? "bg-green-100" : "bg-gray-100"
+              }`}>
+              <DollarSign
+                className={`w-5 h-5 ${
+                  netProfit > 0 ? "text-green-600" : "text-gray-600"
+                }`}
+              />
+            </div>
+            <div className="text-sm font-medium text-gray-500">Net Profit</div>
+          </div>
+          <div
+            className={`text-2xl font-bold ${
+              netProfit > 0 ? "text-green-600" : "text-gray-600"
+            }`}>
+            ${netProfit.toFixed(2)}
           </div>
         </Card>
       </div>
 
-      {/* Job Details */}
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
+      {/* Main Content Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Date & Time */}
         <Card variant="default">
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            <Calendar className="w-5 h-5 inline mr-2" />
-            Date & Time
-          </h2>
-          <dl className="space-y-2">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Calendar className="w-5 h-5 text-blue-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Date & Time
+            </h2>
+          </div>
+          <dl className="space-y-3">
             {job.jobDate && (
-              <div>
+              <div className="flex justify-between items-center">
                 <dt className="text-sm text-gray-500">Job Date</dt>
-                <dd className="text-sm font-medium">
-                  {new Date(job.jobDate).toLocaleDateString()}
+                <dd className="text-sm font-medium text-gray-900">
+                  {new Date(job.jobDate).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </dd>
               </div>
             )}
             {job.startTime && (
-              <div>
+              <div className="flex justify-between items-center">
                 <dt className="text-sm text-gray-500">Start Time</dt>
-                <dd className="text-sm font-medium">
-                  {new Date(job.startTime).toLocaleString()}
+                <dd className="text-sm font-medium text-gray-900">
+                  {new Date(job.startTime).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
                 </dd>
               </div>
             )}
             {job.endTime && (
-              <div>
+              <div className="flex justify-between items-center">
                 <dt className="text-sm text-gray-500">End Time</dt>
-                <dd className="text-sm font-medium">
-                  {new Date(job.endTime).toLocaleString()}
+                <dd className="text-sm font-medium text-gray-900">
+                  {new Date(job.endTime).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
                 </dd>
               </div>
             )}
             {duration !== null && (
-              <div>
-                <dt className="text-sm text-gray-500">
-                  <Clock className="w-4 h-4 inline mr-1" />
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                <dt className="text-sm text-gray-500 flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
                   Duration
                 </dt>
-                <dd className="text-sm font-medium">
+                <dd className="text-sm font-semibold text-[#005F6A]">
                   {Math.floor(duration / 60)}h {duration % 60}m
                 </dd>
               </div>
@@ -253,22 +299,128 @@ export default async function JobPage({
 
         {/* Team */}
         <Card variant="default">
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            <Users className="w-5 h-5 inline mr-2" />
-            Team
-          </h2>
-          <dl className="space-y-2">
-            <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Users className="w-5 h-5 text-purple-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Team</h2>
+          </div>
+          <dl className="space-y-3">
+            <div className="flex justify-between items-center">
               <dt className="text-sm text-gray-500">Assigned To</dt>
-              <dd className="text-sm font-medium">{job.employee.name}</dd>
+              <dd className="text-sm font-medium text-gray-900">
+                {job.employee.name}
+              </dd>
             </div>
             {job.cleaners.length > 0 && (
-              <div>
-                <dt className="text-sm text-gray-500">Cleaners</dt>
-                <dd className="text-sm font-medium">
-                  {job.cleaners.map((cleaner) => cleaner.name).join(", ")}
+              <div className="pt-2 border-t border-gray-100">
+                <dt className="text-sm text-gray-500 mb-2">Cleaners</dt>
+                <dd className="flex flex-wrap gap-2">
+                  {job.cleaners.map((cleaner) => (
+                    <span
+                      key={cleaner.id}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-[#005F6A] to-[#77C8CC] text-white">
+                      {cleaner.name}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </Card>
+
+        {/* Payment Status */}
+        <Card variant="default">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Payment Status
+            </h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+              <span className="text-sm font-medium text-gray-700">
+                Payment Received
+              </span>
+              {job.paymentReceived ? (
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="text-sm font-semibold">Paid</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <XCircle className="w-5 h-5" />
+                  <span className="text-sm font-semibold">Unpaid</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+              <span className="text-sm font-medium text-gray-700">
+                Invoice Sent
+              </span>
+              {job.invoiceSent ? (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <FileText className="w-5 h-5" />
+                  <span className="text-sm font-semibold">Sent</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <FileText className="w-5 h-5" />
+                  <span className="text-sm font-semibold">Not Sent</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Financial Breakdown */}
+        <Card variant="default">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <DollarSign className="w-5 h-5 text-yellow-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Financials</h2>
+          </div>
+          <dl className="space-y-2">
+            {job.price !== null && (
+              <div className="flex justify-between items-center">
+                <dt className="text-sm text-gray-500">Price</dt>
+                <dd className="text-sm font-semibold text-green-600">
+                  +${job.price.toFixed(2)}
+                </dd>
+              </div>
+            )}
+            {job.employeePay !== null && (
+              <div className="flex justify-between items-center">
+                <dt className="text-sm text-gray-500">Employee Pay</dt>
+                <dd className="text-sm font-semibold text-red-600">
+                  -${job.employeePay.toFixed(2)}
+                </dd>
+              </div>
+            )}
+            {job.totalTip !== null && job.totalTip > 0 && (
+              <div className="flex justify-between items-center">
+                <dt className="text-sm text-gray-500">Tips</dt>
+                <dd className="text-sm font-semibold text-green-600">
+                  +${job.totalTip.toFixed(2)}
+                </dd>
+              </div>
+            )}
+            {job.parking !== null && job.parking > 0 && (
+              <div className="flex justify-between items-center">
+                <dt className="text-sm text-gray-500">Parking</dt>
+                <dd className="text-sm font-semibold text-red-600">
+                  -${job.parking.toFixed(2)}
+                </dd>
+              </div>
+            )}
+            {totalProductCost > 0 && (
+              <div className="flex justify-between items-center">
+                <dt className="text-sm text-gray-500">Product Cost</dt>
+                <dd className="text-sm font-semibold text-red-600">
+                  -${totalProductCost.toFixed(2)}
                 </dd>
               </div>
             )}
@@ -276,117 +428,69 @@ export default async function JobPage({
         </Card>
       </div>
 
-      {/* Financial Breakdown */}
-      {(job.price !== null ||
-        job.employeePay !== null ||
-        job.totalTip !== null ||
-        job.parking !== null) && (
-        <Card variant="default" className="mb-6">
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            <DollarSign className="w-5 h-5 inline mr-2" />
-            Financial Breakdown
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {job.price !== null && (
-              <div>
-                <div className="text-sm text-gray-500">Price</div>
-                <div className="text-lg font-semibold">
-                  ${job.price.toFixed(2)}
-                </div>
-              </div>
-            )}
-
-            {job.employeePay !== null && (
-              <div>
-                <div className="text-sm text-gray-500">Employee Pay</div>
-                <div className="text-lg font-semibold text-red-600">
-                  -${job.employeePay.toFixed(2)}
-                </div>
-              </div>
-            )}
-
-            {job.totalTip !== null && job.totalTip > 0 && (
-              <div>
-                <div className="text-sm text-gray-500">Tips</div>
-                <div className="text-lg font-semibold text-green-600">
-                  +${job.totalTip.toFixed(2)}
-                </div>
-              </div>
-            )}
-
-            {job.parking !== null && job.parking > 0 && (
-              <div>
-                <div className="text-sm text-gray-500">Parking</div>
-                <div className="text-lg font-semibold text-red-600">
-                  -${job.parking.toFixed(2)}
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
       {/* Notes */}
       {job.notes && (
-        <Card variant="default" className="mb-6">
-          <h2
-            className="text-lg font-semibold mb-2"
-            style={{ color: "#005F6A" }}>
-            Notes
-          </h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{job.notes}</p>
+        <Card variant="default">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Notes</h2>
+          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {job.notes}
+          </p>
         </Card>
       )}
 
       {/* Product Usage */}
       {job.productUsage.length > 0 && (
         <Card variant="default">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold" style={{ color: "#005F6A" }}>
-              Product Usage
-            </h2>
-            <div className="text-lg font-semibold text-gray-900">
-              Total Cost: ${totalCost.toFixed(2)}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Package className="w-5 h-5 text-purple-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Product Usage
+              </h2>
             </div>
+            <Badge variant="default" size="sm">
+              Total: ${totalProductCost.toFixed(2)}
+            </Badge>
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Quantity
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Cost/Unit
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Total Cost
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Notes
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {job.productUsage.map((usage) => (
-                  <tr key={usage.id}>
+                  <tr key={usage.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                       {usage.product.name}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {usage.quantity} {usage.product.unit}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-gray-600">
                       ${usage.product.costPerUnit.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                      ${(usage.quantity * usage.product.costPerUnit).toFixed(2)}
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                      $
+                      {(usage.quantity * usage.product.costPerUnit).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {usage.notes || "-"}

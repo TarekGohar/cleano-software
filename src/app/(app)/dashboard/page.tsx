@@ -23,7 +23,7 @@ export default async function DashboardPage() {
             <DashboardCard
               title="Total Products"
               description="Manage your inventory"
-              href="/products"
+              href="/inventory"
             />
             <DashboardCard
               title="Employees"

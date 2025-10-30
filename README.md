@@ -157,7 +157,7 @@ A comprehensive inventory tracking and management portal for cleaning businesses
 /sign-in                   → Login page
 /sign-up                   → Registration page
                  → Main dashboard (role-based view)
-/products        → Product inventory management (Admin)
+/inventory        → Product inventory management (Admin)
 /kits            → Kit management (Admin)
 /employees       → Employee management (Admin)
 /requests        → Review inventory requests (Admin)

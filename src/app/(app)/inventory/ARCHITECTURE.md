@@ -75,7 +75,7 @@ Client Components Hydrate with New State
 ## Search Params State Management
 
 ```typescript
-URL: /products?search=cleaner&status=low-stock&sortBy=stockLevel&sortOrder=desc&page=2&perPage=25
+URL: /inventory?search=cleaner&status=low-stock&sortBy=stockLevel&sortOrder=desc&page=2&perPage=25
 
 Parsed as:
 {

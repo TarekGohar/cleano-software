@@ -53,7 +53,7 @@ Sort by multiple fields with ascending/descending order:
 All filters can be combined:
 
 ```
-/products?search=cleaner&status=low-stock&sortBy=stockLevel&sortOrder=asc&page=1&perPage=25
+/inventory?search=cleaner&status=low-stock&sortBy=stockLevel&sortOrder=asc&page=1&perPage=25
 ```
 
 ## Components

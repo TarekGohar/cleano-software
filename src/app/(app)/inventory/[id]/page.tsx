@@ -55,7 +55,7 @@ export default async function ProductPage({
   });
 
   if (!product) {
-    redirect("/products");
+    redirect("/inventory");
   }
 
   // Calculate total quantity assigned to employees
@@ -78,11 +78,11 @@ export default async function ProductPage({
           <Button
             variant="ghost"
             size="sm"
-            href="/products"
+            href="/inventory"
             submit={false}
             className="!px-0">
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Products
+            Back to Inventory
           </Button>
           <div className="flex justify-between items-start">
             <div>
@@ -93,12 +93,6 @@ export default async function ProductPage({
                 <p className="text-gray-600 mt-2">{product.description}</p>
               )}
             </div>
-            <Button
-              variant="primary"
-              size="md"
-              href={`/products/${product.id}/edit`}>
-              Edit Product
-            </Button>
           </div>
         </div>
       </Card>
@@ -367,15 +361,6 @@ export default async function ProductPage({
                 </Card>
               )}
 
-              <div className="pt-4 border-t border-gray-200">
-                <Button
-                  variant="primary"
-                  size="md"
-                  href={`/products/${product.id}/edit`}
-                  className="w-full">
-                  Adjust Stock Levels
-                </Button>
-              </div>
             </div>
           </div>
         </Card>

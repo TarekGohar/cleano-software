@@ -23,7 +23,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-white">
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="bg-white border-b border-gray-10">
         <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -36,9 +36,8 @@ export default async function DashboardLayout({
                 <NavLink href="/dashboard">Dashboard</NavLink>
                 {isAdmin && (
                   <>
-                    <NavLink href="/products">Products</NavLink>
+                    <NavLink href="/inventory">Inventory</NavLink>
                     <NavLink href="/employees">Employees</NavLink>
-                    <NavLink href="/requests">Requests</NavLink>
                     <NavLink href="/analytics">Analytics</NavLink>
                   </>
                 )}

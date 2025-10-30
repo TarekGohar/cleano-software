@@ -603,7 +603,7 @@ export default async function EmployeePage({
                           key={product.id}
                           variant="ghost"
                           size="md"
-                          href={`/products/${product.id}`}
+                          href={`/inventory/${product.id}`}
                           submit={false}
                           className="w-full !justify-start !h-auto !py-3 hover:bg-red-50 border border-red-200 !rounded-lg">
                           <div className="w-full space-y-1">
