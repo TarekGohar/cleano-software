@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 import { Edit2, Trash2 } from "lucide-react";
 
 interface InventoryItemProps {
@@ -9,20 +10,25 @@ interface InventoryItemProps {
     id: string;
     quantity: number;
     notes: string | null;
+    assignedAt?: Date;
     product: {
       id: string;
       name: string;
       unit: string;
+      costPerUnit?: number;
+      minStock?: number;
     };
   };
   removeAction: (formData: FormData) => Promise<void>;
-  onEdit: () => void;
+  onEdit?: () => void;
+  useFullWidth?: boolean;
 }
 
 export default function InventoryItem({
   assignment,
   removeAction,
   onEdit,
+  useFullWidth = true,
 }: InventoryItemProps) {
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -43,8 +49,27 @@ export default function InventoryItem({
     }
   };
 
+  const itemValue = assignment.quantity * (assignment.product.costPerUnit || 0);
+  const isLowStock =
+    assignment.quantity <= (assignment.product.minStock || 0) &&
+    assignment.quantity > 0;
+  const isOutOfStock = assignment.quantity === 0;
+
+  const formatDate = (date?: Date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Use 5-column layout for old view, 6-column for new view
+  const gridCols = useFullWidth ? "grid-cols-5" : "grid-cols-6";
+
   return (
-    <div className="grid grid-cols-5 hover:bg-gray-50/50 transition-colors items-center group">
+    <div
+      className={`grid ${gridCols} hover:bg-gray-50/50 transition-colors items-center group`}>
       {/* Product Name */}
       <div className="px-6 py-4">
         <span className="text-sm font-medium text-gray-900">
@@ -53,29 +78,57 @@ export default function InventoryItem({
       </div>
 
       {/* Quantity */}
-      <div className="px-6 py-4">
+      <div className="px-6 py-4 flex items-center gap-2">
         <span className="text-sm text-gray-900">
           {assignment.quantity} {assignment.product.unit}
         </span>
+        {isOutOfStock && (
+          <Badge variant="error" size="sm">
+            Out
+          </Badge>
+        )}
+        {isLowStock && (
+          <Badge variant="warning" size="sm">
+            Low
+          </Badge>
+        )}
       </div>
 
+      {/* Value (only in 6-column) */}
+      {!useFullWidth && (
+        <div className="px-6 py-4">
+          <span className="text-sm font-medium text-green-600">
+            ${itemValue.toFixed(2)}
+          </span>
+        </div>
+      )}
+
+      {/* Assigned Date (only in 6-column) */}
+      {!useFullWidth && (
+        <div className="px-6 py-4">
+          <span className="text-sm text-gray-500">
+            {formatDate(assignment.assignedAt)}
+          </span>
+        </div>
+      )}
+
       {/* Notes */}
-      <div className="px-6 py-4 col-span-2">
-        <span className="text-sm text-gray-600">
-          {assignment.notes || "-"}
-        </span>
+      <div className={`px-6 py-4 ${useFullWidth ? "col-span-2" : ""}`}>
+        <span className="text-sm text-gray-600">{assignment.notes || "-"}</span>
       </div>
 
       {/* Actions */}
       <div className="px-6 py-4 text-right flex items-center justify-end gap-2">
-        <Button
-          onClick={onEdit}
-          variant="ghost"
-          size="sm"
-          submit={false}
-          className="opacity-0 group-hover:opacity-100 transition-opacity !px-3">
-          <Edit2 className="w-4 h-4" />
-        </Button>
+        {onEdit && (
+          <Button
+            onClick={onEdit}
+            variant="ghost"
+            size="sm"
+            submit={false}
+            className="opacity-0 group-hover:opacity-100 transition-opacity !px-3">
+            <Edit2 className="w-4 h-4" />
+          </Button>
+        )}
         <form onSubmit={handleRemove} className="inline">
           <input type="hidden" name="assignmentId" value={assignment.id} />
           <Button

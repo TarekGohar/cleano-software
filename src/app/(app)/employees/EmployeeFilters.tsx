@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
+import CustomDropdown from "@/components/ui/custom-dropdown";
 import Button from "@/components/ui/Button";
 import { useEmployeeLoading } from "./EmployeeLoadingContext";
 
@@ -154,12 +154,34 @@ export function EmployeeFilters() {
             className="block text-sm font-medium text-gray-700 mb-1.5">
             Role
           </label>
-          <Select
-            id="role"
-            value={role}
-            onChange={handleRoleChange}
-            disabled={isPending}
-            options={roleOptions}
+          <CustomDropdown
+            trigger={
+              <Button
+                variant="outline"
+                size="md"
+                submit={false}
+                className="w-full flex items-center !justify-between bg-white">
+                <span>
+                  {roleOptions.find((opt) => opt.value === role)?.label}
+                </span>
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </Button>
+            }
+            options={roleOptions.map((opt) => ({
+              label: opt.label,
+              onClick: () => handleRoleChange(opt.value),
+            }))}
             variant="default"
             size="md"
           />
@@ -172,12 +194,37 @@ export function EmployeeFilters() {
             className="block text-sm font-medium text-gray-700 mb-1.5">
             Job Status
           </label>
-          <Select
-            id="jobStatus"
-            value={jobStatus}
-            onChange={handleJobStatusChange}
-            disabled={isPending}
-            options={jobStatusOptions}
+          <CustomDropdown
+            trigger={
+              <Button
+                variant="outline"
+                size="md"
+                submit={false}
+                className="w-full flex items-center !justify-between bg-white">
+                <span>
+                  {
+                    jobStatusOptions.find((opt) => opt.value === jobStatus)
+                      ?.label
+                  }
+                </span>
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </Button>
+            }
+            options={jobStatusOptions.map((opt) => ({
+              label: opt.label,
+              onClick: () => handleJobStatusChange(opt.value),
+            }))}
             variant="default"
             size="md"
           />
@@ -190,12 +237,34 @@ export function EmployeeFilters() {
             className="block text-sm font-medium text-gray-700 mb-1.5">
             Per Page
           </label>
-          <Select
-            id="perPage"
-            value={perPage}
-            onChange={handlePerPageChange}
-            disabled={isPending}
-            options={perPageOptions}
+          <CustomDropdown
+            trigger={
+              <Button
+                variant="outline"
+                size="md"
+                submit={false}
+                className="w-full flex items-center !justify-between bg-white">
+                <span>
+                  {perPageOptions.find((opt) => opt.value === perPage)?.label}
+                </span>
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </Button>
+            }
+            options={perPageOptions.map((opt) => ({
+              label: opt.label,
+              onClick: () => handlePerPageChange(opt.value),
+            }))}
             variant="default"
             size="md"
           />

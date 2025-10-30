@@ -186,7 +186,7 @@ export default async function EmployeesPage({
       <ClearLoadingOnMount dataKey={dataKey} />
       <div className="space-y-6">
         {/* Header */}
-        <Card variant="default">
+        <Card variant="ghost">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
             <Button variant="primary" size="md" href="/employees/new">
