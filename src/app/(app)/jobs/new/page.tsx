@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import CustomDropdown from "@/components/ui/custom-dropdown";
 
 export default async function JobFormPage({
   searchParams,
@@ -317,19 +318,24 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="jobType"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-medium text-neutral-700 mb-1">
                 Job Type
               </label>
-              <Select
-                id="jobType"
-                name="jobType"
-                defaultValue={existingJob?.jobType || ""}
+              <CustomDropdown
+                trigger={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full text-left">
+                    Lemons
+                  </Button>
+                }
                 options={[
-                  { value: "", label: "Select Type" },
-                  { value: "R", label: "R - Residential" },
-                  { value: "C", label: "C - Commercial" },
-                  { value: "PC", label: "PC - Post Construction" },
-                  { value: "F", label: "F - Follow-up" },
+                  { label: "Select Type" },
+                  { label: "R - Residential" },
+                  { label: "C - Commercial" },
+                  { label: "PC - Post Construction" },
+                  { label: "F - Follow-up" },
                 ]}
               />
             </div>

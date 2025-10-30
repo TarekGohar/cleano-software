@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { Edit2, Trash2 } from "lucide-react";
 
 interface InventoryItemProps {
   assignment: {
@@ -10,121 +10,88 @@ interface InventoryItemProps {
     quantity: number;
     notes: string | null;
     product: {
+      id: string;
       name: string;
       unit: string;
     };
   };
-  updateAction: (formData: FormData) => Promise<void>;
   removeAction: (formData: FormData) => Promise<void>;
+  onEdit: () => void;
 }
 
 export default function InventoryItem({
   assignment,
-  updateAction,
   removeAction,
+  onEdit,
 }: InventoryItemProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [quantity, setQuantity] = useState(assignment.quantity.toString());
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const formData = new FormData(e.currentTarget);
-    await updateAction(formData);
-
-    setIsEditing(false);
-    setIsSubmitting(false);
-  };
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const handleRemove = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (confirm(`Remove ${assignment.product.name} from inventory?`)) {
-      const formData = new FormData(e.currentTarget);
-      await removeAction(formData);
+    if (
+      confirm(
+        `Remove ${assignment.product.name} from inventory?\n\nThis will return ${assignment.quantity} ${assignment.product.unit} to stock.`
+      )
+    ) {
+      setIsRemoving(true);
+      try {
+        const formData = new FormData(e.currentTarget);
+        await removeAction(formData);
+      } finally {
+        setIsRemoving(false);
+      }
     }
   };
 
   return (
-    <div className="flex items-center justify-between p-3 bg-[#005F6A]/5 rounded-lg border border-[#005F6A]/10 hover:border-[#005F6A]/20 transition">
-      <div className="flex-1">
-        {isEditing ? (
-          <form onSubmit={handleUpdate} className="flex items-center gap-2">
-            <input type="hidden" name="assignmentId" value={assignment.id} />
-            <span className="font-medium text-gray-900 text-sm">
-              {assignment.product.name}
-            </span>
-            <Input
-              type="number"
-              name="quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              step="0.01"
-              min="0.01"
-              required
-              variant="default"
-              size="sm"
-              className="w-20"
-              autoFocus
-            />
-            <span className="text-sm text-gray-600">
-              {assignment.product.unit}
-            </span>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              variant="primary"
-              size="sm"
-              submit={true}>
-              {isSubmitting ? "..." : "Save"}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                setQuantity(assignment.quantity.toString());
-                setIsEditing(false);
-              }}
-              variant="ghost"
-              size="sm"
-              submit={false}>
-              Cancel
-            </Button>
-          </form>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900 text-sm">
-              {assignment.product.name}
-            </span>
-            <span className="text-sm text-gray-600">
-              {assignment.quantity} {assignment.product.unit}
-            </span>
-            {assignment.notes && (
-              <span className="text-xs text-gray-500">
-                • {assignment.notes}
-              </span>
-            )}
-          </div>
-        )}
+    <div className="grid grid-cols-5 hover:bg-gray-50/50 transition-colors items-center group">
+      {/* Product Name */}
+      <div className="px-6 py-4">
+        <span className="text-sm font-medium text-gray-900">
+          {assignment.product.name}
+        </span>
       </div>
 
-      {!isEditing && (
-        <div className="flex items-center gap-2 ml-4">
+      {/* Quantity */}
+      <div className="px-6 py-4">
+        <span className="text-sm text-gray-900">
+          {assignment.quantity} {assignment.product.unit}
+        </span>
+      </div>
+
+      {/* Notes */}
+      <div className="px-6 py-4 col-span-2">
+        <span className="text-sm text-gray-600">
+          {assignment.notes || "-"}
+        </span>
+      </div>
+
+      {/* Actions */}
+      <div className="px-6 py-4 text-right flex items-center justify-end gap-2">
+        <Button
+          onClick={onEdit}
+          variant="ghost"
+          size="sm"
+          submit={false}
+          className="opacity-0 group-hover:opacity-100 transition-opacity !px-3">
+          <Edit2 className="w-4 h-4" />
+        </Button>
+        <form onSubmit={handleRemove} className="inline">
+          <input type="hidden" name="assignmentId" value={assignment.id} />
           <Button
-            onClick={() => setIsEditing(true)}
-            variant="default"
+            type="submit"
+            disabled={isRemoving}
+            variant="ghost"
             size="sm"
-            submit={false}>
-            Edit
+            className="opacity-0 group-hover:opacity-100 transition-opacity !px-3 hover:bg-red-50 hover:text-red-600">
+            {isRemoving ? (
+              <span className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></span>
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
           </Button>
-          <form onSubmit={handleRemove}>
-            <input type="hidden" name="assignmentId" value={assignment.id} />
-            <Button type="submit" variant="destructive" size="sm">
-              Remove
-            </Button>
-          </form>
-        </div>
-      )}
+        </form>
+      </div>
     </div>
   );
 }

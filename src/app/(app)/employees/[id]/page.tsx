@@ -6,17 +6,168 @@ import { revalidatePath } from "next/cache";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import ProductAssignmentForm from "./ProductAssignmentForm";
-import InventoryItem from "./InventoryItem";
+import InventorySection from "./InventorySection";
+import { ArrowLeft, ChevronLeft, Mail, Phone } from "lucide-react";
+import { Suspense } from "react";
 import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  DollarSign,
-  Phone,
-  Mail,
-} from "lucide-react";
+  MetricCardSkeleton,
+  JobCardSkeleton,
+  ProductListSkeleton,
+  HeaderSkeleton,
+} from "./LoadingSkeleton";
 
+// Server Actions
+async function assignProduct(employeeId: string, formData: FormData) {
+  "use server";
+
+  const assignmentsData = formData.get("assignmentsData") as string;
+
+  if (assignmentsData) {
+    const assignments = JSON.parse(assignmentsData);
+
+    for (const assignment of assignments) {
+      const { productId, quantity: quantityStr, notes } = assignment;
+      const quantity = parseFloat(quantityStr);
+
+      if (!productId || !quantity || quantity <= 0) continue;
+
+      const product = await db.product.findUnique({
+        where: { id: productId },
+      });
+
+      if (!product || product.stockLevel < quantity) continue;
+
+      const existing = await db.employeeProduct.findUnique({
+        where: {
+          employeeId_productId: {
+            employeeId,
+            productId,
+          },
+        },
+      });
+
+      if (existing) {
+        await db.$transaction([
+          db.employeeProduct.update({
+            where: { id: existing.id },
+            data: {
+              quantity: { increment: quantity },
+              notes: notes || existing.notes,
+            },
+          }),
+          db.product.update({
+            where: { id: productId },
+            data: { stockLevel: { decrement: quantity } },
+          }),
+        ]);
+      } else {
+        await db.$transaction([
+          db.employeeProduct.create({
+            data: {
+              employeeId,
+              productId,
+              quantity,
+              notes: notes || null,
+            },
+          }),
+          db.product.update({
+            where: { id: productId },
+            data: { stockLevel: { decrement: quantity } },
+          }),
+        ]);
+      }
+    }
+  } else {
+    const productId = formData.get("productId") as string;
+    const quantity = parseFloat(formData.get("quantity") as string);
+    const notes = formData.get("notes") as string;
+
+    if (!productId || !quantity || quantity <= 0) return;
+
+    const product = await db.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product || product.stockLevel < quantity) return;
+
+    await db.$transaction([
+      db.employeeProduct.create({
+        data: {
+          employeeId,
+          productId,
+          quantity,
+          notes: notes || null,
+        },
+      }),
+      db.product.update({
+        where: { id: productId },
+        data: { stockLevel: { decrement: quantity } },
+      }),
+    ]);
+  }
+
+  revalidatePath(`/employees/${employeeId}`);
+}
+
+async function unassignProduct(formData: FormData) {
+  "use server";
+
+  const assignmentId = formData.get("assignmentId") as string;
+  const assignment = await db.employeeProduct.findUnique({
+    where: { id: assignmentId },
+  });
+
+  if (!assignment) return;
+
+  await db.$transaction([
+    db.employeeProduct.delete({
+      where: { id: assignmentId },
+    }),
+    db.product.update({
+      where: { id: assignment.productId },
+      data: { stockLevel: { increment: assignment.quantity } },
+    }),
+  ]);
+
+  revalidatePath(`/employees/${assignment.employeeId}`);
+}
+
+async function updateProductQuantity(formData: FormData) {
+  "use server";
+
+  const assignmentId = formData.get("assignmentId") as string;
+  const newQuantity = parseFloat(formData.get("quantity") as string);
+
+  if (!newQuantity || newQuantity <= 0) return;
+
+  const assignment = await db.employeeProduct.findUnique({
+    where: { id: assignmentId },
+    include: { product: true },
+  });
+
+  if (!assignment) return;
+
+  const quantityDiff = newQuantity - assignment.quantity;
+
+  if (quantityDiff > 0 && assignment.product.stockLevel < quantityDiff) {
+    return;
+  }
+
+  await db.$transaction([
+    db.employeeProduct.update({
+      where: { id: assignmentId },
+      data: { quantity: newQuantity },
+    }),
+    db.product.update({
+      where: { id: assignment.productId },
+      data: { stockLevel: { increment: -quantityDiff } },
+    }),
+  ]);
+
+  revalidatePath(`/employees/${assignment.employeeId}`);
+}
+
+// Component exports
 export default async function EmployeePage({
   params,
 }: {
@@ -32,7 +183,6 @@ export default async function EmployeePage({
     redirect("/sign-in");
   }
 
-  // Admin only - OWNER or ADMIN
   const userRole = (session.user as any).role;
   if (userRole !== "OWNER" && userRole !== "ADMIN") {
     redirect("/dashboard");
@@ -74,23 +224,24 @@ export default async function EmployeePage({
     redirect("/employees");
   }
 
-  type JobWithUsage = (typeof employee.jobs)[0];
-
-  // Calculate various metrics
   const now = new Date();
   const completedJobs = employee.jobs.filter(
     (j: any) => j.status === "COMPLETED"
   );
-  const upcomingJobs = employee.jobs.filter(
-    (j: any) => j.status === "IN_PROGRESS" && new Date(j.startTime) > now
-  );
-  const recentJobs = employee.jobs.filter(
-    (j: any) =>
-      j.status === "COMPLETED" &&
-      new Date(j.startTime) > new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-  );
+  const upcomingJobs = employee.jobs
+    .filter(
+      (j: any) => j.status === "IN_PROGRESS" && new Date(j.startTime) > now
+    )
+    .slice(0, 5);
+  const recentJobs = employee.jobs
+    .filter(
+      (j: any) =>
+        j.status === "COMPLETED" &&
+        new Date(j.startTime) >
+          new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    )
+    .slice(0, 5);
 
-  // Financial metrics
   const totalRevenue = completedJobs.reduce(
     (sum: number, job: any) => sum + (job.price || 0),
     0
@@ -103,15 +254,10 @@ export default async function EmployeePage({
     (sum: number, job: any) => sum + (job.totalTip || 0),
     0
   );
-  const totalParking = completedJobs.reduce(
-    (sum: number, job: any) => sum + (job.parking || 0),
-    0
-  );
   const unpaidJobs = completedJobs.filter(
     (j: any) => !j.paymentReceived
   ).length;
 
-  // Product usage analytics
   const productUsageMap = new Map<
     string,
     { name: string; quantity: number; unit: string }
@@ -135,7 +281,6 @@ export default async function EmployeePage({
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 5);
 
-  // Get all products to show low stock warnings
   const allProducts = await db.product.findMany({
     orderBy: { stockLevel: "asc" },
   });
@@ -144,7 +289,6 @@ export default async function EmployeePage({
     (p) => p.stockLevel <= p.minStock
   );
 
-  // Get available products for assignment (not already assigned to this employee)
   const assignedProductIds = (employee as any).assignedProducts.map(
     (ap: any) => ap.productId
   );
@@ -152,483 +296,252 @@ export default async function EmployeePage({
     (p) => !assignedProductIds.includes(p.id) && p.stockLevel > 0
   );
 
-  // Server actions
-  async function assignProduct(formData: FormData) {
-    "use server";
-
-    // Check if this is a bulk assignment
-    const assignmentsData = formData.get("assignmentsData") as string;
-
-    if (assignmentsData) {
-      // Handle multiple products
-      const assignments = JSON.parse(assignmentsData);
-
-      for (const assignment of assignments) {
-        const { productId, quantity: quantityStr, notes } = assignment;
-        const quantity = parseFloat(quantityStr);
-
-        if (!productId || !quantity || quantity <= 0) {
-          continue;
-        }
-
-        // Check if product has enough stock
-        const product = await db.product.findUnique({
-          where: { id: productId },
-        });
-
-        if (!product || product.stockLevel < quantity) {
-          continue;
-        }
-
-        // Check if already assigned
-        const existing = await db.employeeProduct.findUnique({
-          where: {
-            employeeId_productId: {
-              employeeId: id,
-              productId,
-            },
-          },
-        });
-
-        if (existing) {
-          // Update existing assignment
-          await db.$transaction([
-            db.employeeProduct.update({
-              where: { id: existing.id },
-              data: {
-                quantity: {
-                  increment: quantity,
-                },
-                notes: notes || existing.notes,
-              },
-            }),
-            db.product.update({
-              where: { id: productId },
-              data: {
-                stockLevel: {
-                  decrement: quantity,
-                },
-              },
-            }),
-          ]);
-        } else {
-          // Create new assignment
-          await db.$transaction([
-            db.employeeProduct.create({
-              data: {
-                employeeId: id,
-                productId,
-                quantity,
-                notes: notes || null,
-              },
-            }),
-            db.product.update({
-              where: { id: productId },
-              data: {
-                stockLevel: {
-                  decrement: quantity,
-                },
-              },
-            }),
-          ]);
-        }
-      }
-    } else {
-      // Handle single product (legacy support)
-      const productId = formData.get("productId") as string;
-      const quantity = parseFloat(formData.get("quantity") as string);
-      const notes = formData.get("notes") as string;
-
-      if (!productId || !quantity || quantity <= 0) {
-        return;
-      }
-
-      // Check if product has enough stock
-      const product = await db.product.findUnique({
-        where: { id: productId },
-      });
-
-      if (!product || product.stockLevel < quantity) {
-        return;
-      }
-
-      // Create assignment and update stock
-      await db.$transaction([
-        db.employeeProduct.create({
-          data: {
-            employeeId: id,
-            productId,
-            quantity,
-            notes: notes || null,
-          },
-        }),
-        db.product.update({
-          where: { id: productId },
-          data: {
-            stockLevel: {
-              decrement: quantity,
-            },
-          },
-        }),
-      ]);
-    }
-
-    revalidatePath(`/employees/${id}`);
-  }
-
-  async function unassignProduct(formData: FormData) {
-    "use server";
-
-    const assignmentId = formData.get("assignmentId") as string;
-
-    const assignment = await db.employeeProduct.findUnique({
-      where: { id: assignmentId },
-    });
-
-    if (!assignment) {
-      return;
-    }
-
-    // Delete assignment and return stock
-    await db.$transaction([
-      db.employeeProduct.delete({
-        where: { id: assignmentId },
-      }),
-      db.product.update({
-        where: { id: assignment.productId },
-        data: {
-          stockLevel: {
-            increment: assignment.quantity,
-          },
-        },
-      }),
-    ]);
-
-    revalidatePath(`/employees/${id}`);
-  }
-
-  async function updateProductQuantity(formData: FormData) {
-    "use server";
-
-    const assignmentId = formData.get("assignmentId") as string;
-    const newQuantity = parseFloat(formData.get("quantity") as string);
-
-    if (!newQuantity || newQuantity <= 0) {
-      return;
-    }
-
-    const assignment = await db.employeeProduct.findUnique({
-      where: { id: assignmentId },
-      include: { product: true },
-    });
-
-    if (!assignment) {
-      return;
-    }
-
-    const quantityDiff = newQuantity - assignment.quantity;
-
-    // Check if product has enough stock for increase
-    if (quantityDiff > 0 && assignment.product.stockLevel < quantityDiff) {
-      return;
-    }
-
-    // Update assignment and adjust stock
-    await db.$transaction([
-      db.employeeProduct.update({
-        where: { id: assignmentId },
-        data: { quantity: newQuantity },
-      }),
-      db.product.update({
-        where: { id: assignment.productId },
-        data: {
-          stockLevel: {
-            increment: -quantityDiff, // negative if quantity increased, positive if decreased
-          },
-        },
-      }),
-    ]);
-
-    revalidatePath(`/employees/${id}`);
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card variant="default">
-        <div className="space-y-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            href="/employees"
-            submit={false}
-            className="!px-0">
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Employees
-          </Button>
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {employee.name}
+      <Button
+        variant="ghost"
+        size="sm"
+        href="/employees"
+        submit={false}
+        className="!px-2 mb-4">
+        <ChevronLeft className="w-4 h-4 mr-2" />
+        Back to Employees
+      </Button>
+
+      <Suspense fallback={<HeaderSkeleton />}>
+        <Card variant="default" className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="w-full flex justify-between space-y-3">
+              <h1 className="flex items-center gap-2 text-3xl font-bold text-gray-900">
+                <span className="text-gray-900">{employee.name}</span>
+                <Badge variant="alara" size="md">
+                  {employee.role}
+                </Badge>
               </h1>
-              <div className="flex items-center gap-2 mt-2 text-gray-600">
-                <Mail className="w-4 h-4" />
-                <p>{employee.email}</p>
-              </div>
-              {employee.phone && (
-                <div className="flex items-center gap-2 mt-1 text-gray-600">
-                  <Phone className="w-4 h-4" />
-                  <p>{employee.phone}</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Mail className="w-4 h-4" />
+                  <span className="text-sm">{employee.email}</span>
                 </div>
-              )}
-              <Badge variant="alara" size="md" className="mt-3">
-                {employee.role}
-              </Badge>
+                {employee.phone && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    <span className="text-sm">{employee.phone}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </Suspense>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card variant="default">
-          <div className="pt-4">
-            <div className="text-2xl font-bold text-gray-900">
-              {completedJobs.length}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">Total Jobs Completed</p>
-          </div>
-        </Card>
-
-        <Card variant="default">
-          <div className="pt-4">
-            <div className="text-2xl font-bold text-green-600">
-              ${totalRevenue.toFixed(2)}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">
-              Total Revenue Generated
-            </p>
-          </div>
-        </Card>
-
-        <Card variant="default">
-          <div className="pt-4">
-            <div className="text-2xl font-bold text-[#005F6A]">
-              ${totalPaid.toFixed(2)}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">Total Paid to Employee</p>
-            {totalTips > 0 && (
-              <p className="text-xs text-gray-500 mt-1">
-                + ${totalTips.toFixed(2)} in tips
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Suspense fallback={<MetricCardSkeleton />}>
+          <Card variant="default" className="p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-600">
+                Jobs Completed
               </p>
-            )}
-          </div>
-        </Card>
-
-        <Card variant="default">
-          <div className="pt-4">
-            <div className="text-2xl font-bold text-orange-600">
-              {unpaidJobs}
+              <p className="text-3xl font-bold text-gray-900">
+                {completedJobs.length}
+              </p>
             </div>
-            <p className="text-sm text-gray-600 mt-1">Unpaid Jobs</p>
-          </div>
-        </Card>
+          </Card>
+        </Suspense>
+
+        <Suspense fallback={<MetricCardSkeleton />}>
+          <Card variant="default" className="p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-3xl font-bold text-green-600">
+                ${totalRevenue.toFixed(2)}
+              </p>
+            </div>
+          </Card>
+        </Suspense>
+
+        <Suspense fallback={<MetricCardSkeleton />}>
+          <Card variant="default" className="p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-600">Employee Pay</p>
+              <p className="text-3xl font-bold text-[#005F6A]">
+                ${totalPaid.toFixed(2)}
+              </p>
+              {totalTips > 0 && (
+                <p className="text-xs text-gray-500">
+                  + ${totalTips.toFixed(2)} tips
+                </p>
+              )}
+            </div>
+          </Card>
+        </Suspense>
+
+        <Suspense fallback={<MetricCardSkeleton />}>
+          <Card variant="default" className="p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-600">Unpaid Jobs</p>
+              <p className="text-3xl font-bold text-orange-600">{unpaidJobs}</p>
+            </div>
+          </Card>
+        </Suspense>
       </div>
 
-      {/* Jobs Section */}
+      {/* Jobs Overview */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Upcoming Jobs */}
-        <Card variant="default">
+        <Card variant="default" className="p-6">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Upcoming Jobs ({upcomingJobs.length})
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Upcoming Jobs
+              </h2>
+              <Badge variant="secondary" size="sm">
+                {upcomingJobs.length}
+              </Badge>
+            </div>
 
-            {upcomingJobs.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                No upcoming jobs scheduled.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {upcomingJobs.slice(0, 5).map((job: any) => (
-                  <Button
-                    key={job.id}
-                    variant="ghost"
-                    size="md"
-                    href={`/jobs/${job.id}`}
-                    submit={false}
-                    className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5">
-                    <div className="w-full text-left">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium text-gray-900">
-                          {job.clientName}
+            <Suspense fallback={<JobCardSkeleton />}>
+              {upcomingJobs.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-gray-500">No upcoming jobs.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {upcomingJobs.map((job: any) => (
+                    <Button
+                      key={job.id}
+                      variant="ghost"
+                      size="md"
+                      href={`/jobs/${job.id}`}
+                      submit={false}
+                      className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-gray-100">
+                      <div className="w-full space-y-2">
+                        <div className="flex items-start justify-between">
+                          <p className="font-semibold text-gray-900 text-left">
+                            {job.clientName}
+                          </p>
+                          <Badge variant="alara" size="sm">
+                            {job.jobType || "N/A"}
+                          </Badge>
                         </div>
-                        <Badge variant="alara" size="sm">
-                          {job.jobType || "N/A"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>
+                        <p className="text-xs text-gray-600 text-left">
                           {new Date(job.startTime).toLocaleDateString()} at{" "}
                           {new Date(job.startTime).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
-                        </span>
+                        </p>
+                        {job.price && (
+                          <p className="text-sm font-semibold text-green-600 text-left">
+                            ${job.price.toFixed(2)}
+                          </p>
+                        )}
                       </div>
-                      {job.location && (
-                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{job.location}</span>
-                        </div>
-                      )}
-                      {job.price && (
-                        <div className="flex items-center gap-1 text-sm font-medium text-green-600 mt-2">
-                          <DollarSign className="w-3.5 h-3.5" />
-                          <span>${job.price.toFixed(2)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            )}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </Suspense>
           </div>
         </Card>
 
         {/* Recent Jobs */}
-        <Card variant="default">
+        <Card variant="default" className="p-6">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Recent Jobs (Last 30 Days)
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Recent Jobs
+              </h2>
+              <Badge variant="secondary" size="sm">
+                Last 30 Days
+              </Badge>
+            </div>
 
-            {recentJobs.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                No jobs completed in the last 30 days.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {recentJobs.slice(0, 5).map((job: any) => (
-                  <Button
-                    key={job.id}
-                    variant="ghost"
-                    size="md"
-                    href={`/jobs/${job.id}`}
-                    submit={false}
-                    className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5">
-                    <div className="w-full text-left">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium text-gray-900">
-                          {job.clientName}
+            <Suspense fallback={<JobCardSkeleton />}>
+              {recentJobs.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-gray-500">
+                    No jobs in the last 30 days.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentJobs.map((job: any) => (
+                    <Button
+                      key={job.id}
+                      variant="ghost"
+                      size="md"
+                      href={`/jobs/${job.id}`}
+                      submit={false}
+                      className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-gray-100">
+                      <div className="w-full space-y-2">
+                        <div className="flex items-start justify-between">
+                          <p className="font-semibold text-gray-900 text-left">
+                            {job.clientName}
+                          </p>
+                          <Badge
+                            variant={
+                              job.paymentReceived ? "success" : "warning"
+                            }
+                            size="sm">
+                            {job.paymentReceived ? "Paid" : "Unpaid"}
+                          </Badge>
                         </div>
-                        <Badge
-                          variant={job.paymentReceived ? "success" : "warning"}
-                          size="sm">
-                          {job.paymentReceived ? "Paid" : "Unpaid"}
-                        </Badge>
+                        <p className="text-xs text-gray-600 text-left">
+                          {new Date(job.startTime).toLocaleDateString()}
+                        </p>
+                        {job.price && (
+                          <p className="text-sm font-semibold text-green-600 text-left">
+                            ${job.price.toFixed(2)}
+                          </p>
+                        )}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        {new Date(job.startTime).toLocaleDateString()}
-                      </div>
-                      {job.price && (
-                        <div className="text-sm font-medium text-green-600 mt-1">
-                          ${job.price.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            )}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </Suspense>
           </div>
         </Card>
       </div>
 
-      {/* Employee Inventory Management */}
-      <Card variant="default">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Assigned Inventory
-            </h2>
-            {(employee as any).assignedProducts.length > 0 && (
-              <Badge variant="alara" size="sm">
-                {(employee as any).assignedProducts.length}
-              </Badge>
-            )}
-          </div>
+      {/* Inventory Management */}
+      <InventorySection
+        assignedProducts={(employee as any).assignedProducts}
+        availableProducts={availableProducts}
+        assignAction={assignProduct.bind(null, id)}
+        updateAction={updateProductQuantity}
+        removeAction={unassignProduct}
+      />
 
-          {/* Assign New Product Form */}
-          {availableProducts.length > 0 && (
-            <ProductAssignmentForm
-              availableProducts={availableProducts}
-              assignAction={assignProduct}
-            />
-          )}
-
-          {/* Assigned Products List */}
-          {(employee as any).assignedProducts.length === 0 ? (
-            <p className="text-sm text-gray-500 mt-4">
-              No products assigned yet.
-            </p>
-          ) : (
-            <div className="mt-6 space-y-2">
-              <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                Current Inventory ({(employee as any).assignedProducts.length})
-              </h4>
-              {(employee as any).assignedProducts.map((assignment: any) => (
-                <InventoryItem
-                  key={assignment.id}
-                  assignment={assignment}
-                  updateAction={updateProductQuantity}
-                  removeAction={unassignProduct}
-                />
-              ))}
-            </div>
-          )}
-
-          {availableProducts.length === 0 &&
-            (employee as any).assignedProducts.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-3">
-                  No products available in inventory.
-                </p>
-                <Button variant="default" size="sm" href="/products">
-                  Manage Products →
-                </Button>
-              </div>
-            )}
-        </div>
-      </Card>
-
-      {/* Product Usage & Inventory */}
+      {/* Analytics Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Top Products Used */}
-        <Card variant="default">
+        {/* Top Products */}
+        <Card variant="default" className="p-6">
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-900">
               Most Used Products
             </h2>
 
             {topProducts.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                No product usage recorded yet.
-              </p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-gray-500">No usage data yet.</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {topProducts.map((product, idx) => (
                   <div
                     key={idx}
-                    className="flex justify-between items-center p-3 bg-[#005F6A]/5 rounded-lg hover:bg-[#005F6A]/10 transition-colors">
-                    <div>
-                      <div className="font-medium text-gray-900">
+                    className="flex items-center justify-between p-3 bg-[#005F6A]/5 rounded-lg border border-[#005F6A]/10 hover:border-[#005F6A]/20 transition-colors">
+                    <div className="space-y-1">
+                      <p className="font-medium text-gray-900 text-sm">
                         {product.name}
-                      </div>
-                      <div className="text-sm text-gray-600">
+                      </p>
+                      <p className="text-xs text-gray-600">
                         {product.quantity} {product.unit}
-                      </div>
+                      </p>
                     </div>
                     <Badge variant="alara" size="sm">
                       #{idx + 1}
@@ -640,8 +553,8 @@ export default async function EmployeePage({
           </div>
         </Card>
 
-        {/* Low Stock Alert */}
-        <Card variant="default">
+        {/* Low Stock Alerts */}
+        <Card variant="default" className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -655,11 +568,13 @@ export default async function EmployeePage({
             </div>
 
             {lowStockProducts.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                All products are well-stocked! 🎉
-              </p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-gray-500">
+                  All products well-stocked! 🎉
+                </p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {lowStockProducts.map((product) => (
                   <Button
                     key={product.id}
@@ -668,21 +583,21 @@ export default async function EmployeePage({
                     href={`/products/${product.id}`}
                     submit={false}
                     className="w-full !justify-start !h-auto !py-3 hover:bg-red-50 border border-red-200 !rounded-lg">
-                    <div className="w-full text-left">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium text-gray-900">
+                    <div className="w-full space-y-1">
+                      <div className="flex items-start justify-between">
+                        <p className="font-medium text-gray-900 text-sm text-left">
                           {product.name}
-                        </div>
+                        </p>
                         <Badge variant="error" size="sm">
                           Low
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <p className="text-xs text-gray-600 text-left">
                         Current: {product.stockLevel} {product.unit}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Min Required: {product.minStock} {product.unit}
-                      </div>
+                      </p>
+                      <p className="text-xs text-gray-600 text-left">
+                        Min: {product.minStock} {product.unit}
+                      </p>
                     </div>
                   </Button>
                 ))}
@@ -693,133 +608,68 @@ export default async function EmployeePage({
       </div>
 
       {/* Inventory Requests */}
-      <Card variant="default">
+      <Card variant="default" className="p-6">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-gray-900">
             Inventory Requests History
           </h2>
 
           {(employee as any).inventoryRequests.length === 0 ? (
-            <p className="text-gray-500 text-sm">No requests submitted yet.</p>
+            <div className="py-8 text-center">
+              <p className="text-sm text-gray-500">No requests yet.</p>
+            </div>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-gray-100">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50/50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Reason
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Quantity
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Reason
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {(employee as any).inventoryRequests.map((request: any) => (
+                    <tr key={request.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {request.quantity}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {request.reason || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge
+                          variant={
+                            request.status === "FULFILLED"
+                              ? "success"
+                              : request.status === "APPROVED"
+                              ? "secondary"
+                              : request.status === "REJECTED"
+                              ? "error"
+                              : "warning"
+                          }
+                          size="sm">
+                          {request.status}
+                        </Badge>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {(employee as any).inventoryRequests.map((request: any) => (
-                      <tr key={request.id} className="hover:bg-gray-50/50">
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {new Date(request.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {request.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
-                          {request.reason || "-"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant={
-                              request.status === "FULFILLED"
-                                ? "success"
-                                : request.status === "APPROVED"
-                                ? "secondary"
-                                : request.status === "REJECTED"
-                                ? "error"
-                                : "warning"
-                            }
-                            size="sm">
-                            {request.status}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
-      </Card>
-
-      {/* Financial Breakdown */}
-      <Card variant="default">
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Financial Summary
-          </h2>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card variant="alara_light_bordered">
-              <div>
-                <div className="text-sm text-gray-600 mb-1">Total Revenue</div>
-                <div className="text-2xl font-bold text-green-600">
-                  ${totalRevenue.toFixed(2)}
-                </div>
-              </div>
-            </Card>
-
-            <Card variant="alara_light_bordered">
-              <div>
-                <div className="text-sm text-gray-600 mb-1">Employee Pay</div>
-                <div className="text-2xl font-bold text-[#005F6A]">
-                  ${totalPaid.toFixed(2)}
-                </div>
-              </div>
-            </Card>
-
-            <Card variant="alara_light_bordered">
-              <div>
-                <div className="text-sm text-gray-600 mb-1">Total Tips</div>
-                <div className="text-2xl font-bold text-[#77C8CC]">
-                  ${totalTips.toFixed(2)}
-                </div>
-              </div>
-            </Card>
-
-            <Card variant="alara_light_bordered">
-              <div>
-                <div className="text-sm text-gray-600 mb-1">Total Parking</div>
-                <div className="text-2xl font-bold text-orange-600">
-                  ${totalParking.toFixed(2)}
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <Card variant="default">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">
-                Net Profit Margin
-              </span>
-              <span className="text-lg font-bold text-gray-900">
-                {totalRevenue > 0
-                  ? (
-                      ((totalRevenue - totalPaid - totalParking) /
-                        totalRevenue) *
-                      100
-                    ).toFixed(1)
-                  : 0}
-                %
-              </span>
-            </div>
-          </Card>
         </div>
       </Card>
     </div>
