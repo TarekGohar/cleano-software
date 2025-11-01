@@ -205,7 +205,7 @@ export default function SearchableTemplateSelector({
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-[#005F6A] truncate">
+                          <span className="text-sm font-[450] text-[#005F6A] truncate">
                             {template.name}
                           </span>
                           {template.isDefault && (

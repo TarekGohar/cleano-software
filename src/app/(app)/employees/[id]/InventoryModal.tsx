@@ -6,6 +6,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Package } from "lucide-react";
+import CustomDropdown from "@/components/ui/custom-dropdown";
 
 interface Product {
   id: string;
@@ -44,7 +45,7 @@ export default function InventoryModal({
   editingAssignment,
 }: InventoryModalProps) {
   const isEditing = !!editingAssignment;
-  
+
   const [productId, setProductId] = useState(
     editingAssignment?.productId || ""
   );
@@ -69,7 +70,7 @@ export default function InventoryModal({
 
     try {
       const formData = new FormData(e.currentTarget);
-      
+
       if (isEditing && updateAction) {
         await updateAction(formData);
       } else {
@@ -108,7 +109,7 @@ export default function InventoryModal({
     const currentProductInList = availableProducts.find(
       (p) => p.id === editingAssignment.productId
     );
-    
+
     if (!currentProductInList) {
       productOptions.push({
         value: editingAssignment.productId,
@@ -121,7 +122,9 @@ export default function InventoryModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={isEditing ? "Edit Inventory Assignment" : "Assign Product to Employee"}
+      title={
+        isEditing ? "Edit Inventory Assignment" : "Assign Product to Employee"
+      }
       subheader={
         isEditing
           ? "Update the quantity or notes for this product assignment."
@@ -129,7 +132,11 @@ export default function InventoryModal({
       }>
       <form onSubmit={handleSubmit} className="space-y-6">
         {isEditing && (
-          <input type="hidden" name="assignmentId" value={editingAssignment?.id} />
+          <input
+            type="hidden"
+            name="assignmentId"
+            value={editingAssignment?.id}
+          />
         )}
 
         <div className="space-y-4">
@@ -137,22 +144,48 @@ export default function InventoryModal({
           <div className="space-y-2">
             <label
               htmlFor="productId"
-              className="block text-sm font-medium text-gray-900">
+              className="block text-sm font-[450] text-gray-900">
               Product <span className="text-red-500">*</span>
             </label>
-            <Select
-              name="productId"
-              value={productId}
-              onChange={setProductId}
-              required
-              options={productOptions}
+            <input type="hidden" name="productId" value={productId} />
+            <CustomDropdown
+              trigger={
+                <Button
+                  variant="outline"
+                  size="md"
+                  submit={false}
+                  className="w-full flex items-center !justify-between bg-white"
+                  disabled={isEditing} // Don't allow changing product when editing
+                >
+                  <span>
+                    {productOptions.find((opt) => opt.value === productId)
+                      ?.label || "Select a product..."}
+                  </span>
+                  <svg
+                    className="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </Button>
+              }
+              options={productOptions.map((option) => ({
+                label: option.label,
+                onClick: () => setProductId(option.value),
+              }))}
               variant="default"
               size="md"
-              disabled={isEditing} // Don't allow changing product when editing
             />
             {isEditing && (
               <p className="text-xs text-gray-500">
-                Product cannot be changed when editing. Remove and create a new assignment to change products.
+                Product cannot be changed when editing. Remove and create a new
+                assignment to change products.
               </p>
             )}
           </div>
@@ -161,7 +194,7 @@ export default function InventoryModal({
           <div className="space-y-2">
             <label
               htmlFor="quantity"
-              className="block text-sm font-medium text-gray-900">
+              className="block text-sm font-[450] text-gray-900">
               Quantity <span className="text-red-500">*</span>
             </label>
             <Input
@@ -190,7 +223,7 @@ export default function InventoryModal({
           <div className="space-y-2">
             <label
               htmlFor="notes"
-              className="block text-sm font-medium text-gray-900">
+              className="block text-sm font-[450] text-gray-900">
               Notes <span className="text-gray-400">(optional)</span>
             </label>
             <Input
@@ -237,4 +270,3 @@ export default function InventoryModal({
     </Modal>
   );
 }
-

@@ -44,8 +44,8 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
           ? "Creating..."
           : "Updating..."
         : mode === "create"
-          ? "Create Product"
-          : "Update Product"}
+        ? "Create Product"
+        : "Update Product"}
     </Button>
   );
 }
@@ -127,7 +127,7 @@ export function ProductModal({
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1.5">
+              className="block text-sm font-[450] text-gray-700 mb-1.5">
               Product Name *
             </label>
             <Input
@@ -145,7 +145,7 @@ export function ProductModal({
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-gray-700 mb-1.5">
+              className="block text-sm font-[450] text-gray-700 mb-1.5">
               Description
             </label>
             <Textarea
@@ -163,7 +163,7 @@ export function ProductModal({
             <div>
               <label
                 htmlFor="unit"
-                className="block text-sm font-medium text-gray-700 mb-1.5">
+                className="block text-sm font-[450] text-gray-700 mb-1.5">
                 Unit *
               </label>
               <Input
@@ -181,7 +181,7 @@ export function ProductModal({
             <div>
               <label
                 htmlFor="costPerUnit"
-                className="block text-sm font-medium text-gray-700 mb-1.5">
+                className="block text-sm font-[450] text-gray-700 mb-1.5">
                 Cost Per Unit *
               </label>
               <Input
@@ -203,7 +203,7 @@ export function ProductModal({
             <div>
               <label
                 htmlFor="stockLevel"
-                className="block text-sm font-medium text-gray-700 mb-1.5">
+                className="block text-sm font-[450] text-gray-700 mb-1.5">
                 Warehouse Stock *
               </label>
               <Input
@@ -223,7 +223,7 @@ export function ProductModal({
             <div>
               <label
                 htmlFor="minStock"
-                className="block text-sm font-medium text-gray-700 mb-1.5">
+                className="block text-sm font-[450] text-gray-700 mb-1.5">
                 Minimum Stock Level *
               </label>
               <Input
@@ -298,4 +298,3 @@ export function ProductModal({
     </Modal>
   );
 }
-

@@ -28,9 +28,7 @@ export function ProductRow({ product }: ProductRowProps) {
     <div className="grid grid-cols-7 hover:bg-gray-50/50 transition-colors items-center">
       {/* Name + Low Stock Warning */}
       <div className="px-6 py-4 flex flex-col justify-center">
-        <span className="text-sm font-medium text-gray-900">
-          {product.name}
-        </span>
+        <span className="text-sm font-[450] text-gray-900">{product.name}</span>
         {product.isLowStock && (
           <span className="text-xs text-orange-600 mt-0.5">Low stock</span>
         )}
@@ -56,7 +54,7 @@ export function ProductRow({ product }: ProductRowProps) {
       {/* Employee Count */}
       <span className="px-6 py-4 text-sm text-gray-900 flex items-center">
         {product.employeeCount > 0 ? (
-          <span className="text-[#005F6A] font-medium">
+          <span className="text-[#005F6A] font-[450]">
             {product.employeeCount}
           </span>
         ) : (

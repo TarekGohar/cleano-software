@@ -15,7 +15,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Welcome back, {user.name}!</h1>
+      <h1 className="text-3xl font-[450] mb-6">Welcome back, {user.name}!</h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {(user.role === "OWNER" || user.role === "ADMIN") && (
@@ -71,7 +71,7 @@ function DashboardCard({
     <a
       href={href}
       className="block p-6 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-      <h2 className="text-xl font-semibold mb-2">{title}</h2>
+      <h2 className="text-xl font-[450] mb-2">{title}</h2>
       <p className="text-gray-600">{description}</p>
     </a>
   );

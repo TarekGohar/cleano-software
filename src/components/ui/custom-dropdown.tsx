@@ -49,18 +49,18 @@ export default function CustomDropdown({
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
 
-      // Calculate vertical position
+      // Calculate vertical position (fixed positioning uses viewport coordinates)
       const top =
         position === "top"
-          ? rect.top + window.scrollY - offset
-          : rect.bottom + window.scrollY + offset;
+          ? rect.top - offset
+          : rect.bottom + offset;
 
       // Calculate horizontal position based on alignment
-      let left = rect.left + window.scrollX;
+      let left = rect.left;
       if (align === "right") {
-        left = rect.right + window.scrollX;
+        left = rect.right;
       } else if (align === "center") {
-        left = rect.left + window.scrollX + rect.width / 2;
+        left = rect.left + rect.width / 2;
       }
 
       setDropdownPosition({
@@ -98,11 +98,12 @@ export default function CustomDropdown({
         updateDropdownPosition();
       };
 
-      window.addEventListener("scroll", handleScrollOrResize, true);
+      // Listen to all scroll events in capture phase to catch scrolls in any container
+      document.addEventListener("scroll", handleScrollOrResize, true);
       window.addEventListener("resize", handleScrollOrResize);
 
       return () => {
-        window.removeEventListener("scroll", handleScrollOrResize, true);
+        document.removeEventListener("scroll", handleScrollOrResize, true);
         window.removeEventListener("resize", handleScrollOrResize);
       };
     }

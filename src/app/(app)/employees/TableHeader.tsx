@@ -51,7 +51,7 @@ export function TableHeader({
       onClick={handleSort}
       disabled={isPending}
       className={`px-6 py-3 text-left flex items-center gap-2 hover:bg-gray-100/50 transition-colors group ${className}`}>
-      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+      <span className="text-xs font-[450] text-gray-500 uppercase tracking-wider">
         {label}
       </span>
       <span className="text-gray-400 group-hover:text-gray-600">

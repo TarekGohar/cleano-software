@@ -47,7 +47,7 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-semibold mb-6">Sign in</h1>
+        <h1 className="text-2xl font-[450] mb-6">Sign in</h1>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm">
@@ -92,7 +92,7 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-foreground text-background py-2 font-medium disabled:opacity-60">
+            className="w-full rounded-md bg-foreground text-background py-2 font-[450] disabled:opacity-60">
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>

@@ -3,7 +3,7 @@
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import CustomDropdown from "@/components/ui/custom-dropdown";
-import { ChevronRight, Pencil } from "lucide-react";
+import { ChevronRight, Eye, Pencil } from "lucide-react";
 import { useEmployeeModal } from "./EmployeesClient";
 
 interface EmployeeRowProps {
@@ -27,7 +27,7 @@ export function EmployeeRow({ employee }: EmployeeRowProps) {
     <div className="grid grid-cols-8 hover:bg-gray-50/50 transition-colors items-center">
       {/* Name + Unpaid */}
       <div className="px-6 py-4 flex flex-col justify-center">
-        <span className="text-sm font-medium text-gray-900">
+        <span className="text-sm font-[450] text-gray-900">
           {employee.name}
         </span>
         {employee.unpaidJobs > 0 && (
@@ -52,8 +52,8 @@ export function EmployeeRow({ employee }: EmployeeRowProps) {
             employee.role === "OWNER"
               ? "error"
               : employee.role === "ADMIN"
-                ? "secondary"
-                : "default"
+              ? "secondary"
+              : "default"
           }
           size="sm">
           {employee.role}
@@ -74,59 +74,30 @@ export function EmployeeRow({ employee }: EmployeeRowProps) {
         )}
       </span>
       {/* Total Revenue */}
-      <span className="px-6 py-4 text-sm font-medium text-green-600 flex items-center">
+      <span className="px-6 py-4 text-sm font-[450] text-green-600 flex items-center">
         ${employee.totalRevenue.toFixed(2)}
       </span>
       {/* Actions */}
       <span className="px-6 py-4 text-right text-sm flex items-center justify-end gap-2">
-        <CustomDropdown
-          trigger={
-            <Button
-              variant="default"
-              size="sm"
-              submit={false}
-              className="text-neutral-500 hover:text-neutral-700">
-              Actions
-              <ChevronRight size={12} className="ml-1" />
-            </Button>
-          }
-          options={[
-            {
-              label: "View Details",
-              icon: (
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              ),
-              onClick: () => {
-                window.location.href = `/employees/${employee.id}`;
-              },
-            },
-            {
-              label: "Edit Employee",
-              icon: <Pencil className="w-4 h-4" />,
-              onClick: () => openEditModal(employee),
-            },
-          ]}
-          align="right"
-        />
+        <Button
+          variant="default"
+          size="sm"
+          submit={false}
+          className="text-neutral-500 hover:text-neutral-700"
+          onClick={() => openEditModal(employee)}>
+          <Pencil className="w-4 h-4 mr-1" />
+          Edit
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          submit={false}
+          className="text-neutral-500 hover:text-neutral-700"
+          href={`/employees/${employee.id}`}>
+          <Eye className="w-4 h-4 mr-1" />
+          View
+        </Button>
       </span>
     </div>
   );
 }
-

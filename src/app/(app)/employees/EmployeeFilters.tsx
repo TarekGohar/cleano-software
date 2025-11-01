@@ -112,7 +112,7 @@ export function EmployeeFilters() {
         <div className="flex-1 min-w-[250px]">
           <label
             htmlFor="search"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Search
           </label>
           <form onSubmit={handleSearch}>
@@ -151,7 +151,7 @@ export function EmployeeFilters() {
         <div className="w-40">
           <label
             htmlFor="role"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Role
           </label>
           <CustomDropdown
@@ -191,7 +191,7 @@ export function EmployeeFilters() {
         <div className="w-48">
           <label
             htmlFor="jobStatus"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Job Status
           </label>
           <CustomDropdown
@@ -234,7 +234,7 @@ export function EmployeeFilters() {
         <div className="w-32">
           <label
             htmlFor="perPage"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Per Page
           </label>
           <CustomDropdown

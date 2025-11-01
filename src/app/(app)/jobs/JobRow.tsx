@@ -23,11 +23,27 @@ interface JobRowProps {
 }
 
 export function JobRow({ job }: JobRowProps) {
+  // Calculate overtime if job has both start and end time
+  const calculateOvertime = () => {
+    if (!job.endTime) return null;
+
+    const start = new Date(job.startTime);
+    const end = new Date(job.endTime);
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    const standardHours = 8;
+    const overtime = Math.max(0, durationHours - standardHours);
+
+    return overtime > 0 ? overtime.toFixed(1) : null;
+  };
+
+  const overtime = calculateOvertime();
+
   return (
     <div
       className="grid hover:bg-gray-50/50 transition-colors items-center"
       style={{
-        gridTemplateColumns: "120px 1fr 80px 1.5fr 100px 120px 120px 210px",
+        gridTemplateColumns:
+          "120px 1fr 80px 1.5fr 100px 100px 100px 100px 120px 120px 210px",
       }}>
       {/* Date */}
       <span className="px-6 py-4 text-sm text-gray-500 flex items-center whitespace-nowrap">
@@ -37,7 +53,7 @@ export function JobRow({ job }: JobRowProps) {
       </span>
 
       {/* Client */}
-      <span className="px-6 py-4 text-sm font-medium text-gray-900 flex items-center">
+      <span className="px-6 py-4 text-sm font-[450] text-gray-900 flex items-center">
         {job.clientName}
       </span>
 
@@ -71,8 +87,35 @@ export function JobRow({ job }: JobRowProps) {
           : "-"}
       </span>
 
+      {/* Start Time */}
+      <span className="px-4 py-4 text-sm text-gray-500 flex items-center justify-center whitespace-nowrap">
+        {new Date(job.startTime).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+
+      {/* End Time */}
+      <span className="px-4 py-4 text-sm text-gray-500 flex items-center justify-center whitespace-nowrap">
+        {job.endTime
+          ? new Date(job.endTime).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-"}
+      </span>
+
+      {/* Overtime */}
+      <span className="px-4 py-4 text-sm font-[450] flex items-center justify-center whitespace-nowrap">
+        {overtime ? (
+          <span className="text-orange-600">{overtime}h</span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </span>
+
       {/* Price */}
-      <span className="px-6 py-4 text-sm font-medium text-gray-900 flex items-center whitespace-nowrap">
+      <span className="px-6 py-4 text-sm font-[450] text-gray-900 flex items-center whitespace-nowrap">
         {job.price ? `$${job.price.toFixed(2)}` : "-"}
       </span>
 
@@ -84,6 +127,8 @@ export function JobRow({ job }: JobRowProps) {
               ? "success"
               : job.status === "IN_PROGRESS"
               ? "secondary"
+              : job.status === "SCHEDULED"
+              ? "warning"
               : job.status === "CANCELLED"
               ? "error"
               : "default"

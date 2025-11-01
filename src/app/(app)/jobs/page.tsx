@@ -127,15 +127,15 @@ export default async function JobsPage({
     // First page
     jobs = await db.job.findMany({
       where,
-    include: {
-      employee: true,
-      cleaners: true,
-      productUsage: {
-        include: {
-          product: true,
+      include: {
+        employee: true,
+        cleaners: true,
+        productUsage: {
+          include: {
+            product: true,
+          },
         },
       },
-    },
       orderBy,
       take,
     });
@@ -189,79 +189,89 @@ export default async function JobsPage({
         <div className="space-y-6">
           {/* Header */}
           <Card variant="ghost">
-        <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-gray-900">
-            Cleaning Jobs
-          </h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-[450] text-gray-900">
+                Cleaning Jobs
+              </h1>
               <CreateJobButton />
-        </div>
-      </Card>
+            </div>
+          </Card>
 
           {/* Statistics Cards */}
           <div className="grid gap-4 md:grid-cols-3">
-        <Card variant="default">
-          <div className="text-sm font-medium text-gray-500 mb-1">
-            Total Jobs
-          </div>
-          <div className="text-2xl font-bold" style={{ color: "#005F6A" }}>
+            <Card variant="default">
+              <div className="text-sm font-[450] text-gray-500 mb-1">
+                Total Jobs
+              </div>
+              <div className="text-2xl font-[450]" style={{ color: "#005F6A" }}>
                 {totalJobsCount}
-          </div>
-        </Card>
-        <Card variant="default">
-          <div className="text-sm font-medium text-gray-500 mb-1">
-            Completed
-          </div>
-          <div className="text-2xl font-bold text-green-600">
+              </div>
+            </Card>
+            <Card variant="default">
+              <div className="text-sm font-[450] text-gray-500 mb-1">
+                Completed
+              </div>
+              <div className="text-2xl font-[450] text-green-600">
                 {completedJobs}
-          </div>
-        </Card>
-        <Card variant="default">
-          <div className="text-sm font-medium text-gray-500 mb-1">
-            Total Revenue
-          </div>
-          <div className="text-2xl font-bold" style={{ color: "#77C8CC" }}>
+              </div>
+            </Card>
+            <Card variant="default">
+              <div className="text-sm font-[450] text-gray-500 mb-1">
+                Total Revenue
+              </div>
+              <div className="text-2xl font-[450]" style={{ color: "#77C8CC" }}>
                 ${(totalRevenue._sum.price || 0).toFixed(2)}
+              </div>
+            </Card>
           </div>
-        </Card>
-      </div>
 
           {/* Pending Payment Warning */}
           {pendingPaymentCount > 0 && (
             <Card variant="warning">
-          <div className="flex items-start">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mr-3 mt-0.5" />
-            <p className="text-sm text-yellow-700">
+              <div className="flex items-start">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mr-3 mt-0.5" />
+                <p className="text-sm text-yellow-700">
                   {pendingPaymentCount} completed job
                   {pendingPaymentCount !== 1 ? "s" : ""} pending payment
-            </p>
-          </div>
-        </Card>
-      )}
+                </p>
+              </div>
+            </Card>
+          )}
 
           {/* Search and Filters */}
           <JobsFilters />
 
           {/* Jobs Table */}
-        <Card variant="default">
+          <Card variant="default">
             <div className="overflow-hidden rounded-lg relative">
               <TableLoadingOverlay />
-          <div className="overflow-x-auto">
+              <div className="overflow-x-auto">
                 {/* Header row */}
-                <div className="grid bg-gray-50/50" style={{ gridTemplateColumns: "120px 1fr 80px 1.5fr 100px 120px 120px 210px" }}>
+                <div
+                  className="grid bg-gray-50/50"
+                  style={{
+                    gridTemplateColumns:
+                      "120px 1fr 80px 1.5fr 100px 100px 100px 100px 120px 120px 210px",
+                  }}>
                   <TableHeader label="Date" sortKey="jobDate" />
                   <TableHeader label="Client" sortKey="clientName" />
-                  <span className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center justify-center">
+                  <span className="px-4 py-3 text-center text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-center">
                     Type
                   </span>
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Cleaners
+                  </span>
+                  <TableHeader label="Start" sortKey="startTime" />
+                  <TableHeader label="End" sortKey="endTime" />
+                  <span className="px-4 py-3 text-center text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-center">
+                    Overtime
                   </span>
                   <TableHeader label="Price" sortKey="price" />
                   <TableHeader label="Status" sortKey="status" />
-                  <span className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center justify-center">
+                  <span className="px-6 py-3 text-center text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-center">
                     Payment
                   </span>
-                  <span className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center justify-end">
+                  <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end">
                     Actions
                   </span>
                 </div>
@@ -280,8 +290,11 @@ export default async function JobsPage({
                           <div
                             key={`placeholder-${idx}`}
                             className="grid h-16"
-                            style={{ gridTemplateColumns: "120px 1fr 80px 1.5fr 100px 120px 120px 210px" }}>
-                            {Array.from({ length: 8 }).map((_, colIdx) => (
+                            style={{
+                              gridTemplateColumns:
+                                "120px 1fr 80px 1.5fr 100px 100px 100px 100px 120px 120px 210px",
+                            }}>
+                            {Array.from({ length: 11 }).map((_, colIdx) => (
                               <div key={colIdx} className="px-6 py-4"></div>
                             ))}
                           </div>
@@ -300,19 +313,22 @@ export default async function JobsPage({
                             <div
                               key={`placeholder-${idx}`}
                               className="grid h-16"
-                              style={{ gridTemplateColumns: "120px 1fr 80px 1.5fr 100px 120px 120px 210px" }}>
-                              {Array.from({ length: 8 }).map((_, colIdx) => (
+                              style={{
+                                gridTemplateColumns:
+                                  "120px 1fr 80px 1.5fr 100px 100px 100px 100px 120px 120px 210px",
+                              }}>
+                              {Array.from({ length: 11 }).map((_, colIdx) => (
                                 <div key={colIdx} className="px-6 py-4"></div>
                               ))}
                             </div>
                           )
                         )}
                     </>
-                          )}
-                        </div>
-                      </div>
-          </div>
-        </Card>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
 
           {/* Pagination */}
           <JobsPagination
@@ -324,7 +340,7 @@ export default async function JobsPage({
             perPage={perPage}
             minDisplayRows={minDisplayRows}
           />
-    </div>
+        </div>
       </JobModalProvider>
     </JobsLoadingProvider>
   );

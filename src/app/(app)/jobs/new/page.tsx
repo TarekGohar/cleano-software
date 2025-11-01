@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
 import CleanerSelector from "./CleanerSelector";
+import JobTypeSelector from "./JobTypeSelector";
+import SubmitButton from "./SubmitButton";
+import DeleteButton from "./DeleteButton";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
-import CustomDropdown from "@/components/ui/custom-dropdown";
 
 export default async function JobFormPage({
   searchParams,
@@ -34,11 +35,6 @@ export default async function JobFormPage({
       where: { id: jobId },
       include: {
         cleaners: true,
-        productUsage: {
-          include: {
-            product: true,
-          },
-        },
       },
     });
 
@@ -55,11 +51,6 @@ export default async function JobFormPage({
       name: true,
       email: true,
     },
-  });
-
-  // Get all products for product usage section
-  const allProducts = await db.product.findMany({
-    orderBy: { name: "asc" },
   });
 
   async function saveJob(formData: FormData) {
@@ -90,9 +81,6 @@ export default async function JobFormPage({
         formData.get("endTime") && formData.get("jobDate")
           ? new Date(`${formData.get("jobDate")}T${formData.get("endTime")}`)
           : null,
-      status:
-        (formData.get("status") as "IN_PROGRESS" | "COMPLETED" | "CANCELLED") ||
-        "IN_PROGRESS",
       price: formData.get("price")
         ? parseFloat(formData.get("price") as string)
         : null,
@@ -110,87 +98,25 @@ export default async function JobFormPage({
       notes: (formData.get("notes") as string) || null,
     };
 
-    // Get product usage
-    const newProductUsage: {
-      productId: string;
-      quantity: number;
-      notes?: string;
-    }[] = [];
-
-    allProducts.forEach((product) => {
-      const quantity = formData.get(`quantity_${product.id}`);
-      const notes = formData.get(`notes_${product.id}`) as string;
-
-      if (quantity && parseFloat(quantity as string) > 0) {
-        newProductUsage.push({
-          productId: product.id,
-          quantity: parseFloat(quantity as string),
-          notes: notes || undefined,
-        });
-      }
-    });
-
     const editingJobId = formData.get("jobId") as string | null;
 
     if (editingJobId) {
       // UPDATE existing job
-      const existingJob = await db.job.findUnique({
+      await db.job.update({
         where: { id: editingJobId },
-        include: {
-          productUsage: true,
+        data: {
+          ...jobData,
+          cleaners:
+            cleanerIds.length > 0
+              ? {
+                  set: cleanerIds.map((id) => ({ id })),
+                }
+              : undefined,
         },
       });
 
-      if (existingJob) {
-        // Restore previous usage back to stock
-        for (const usage of existingJob.productUsage) {
-          await db.product.update({
-            where: { id: usage.productId },
-            data: {
-              stockLevel: {
-                increment: usage.quantity,
-              },
-            },
-          });
-        }
-
-        // Delete old usage records
-        await db.jobProductUsage.deleteMany({
-          where: { jobId: editingJobId },
-        });
-
-        // Update job
-        await db.job.update({
-          where: { id: editingJobId },
-          data: {
-            ...jobData,
-            cleaners:
-              cleanerIds.length > 0
-                ? {
-                    set: cleanerIds.map((id) => ({ id })),
-                  }
-                : undefined,
-            productUsage: {
-              create: newProductUsage,
-            },
-          },
-        });
-
-        // Deduct new usage from stock
-        for (const usage of newProductUsage) {
-          await db.product.update({
-            where: { id: usage.productId },
-            data: {
-              stockLevel: {
-                decrement: usage.quantity,
-              },
-            },
-          });
-        }
-
-        revalidatePath("/jobs");
-        redirect(`/jobs/${editingJobId}`);
-      }
+      revalidatePath("/jobs");
+      redirect(`/jobs/${editingJobId}`);
     } else {
       // CREATE new job
       // Only add cleaners if there are any selected
@@ -200,28 +126,9 @@ export default async function JobFormPage({
         };
       }
 
-      // Add product usage
-      if (newProductUsage.length > 0) {
-        jobData.productUsage = {
-          create: newProductUsage,
-        };
-      }
-
-      const newJob = await db.job.create({
+      await db.job.create({
         data: jobData,
       });
-
-      // Deduct usage from stock
-      for (const usage of newProductUsage) {
-        await db.product.update({
-          where: { id: usage.productId },
-          data: {
-            stockLevel: {
-              decrement: usage.quantity,
-            },
-          },
-        });
-      }
 
       revalidatePath("/jobs");
       redirect("/jobs");
@@ -233,53 +140,24 @@ export default async function JobFormPage({
 
     const jobId = formData.get("jobId") as string;
 
-    // Restore stock levels
-    const job = await db.job.findUnique({
+    await db.job.delete({
       where: { id: jobId },
-      include: {
-        productUsage: true,
-      },
     });
-
-    if (job) {
-      for (const usage of job.productUsage) {
-        await db.product.update({
-          where: { id: usage.productId },
-          data: {
-            stockLevel: {
-              increment: usage.quantity,
-            },
-          },
-        });
-      }
-
-      await db.job.delete({
-        where: { id: jobId },
-      });
-    }
 
     revalidatePath("/jobs");
     redirect("/jobs");
   }
 
-  // Create a map of current product usage for editing
-  const currentUsage = new Map(
-    existingJob?.productUsage.map((usage) => [
-      usage.productId,
-      { quantity: usage.quantity, notes: usage.notes || "" },
-    ]) || []
-  );
-
   // Get selected cleaner IDs for editing
   const selectedCleanerIds = existingJob?.cleaners.map((c) => c.id) || [];
 
   return (
-    <div className="max-w-5xl mx-auto text-black">
-      <Card variant="default" className="mb-6">
-        <h1 className="text-3xl font-bold" style={{ color: "#005F6A" }}>
+    <div className="max-w-[80rem] mx-auto text-black">
+      <Card variant="ghost" className="mb-6">
+        <h1 className="text-3xl font-[450] text-[#005F6A]">
           {isEditing ? "Edit Cleaning Job" : "Create New Cleaning Job"}
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-[#005F6A]/80 mt-1">
           {isEditing
             ? "Update the details for your cleaning job"
             : "Fill in the details for your cleaning job"}
@@ -292,17 +170,17 @@ export default async function JobFormPage({
           <input type="hidden" name="jobId" value={existingJob.id} />
         )}
         {/* Basic Information */}
-        <Card variant="default">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            Basic Information
-          </h2>
+        <Card variant="ghost">
+          <Card variant="alara_dark" className="mb-4">
+            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+              Basic Information
+            </h2>
+          </Card>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="clientName"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Client Name <span className="text-red-500">*</span>
               </label>
               <Input
@@ -318,32 +196,16 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="jobType"
-                className="block text-sm font-medium text-neutral-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Job Type
               </label>
-              <CustomDropdown
-                trigger={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full text-left">
-                    Lemons
-                  </Button>
-                }
-                options={[
-                  { label: "Select Type" },
-                  { label: "R - Residential" },
-                  { label: "C - Commercial" },
-                  { label: "PC - Post Construction" },
-                  { label: "F - Follow-up" },
-                ]}
-              />
+              <JobTypeSelector initialValue={existingJob?.jobType} />
             </div>
 
             <div>
               <label
                 htmlFor="location"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Location
               </label>
               <Input
@@ -358,7 +220,7 @@ export default async function JobFormPage({
             <div className="md:col-span-2">
               <label
                 htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Description
               </label>
               <Textarea
@@ -373,17 +235,17 @@ export default async function JobFormPage({
         </Card>
 
         {/* Date & Time */}
-        <Card variant="default">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            Date & Time
-          </h2>
+        <Card variant="ghost">
+          <Card variant="alara_dark" className="mb-4">
+            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+              Date & Time
+            </h2>
+          </Card>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label
                 htmlFor="jobDate"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Job Date
               </label>
               <Input
@@ -401,7 +263,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="startTime"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-gray-700 mb-1">
                 Start Time
               </label>
               <Input
@@ -422,7 +284,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="endTime"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-gray-700 mb-1">
                 End Time
               </label>
               <Input
@@ -443,12 +305,10 @@ export default async function JobFormPage({
         </Card>
 
         {/* Team & Hours */}
-        <Card variant="default">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            Team
-          </h2>
+        <Card variant="ghost">
+          <Card variant="alara_dark" className="mb-4">
+            <h2 className="text-xl font-[450] text-[#005F6A] w-full">Team</h2>
+          </Card>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <CleanerSelector
@@ -459,66 +319,18 @@ export default async function JobFormPage({
           </div>
         </Card>
 
-        {/* Product Usage */}
-        <Card variant="default">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            Product Usage
-          </h2>
-          <div className="space-y-3 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
-            {allProducts.map((product) => {
-              const usage = currentUsage.get(product.id);
-              return (
-                <div key={product.id} className="p-3 bg-gray-50 rounded">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {product.name}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Available: {product.stockLevel + (usage?.quantity || 0)}{" "}
-                        {product.unit}
-                      </div>
-                    </div>
-                    <Input
-                      type="number"
-                      name={`quantity_${product.id}`}
-                      step="0.01"
-                      min="0"
-                      max={product.stockLevel + (usage?.quantity || 0)}
-                      defaultValue={usage?.quantity || 0}
-                      className="w-24"
-                    />
-                    <span className="text-sm text-gray-600 ml-2 mt-2">
-                      {product.unit}
-                    </span>
-                  </div>
-                  <Input
-                    type="text"
-                    name={`notes_${product.id}`}
-                    placeholder="Optional notes"
-                    defaultValue={usage?.notes || ""}
-                    className="text-sm"
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
         {/* Pricing & Payment */}
-        <Card variant="default">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            Pricing & Payment
-          </h2>
+        <Card variant="ghost">
+          <Card variant="alara_dark" className="mb-4">
+            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+              Pricing & Payment
+            </h2>
+          </Card>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="price"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Price
               </label>
               <div className="relative">
@@ -538,7 +350,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="employeePay"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Employee Pay
               </label>
               <div className="relative">
@@ -558,7 +370,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="totalTip"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Total Tip
               </label>
               <div className="relative">
@@ -578,7 +390,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="parking"
-                className="block text-sm font-medium text-gray-700 mb-1">
+                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
                 Parking
               </label>
               <div className="relative">
@@ -594,73 +406,29 @@ export default async function JobFormPage({
                 />
               </div>
             </div>
-
-            <div className="flex items-center space-x-6 md:col-span-2">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="paymentReceived"
-                  defaultChecked={existingJob?.paymentReceived || false}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Payment Received
-                </span>
-              </label>
-
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="invoiceSent"
-                  defaultChecked={existingJob?.invoiceSent || false}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-700">Invoice Sent</span>
-              </label>
-            </div>
           </div>
         </Card>
 
-        {/* Notes & Status */}
-        <Card variant="default">
-          <h2
-            className="text-xl font-semibold mb-4"
-            style={{ color: "#005F6A" }}>
-            Additional Details
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="notes"
-                className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
-              </label>
-              <Textarea
-                id="notes"
-                name="notes"
-                rows={3}
-                defaultValue={existingJob?.notes || ""}
-                placeholder="Any additional notes or special requirements..."
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="status"
-                className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <Select
-                id="status"
-                name="status"
-                defaultValue={existingJob?.status || "IN_PROGRESS"}
-                options={[
-                  { value: "IN_PROGRESS", label: "In Progress" },
-                  { value: "COMPLETED", label: "Completed" },
-                  { value: "CANCELLED", label: "Cancelled" },
-                ]}
-              />
-            </div>
+        {/* Notes */}
+        <Card variant="ghost">
+          <Card variant="alara_dark" className="mb-4">
+            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+              Additional Details
+            </h2>
+          </Card>
+          <div>
+            <label
+              htmlFor="notes"
+              className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+              Notes
+            </label>
+            <Textarea
+              id="notes"
+              name="notes"
+              rows={3}
+              defaultValue={existingJob?.notes || ""}
+              placeholder="Any additional notes or special requirements..."
+            />
           </div>
         </Card>
 
@@ -669,9 +437,7 @@ export default async function JobFormPage({
           {isEditing && existingJob && (
             <form action={deleteJob}>
               <input type="hidden" name="jobId" value={existingJob.id} />
-              <Button type="submit" variant="destructive">
-                Delete Job
-              </Button>
+              <DeleteButton />
             </form>
           )}
           <div className={`flex space-x-4 ${!isEditing ? "ml-auto" : ""}`}>
@@ -680,9 +446,7 @@ export default async function JobFormPage({
                 Cancel
               </Button>
             </a>
-            <Button type="submit" variant="primary">
-              {isEditing ? "Update Job" : "Create Job"}
-            </Button>
+            <SubmitButton isEditing={isEditing} />
           </div>
         </div>
       </form>

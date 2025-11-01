@@ -47,7 +47,7 @@ export function InventoryFilters() {
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const currentSearch = searchParams.get("search") || "";
-    
+
     if (search !== currentSearch) {
       setLoading(true);
       startTransition(() => {
@@ -103,7 +103,7 @@ export function InventoryFilters() {
         <div className="flex-1 min-w-[250px]">
           <label
             htmlFor="search"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Search
           </label>
           <form onSubmit={handleSearch}>
@@ -142,7 +142,7 @@ export function InventoryFilters() {
         <div className="w-48">
           <label
             htmlFor="stockStatus"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Stock Status
           </label>
           <Select
@@ -160,7 +160,7 @@ export function InventoryFilters() {
         <div className="w-32">
           <label
             htmlFor="perPage"
-            className="block text-sm font-medium text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-gray-700 mb-1.5">
             Per Page
           </label>
           <Select
@@ -191,4 +191,3 @@ export function InventoryFilters() {
     </Card>
   );
 }
-

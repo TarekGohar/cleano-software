@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Pencil, Trash2 } from "lucide-react";
 
 interface InventoryItemProps {
   assignment: {
@@ -72,7 +72,7 @@ export default function InventoryItem({
       className={`grid ${gridCols} hover:bg-gray-50/50 transition-colors items-center group`}>
       {/* Product Name */}
       <div className="px-6 py-4">
-        <span className="text-sm font-medium text-gray-900">
+        <span className="text-sm font-[450] text-gray-900">
           {assignment.product.name}
         </span>
       </div>
@@ -97,7 +97,7 @@ export default function InventoryItem({
       {/* Value (only in 6-column) */}
       {!useFullWidth && (
         <div className="px-6 py-4">
-          <span className="text-sm font-medium text-green-600">
+          <span className="text-sm font-[450] text-green-600">
             ${itemValue.toFixed(2)}
           </span>
         </div>
@@ -122,11 +122,12 @@ export default function InventoryItem({
         {onEdit && (
           <Button
             onClick={onEdit}
-            variant="ghost"
+            variant="default"
             size="sm"
             submit={false}
-            className="opacity-0 group-hover:opacity-100 transition-opacity !px-3">
-            <Edit2 className="w-4 h-4" />
+            className="">
+            <Pencil className="w-3 h-3 mr-1" />
+            Edit
           </Button>
         )}
         <form onSubmit={handleRemove} className="inline">
@@ -134,14 +135,15 @@ export default function InventoryItem({
           <Button
             type="submit"
             disabled={isRemoving}
-            variant="ghost"
+            variant="destructive"
             size="sm"
-            className="opacity-0 group-hover:opacity-100 transition-opacity !px-3 hover:bg-red-50 hover:text-red-600">
+            className="">
             {isRemoving ? (
-              <span className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></span>
+              <span className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></span>
             ) : (
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3 h-3 mr-1" />
             )}
+            Remove
           </Button>
         </form>
       </div>

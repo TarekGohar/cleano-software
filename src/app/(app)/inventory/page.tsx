@@ -173,7 +173,7 @@ export default async function InventoryPage({
           {/* Header */}
           <Card variant="ghost">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
+              <h1 className="text-3xl font-[450] text-gray-900">Inventory</h1>
               <CreateProductButton />
             </div>
           </Card>
@@ -189,20 +189,20 @@ export default async function InventoryPage({
                 {/* Header row */}
                 <div className="grid grid-cols-7 bg-gray-50/50">
                   <TableHeader label="Name" sortKey="name" />
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Description
                   </span>
                   <TableHeader label="Stock Level" sortKey="stockLevel" />
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Assigned
                   </span>
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Employees
                   </span>
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Status
                   </span>
-                  <span className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center justify-end">
+                  <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end">
                     Actions
                   </span>
                 </div>

@@ -153,8 +153,10 @@ export async function InventoryView({
           <Card variant="default" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-600">Total Items</p>
-                <p className="text-3xl font-bold text-gray-900">{totalItems}</p>
+                <p className="text-sm font-[450] text-gray-600">Total Items</p>
+                <p className="text-3xl font-[450] text-gray-900">
+                  {totalItems}
+                </p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <Package className="w-6 h-6 text-blue-600" />
@@ -165,10 +167,10 @@ export async function InventoryView({
           <Card variant="default" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-[450] text-gray-600">
                   Total Quantity
                 </p>
-                <p className="text-3xl font-bold text-[#005F6A]">
+                <p className="text-3xl font-[450] text-[#005F6A]">
                   {totalQuantity.toFixed(0)}
                 </p>
               </div>
@@ -181,8 +183,8 @@ export async function InventoryView({
           <Card variant="default" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-sm font-[450] text-gray-600">Total Value</p>
+                <p className="text-3xl font-[450] text-green-600">
                   ${totalValue.toFixed(2)}
                 </p>
               </div>
@@ -195,8 +197,8 @@ export async function InventoryView({
           <Card variant="default" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-600">Low Stock</p>
-                <p className="text-3xl font-bold text-orange-600">
+                <p className="text-sm font-[450] text-gray-600">Low Stock</p>
+                <p className="text-3xl font-[450] text-orange-600">
                   {lowStockItems}
                 </p>
               </div>

@@ -71,7 +71,7 @@ export default function Dropdown({
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-md hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 focus:bg-blue-50/50 transition-all duration-200 outline-none flex items-center justify-between gap-1">
+        className="w-full px-3 py-2 text-sm font-[450] text-gray-900 bg-white border border-gray-200 rounded-md hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 focus:bg-blue-50/50 transition-all duration-200 outline-none flex items-center justify-between gap-1">
         <span className="text-center flex-1">
           {selectedOption?.label || placeholder}
         </span>
@@ -98,14 +98,14 @@ export default function Dropdown({
                 key={option.value}
                 type="button"
                 onClick={() => handleSelect(option)}
-                className={`w-full px-3 py-2 text-sm font-medium text-left hover:bg-gray-50 transition-colors duration-150 ${
+                className={`w-full px-3 py-2 text-sm font-[450] text-left hover:bg-gray-50 transition-colors duration-150 ${
                   value === option.value
                     ? "bg-blue-50 text-blue-700"
                     : "text-gray-700"
                 } whitespace-nowrap flex items-center justify-between`}>
                 <span>{option.label}</span>
                 {option.color && (
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full border border-gray-300 ml-2 flex-shrink-0"
                     style={{ backgroundColor: option.color }}
                   />

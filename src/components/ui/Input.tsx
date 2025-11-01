@@ -36,7 +36,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       minimal:
         "bg-transparent border-0 border-b border-gray-200 rounded-none hover:border-gray-400 focus:border-[#005F6A]/70",
       badge:
-        "font-medium bg-white border border-gray-200 rounded-md hover:border-gray-300 focus:border-[#005F6A]/70",
+        "font-[450] bg-white border border-gray-200 rounded-md hover:border-gray-300 focus:border-[#005F6A]/70",
       search:
         "pl-3 border border-[#005F6A]/10 hover:border-[#005F6A]/20 focus:border-[#77C8CC]",
       compact:

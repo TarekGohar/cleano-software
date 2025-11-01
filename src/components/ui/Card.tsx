@@ -38,12 +38,6 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
    * Use CSS-only decorative circles for better performance.
    * Predefined patterns that are optimized for GPU acceleration.
    */
-  decorativePattern?:
-    | "header"
-    | "stats-primary"
-    | "stats-secondary"
-    | "large-dual"
-    | "none";
 }
 
 // Move variant classes outside component to avoid recreation on every render
@@ -110,18 +104,10 @@ function Card({
   variant = "default",
   className = "",
   decorativeCircles = [],
-  decorativePattern,
   ...props
 }: CardProps) {
   // Memoize the variant class lookup
   const variantClass = useMemo(() => VARIANT_CLASSES[variant], [variant]);
-
-  // Memoize the decorative pattern class
-  const patternClass = useMemo(
-    () =>
-      decorativePattern ? DECORATIVE_PATTERN_CLASSES[decorativePattern] : "",
-    [decorativePattern]
-  );
 
   // Memoize the combined className
   const combinedClassName = useMemo(
@@ -129,17 +115,6 @@ function Card({
       `relative z-10 rounded-2xl p-2 ${variantClass} ${className} duration-300`,
     [variantClass, className]
   );
-
-  // Use CSS-only patterns when available (better performance)
-  if (decorativePattern && decorativePattern !== "none") {
-    return (
-      <div className={`relative rounded-2xl overflow-hidden ${patternClass}`}>
-        <div className={combinedClassName} {...props}>
-          {children}
-        </div>
-      </div>
-    );
-  }
 
   // Early return if no decorative elements to avoid extra DOM elements
   if (decorativeCircles.length === 0) {

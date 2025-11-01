@@ -58,11 +58,13 @@ export function InventoryPagination({
     <Card variant="default">
       <div className="space-y-4">
         <div className="text-sm text-gray-600 text-center">
-          Showing <span className="font-medium text-gray-900">{currentCount}</span>{" "}
-          item{currentCount !== 1 ? "s" : ""} per page
+          Showing{" "}
+          <span className="font-[450] text-gray-900">{currentCount}</span> item
+          {currentCount !== 1 ? "s" : ""} per page
           {currentCursor && (
             <span className="ml-2 text-gray-500">
-              (Page {direction === "prev" ? "↑" : direction === "next" ? "↓" : "1"})
+              (Page{" "}
+              {direction === "prev" ? "↑" : direction === "next" ? "↓" : "1"})
             </span>
           )}
         </div>
@@ -100,7 +102,7 @@ export function InventoryPagination({
           )}
 
           <div className="px-4 py-2 bg-gray-50 rounded-md border border-gray-200">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-[450] text-gray-700">
               {currentCursor ? "Loading..." : "Page 1"}
             </span>
           </div>
@@ -124,4 +126,3 @@ export function InventoryPagination({
     </Card>
   );
 }
-

@@ -322,7 +322,7 @@ export default async function EmployeePage({
           <div className="flex items-start justify-between">
             <div className="w-full flex justify-between items-start space-y-3">
               <div>
-                <h1 className="flex items-center gap-2 text-3xl font-bold text-gray-900 mb-3">
+                <h1 className="flex items-center gap-2 text-3xl font-[450] text-gray-900 mb-3">
                   <span className="text-gray-900">{employee.name}</span>
                   <Badge variant="alara" size="md">
                     {employee.role}
@@ -357,10 +357,10 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="default" className="p-6">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-[450] text-gray-600">
                       Jobs Completed
                     </p>
-                    <p className="text-3xl font-bold text-gray-900">
+                    <p className="text-3xl font-[450] text-gray-900">
                       {completedJobs.length}
                     </p>
                   </div>
@@ -370,10 +370,10 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="default" className="p-6">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-[450] text-gray-600">
                       Total Revenue
                     </p>
-                    <p className="text-3xl font-bold text-green-600">
+                    <p className="text-3xl font-[450] text-green-600">
                       ${totalRevenue.toFixed(2)}
                     </p>
                   </div>
@@ -383,10 +383,10 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="default" className="p-6">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-[450] text-gray-600">
                       Employee Pay
                     </p>
-                    <p className="text-3xl font-bold text-[#005F6A]">
+                    <p className="text-3xl font-[450] text-[#005F6A]">
                       ${totalPaid.toFixed(2)}
                     </p>
                     {totalTips > 0 && (
@@ -401,10 +401,10 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="default" className="p-6">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-[450] text-gray-600">
                       Unpaid Jobs
                     </p>
-                    <p className="text-3xl font-bold text-orange-600">
+                    <p className="text-3xl font-[450] text-orange-600">
                       {unpaidJobs}
                     </p>
                   </div>
@@ -418,7 +418,7 @@ export default async function EmployeePage({
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">
+                    <h2 className="text-xl font-[450] text-gray-900">
                       Upcoming Jobs
                     </h2>
                     <Badge variant="secondary" size="sm">
@@ -445,7 +445,7 @@ export default async function EmployeePage({
                             className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-gray-100">
                             <div className="w-full space-y-2">
                               <div className="flex items-start justify-between">
-                                <p className="font-semibold text-gray-900 text-left">
+                                <p className="font-[450] text-gray-900 text-left">
                                   {job.clientName}
                                 </p>
                                 <Badge variant="alara" size="sm">
@@ -464,7 +464,7 @@ export default async function EmployeePage({
                                 )}
                               </p>
                               {job.price && (
-                                <p className="text-sm font-semibold text-green-600 text-left">
+                                <p className="text-sm font-[450] text-green-600 text-left">
                                   ${job.price.toFixed(2)}
                                 </p>
                               )}
@@ -481,7 +481,7 @@ export default async function EmployeePage({
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">
+                    <h2 className="text-xl font-[450] text-gray-900">
                       Recent Jobs
                     </h2>
                     <Badge variant="secondary" size="sm">
@@ -508,7 +508,7 @@ export default async function EmployeePage({
                             className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-gray-100">
                             <div className="w-full space-y-2">
                               <div className="flex items-start justify-between">
-                                <p className="font-semibold text-gray-900 text-left">
+                                <p className="font-[450] text-gray-900 text-left">
                                   {job.clientName}
                                 </p>
                                 <Badge
@@ -523,7 +523,7 @@ export default async function EmployeePage({
                                 {new Date(job.startTime).toLocaleDateString()}
                               </p>
                               {job.price && (
-                                <p className="text-sm font-semibold text-green-600 text-left">
+                                <p className="text-sm font-[450] text-green-600 text-left">
                                   ${job.price.toFixed(2)}
                                 </p>
                               )}
@@ -542,7 +542,7 @@ export default async function EmployeePage({
               {/* Top Products */}
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-[450] text-gray-900">
                     Most Used Products
                   </h2>
 
@@ -559,7 +559,7 @@ export default async function EmployeePage({
                           key={idx}
                           className="flex items-center justify-between p-3 bg-[#005F6A]/5 rounded-lg border border-[#005F6A]/10 hover:border-[#005F6A]/20 transition-colors">
                           <div className="space-y-1">
-                            <p className="font-medium text-gray-900 text-sm">
+                            <p className="font-[450] text-gray-900 text-sm">
                               {product.name}
                             </p>
                             <p className="text-xs text-gray-600">
@@ -580,7 +580,7 @@ export default async function EmployeePage({
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">
+                    <h2 className="text-xl font-[450] text-gray-900">
                       Low Stock Alerts
                     </h2>
                     {lowStockProducts.length > 0 && (
@@ -608,7 +608,7 @@ export default async function EmployeePage({
                           className="w-full !justify-start !h-auto !py-3 hover:bg-red-50 border border-red-200 !rounded-lg">
                           <div className="w-full space-y-1">
                             <div className="flex items-start justify-between">
-                              <p className="font-medium text-gray-900 text-sm text-left">
+                              <p className="font-[450] text-gray-900 text-sm text-left">
                                 {product.name}
                               </p>
                               <Badge variant="error" size="sm">
@@ -633,7 +633,7 @@ export default async function EmployeePage({
             {/* Inventory Requests */}
             <Card variant="default" className="p-6">
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-[450] text-gray-900">
                   Inventory Requests History
                 </h2>
 
@@ -646,16 +646,16 @@ export default async function EmployeePage({
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                             Date
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                             Quantity
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                             Reason
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
                         </tr>

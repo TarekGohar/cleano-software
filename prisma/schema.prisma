@@ -24,6 +24,7 @@ model User {
   jobs              Job[]              @relation("EmployeeJobs")
   sessions          Session[]
   cleaningJobs      Job[]              @relation("JobCleaners")
+  jobLogs           JobLog[]           @relation("UserJobLogs")
 }
 
 model Account {
@@ -86,7 +87,9 @@ model Job {
   jobDate         DateTime?
   startTime       DateTime
   endTime         DateTime?
-  status          JobStatus         @default(IN_PROGRESS)
+  clockInTime     DateTime?
+  clockOutTime    DateTime?
+  status          JobStatus         @default(CREATED)
   price           Float?
   employeePay     Float?
   totalTip        Float?
@@ -99,6 +102,7 @@ model Job {
   employee        User              @relation("EmployeeJobs", fields: [employeeId], references: [id], onDelete: Cascade)
   productUsage    JobProductUsage[]
   cleaners        User[]            @relation("JobCleaners")
+  logs            JobLog[]
 
   @@index([jobDate])
   @@index([clientName])
@@ -106,17 +110,37 @@ model Job {
 }
 
 model JobProductUsage {
-  id        String   @id @default(cuid())
-  jobId     String
-  productId String
-  quantity  Float
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  jobId              String
+  productId          String
+  quantity           Float
+  inventoryBefore    Float?
+  inventoryAfter     Float?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  job                Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, productId])
+}
+
+model JobLog {
+  id          String       @id @default(cuid())
+  jobId       String
+  userId      String?
+  action      JobLogAction
+  field       String?
+  oldValue    String?
+  newValue    String?
+  description String
+  createdAt   DateTime     @default(now())
+  job         Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user        User?        @relation("UserJobLogs", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([jobId])
+  @@index([createdAt])
+  @@index([userId])
 }
 
 model InventoryRequest {
@@ -156,8 +180,11 @@ enum Roles {
 }
 
 enum JobStatus {
+  CREATED
+  SCHEDULED
   IN_PROGRESS
   COMPLETED
+  PAID
   CANCELLED
 }
 
@@ -166,4 +193,18 @@ enum RequestStatus {
   APPROVED
   REJECTED
   FULFILLED
+}
+
+enum JobLogAction {
+  CREATED
+  UPDATED
+  CLOCKED_IN
+  CLOCKED_OUT
+  STATUS_CHANGED
+  PAYMENT_RECEIVED
+  INVOICE_SENT
+  PRODUCT_USED
+  NOTE_ADDED
+  CLEANER_ADDED
+  CLEANER_REMOVED
 }

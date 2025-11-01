@@ -86,7 +86,7 @@ export default async function ProductPage({
           </Button>
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-[450] text-gray-900">
                 {product.name}
               </h1>
               {product.description && (
@@ -101,7 +101,7 @@ export default async function ProductPage({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card variant="alara_light_bordered">
           <div className="p-3">
-            <div className="text-2xl font-bold text-cyan-700">
+            <div className="text-2xl font-[450] text-cyan-700">
               {product.stockLevel} {product.unit}
             </div>
             <p className="text-sm text-gray-600 mt-1">In Warehouse</p>
@@ -115,7 +115,7 @@ export default async function ProductPage({
 
         <Card variant="alara_light_bordered">
           <div className="p-3">
-            <div className="text-2xl font-bold text-[#005F6A]">
+            <div className="text-2xl font-[450] text-[#005F6A]">
               {totalAssigned} {product.unit}
             </div>
             <p className="text-sm text-gray-600 mt-1">Assigned to Employees</p>
@@ -124,7 +124,7 @@ export default async function ProductPage({
 
         <Card variant="alara_light_bordered">
           <div className="p-3">
-            <div className="text-2xl font-bold text-[#77C8CC]">
+            <div className="text-2xl font-[450] text-[#77C8CC]">
               {(product.stockLevel + totalAssigned).toFixed(2)} {product.unit}
             </div>
             <p className="text-sm text-gray-600 mt-1">Total Inventory</p>
@@ -134,7 +134,7 @@ export default async function ProductPage({
 
         <Card variant="alara_light_bordered">
           <div className="p-3">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-[450] text-gray-900">
               ${product.costPerUnit.toFixed(2)}
             </div>
             <p className="text-sm text-gray-600 mt-1">
@@ -145,7 +145,7 @@ export default async function ProductPage({
 
         <Card variant="alara_light_bordered">
           <div className="p-3">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-[450] text-green-600">
               $
               {(
                 (product.stockLevel + totalAssigned) *
@@ -161,7 +161,7 @@ export default async function ProductPage({
       <Card variant="alara_light_bordered">
         <div className="space-y-4 p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-cyan-700">
+            <h2 className="text-xl font-[450] text-cyan-700">
               Assigned to Employees
             </h2>
             {(product as any).employeeProducts.length > 0 && (
@@ -187,25 +187,25 @@ export default async function ProductPage({
                 <table className="min-w-full divide-y divide-gray-100">
                   <thead className="bg-white/80">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Employee
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Email
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Quantity
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Value
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Assigned Date
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Notes
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -217,7 +217,7 @@ export default async function ProductPage({
                           key={assignment.id}
                           className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-[450] text-gray-900">
                               {assignment.employee.name}
                             </div>
                           </td>
@@ -227,7 +227,7 @@ export default async function ProductPage({
                           <td className="px-4 py-3 whitespace-nowrap">
                             {assignment.quantity} {product.unit}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-green-600">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-green-600">
                             $
                             {(
                               assignment.quantity * product.costPerUnit
@@ -257,13 +257,13 @@ export default async function ProductPage({
                     <tr>
                       <td
                         colSpan={2}
-                        className="px-4 py-3 text-sm font-semibold text-gray-700">
+                        className="px-4 py-3 text-sm font-[450] text-gray-700">
                         Total Assigned
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {totalAssigned} {product.unit}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-green-600">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-green-600">
                         ${(totalAssigned * product.costPerUnit).toFixed(2)}
                       </td>
                       <td colSpan={3}></td>
@@ -281,7 +281,7 @@ export default async function ProductPage({
         {/* Recent Usage */}
         <Card variant="default">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-[450] text-gray-900">
               Recent Usage in Jobs
             </h2>
 
@@ -294,7 +294,7 @@ export default async function ProductPage({
                     key={usage.id}
                     className="flex justify-between items-start p-3 bg-[#005F6A]/5 rounded-lg hover:bg-[#005F6A]/10 transition-colors">
                     <div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-[450] text-gray-900">
                         {usage.job.clientName}
                       </div>
                       <div className="text-sm text-gray-600">
@@ -317,9 +317,7 @@ export default async function ProductPage({
         {/* Stock Summary */}
         <Card variant="default">
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Stock Summary
-            </h2>
+            <h2 className="text-xl font-[450] text-gray-900">Stock Summary</h2>
 
             <div className="space-y-4">
               <Card variant="alara_light_bordered">
@@ -327,7 +325,7 @@ export default async function ProductPage({
                   <div className="text-sm text-gray-600 mb-1">
                     Minimum Stock Threshold
                   </div>
-                  <div className="text-2xl font-bold text-[#005F6A]">
+                  <div className="text-2xl font-[450] text-[#005F6A]">
                     {product.minStock} {product.unit}
                   </div>
                 </div>
@@ -338,7 +336,7 @@ export default async function ProductPage({
                   <div className="text-sm text-gray-600 mb-1">
                     Total Used in Jobs
                   </div>
-                  <div className="text-2xl font-bold text-gray-700">
+                  <div className="text-2xl font-[450] text-gray-700">
                     {totalUsed} {product.unit}
                   </div>
                 </div>
@@ -349,7 +347,7 @@ export default async function ProductPage({
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="text-sm font-medium text-red-800">
+                      <h3 className="text-sm font-[450] text-red-800">
                         Low Stock Alert
                       </h3>
                       <p className="mt-1 text-sm text-red-700">
@@ -360,7 +358,6 @@ export default async function ProductPage({
                   </div>
                 </Card>
               )}
-
             </div>
           </div>
         </Card>

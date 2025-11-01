@@ -55,7 +55,7 @@ export function EmployeePagination({
         {/* Results Count */}
         <div className="text-sm text-gray-600 text-center">
           Showing{" "}
-          <span className="font-medium text-gray-900">{currentCount}</span>{" "}
+          <span className="font-[450] text-gray-900">{currentCount}</span>{" "}
           employee{currentCount !== 1 ? "s" : ""} per page
           {currentCursor && (
             <span className="ml-2 text-gray-500">
@@ -101,7 +101,7 @@ export function EmployeePagination({
 
           {/* Current Position Indicator */}
           <div className="px-4 py-2 bg-gray-50 rounded-md border border-gray-200">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-[450] text-gray-700">
               {currentCursor ? "Loading..." : "Page 1"}
             </span>
           </div>

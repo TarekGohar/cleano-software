@@ -29,24 +29,26 @@ export default async function DashboardLayout({
             <div className="flex">
               <Link
                 href=""
-                className="flex items-center px-2 text-xl font-bold text-gray-900">
+                className="flex items-center px-2 text-xl font-[450] text-gray-900">
                 Cleano
               </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <NavLink href="/dashboard">Dashboard</NavLink>
                 {isAdmin && (
                   <>
-                    <NavLink href="/inventory">Inventory</NavLink>
-                    <NavLink href="/employees">Employees</NavLink>
                     <NavLink href="/analytics">Analytics</NavLink>
+                    <NavLink href="/employees">Employees</NavLink>
+                    <NavLink href="/inventory">Inventory</NavLink>
+
+                    <NavLink href="/jobs">Jobs</NavLink>
                   </>
                 )}
-                <NavLink href="/jobs">Jobs</NavLink>
+                <NavLink href="/my-jobs">My Jobs</NavLink>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700">{user.name}</span>
-              <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+              <span className="px-2 py-1 text-xs font-[450] rounded-full bg-blue-100 text-blue-800">
                 {user.role}
               </span>
               <form action={signOut}>

@@ -42,8 +42,8 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
           ? "Creating..."
           : "Updating..."
         : mode === "create"
-          ? "Create Employee"
-          : "Update Employee"}
+        ? "Create Employee"
+        : "Update Employee"}
     </Button>
   );
 }
@@ -137,7 +137,7 @@ export function EmployeeModal({
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1.5">
+              className="block text-sm font-[450] text-gray-700 mb-1.5">
               Full Name *
             </label>
             <Input
@@ -155,7 +155,7 @@ export function EmployeeModal({
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1.5">
+              className="block text-sm font-[450] text-gray-700 mb-1.5">
               Email Address *
             </label>
             <Input
@@ -173,7 +173,7 @@ export function EmployeeModal({
           <div>
             <label
               htmlFor="phone"
-              className="block text-sm font-medium text-gray-700 mb-1.5">
+              className="block text-sm font-[450] text-gray-700 mb-1.5">
               Phone Number
             </label>
             <Input
@@ -191,7 +191,7 @@ export function EmployeeModal({
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1.5">
+                className="block text-sm font-[450] text-gray-700 mb-1.5">
                 Password *
               </label>
               <Input
@@ -213,7 +213,7 @@ export function EmployeeModal({
           <div>
             <label
               htmlFor="role"
-              className="block text-sm font-medium text-gray-700 mb-1.5">
+              className="block text-sm font-[450] text-gray-700 mb-1.5">
               Role *
             </label>
             <CustomDropdown
@@ -224,8 +224,10 @@ export function EmployeeModal({
                   submit={false}
                   className="w-full flex items-center !justify-between bg-white">
                   <span>
-                    {roleOptions.find((opt) => opt.value === selectedRole)
-                      ?.label}
+                    {
+                      roleOptions.find((opt) => opt.value === selectedRole)
+                        ?.label
+                    }
                   </span>
                   <svg
                     className="w-4 h-4 text-gray-500"
@@ -315,4 +317,3 @@ export function EmployeeModal({
     </Modal>
   );
 }
-

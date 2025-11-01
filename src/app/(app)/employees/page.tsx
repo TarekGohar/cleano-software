@@ -188,7 +188,7 @@ export default async function EmployeesPage({
           {/* Header */}
           <Card variant="ghost">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
+              <h1 className="text-3xl font-[450] text-gray-900">Employees</h1>
               <CreateEmployeeButton />
             </div>
           </Card>
@@ -205,20 +205,20 @@ export default async function EmployeesPage({
                 <div className="grid grid-cols-8 bg-gray-50/50">
                   <TableHeader label="Name" sortKey="name" />
                   <TableHeader label="Email" sortKey="email" />
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Phone
                   </span>
                   <TableHeader label="Role" sortKey="role" />
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Completed Jobs
                   </span>
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Active Jobs
                   </span>
-                  <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
                     Total Revenue
                   </span>
-                  <span className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center justify-end">
+                  <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end">
                     Actions
                   </span>
                 </div>

@@ -80,9 +80,7 @@ export function InventoryList({
 
         {/* Add Inventory Button */}
         <div className="px-6 py-4 flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Inventory Items
-          </h3>
+          <h3 className="text-lg font-[450] text-gray-900">Inventory Items</h3>
           <Button onClick={handleOpenModal} variant="primary" submit={false}>
             <Plus className="w-4 h-4 mr-2" />
             Add Inventory
@@ -96,10 +94,10 @@ export function InventoryList({
             <InventoryTableHeader label="Quantity" sortKey="quantity" />
             <InventoryTableHeader label="Value" sortKey="value" />
             <InventoryTableHeader label="Assigned" sortKey="assignedAt" />
-            <span className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
+            <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
               Notes
             </span>
-            <span className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center justify-end">
+            <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end">
               Actions
             </span>
           </div>
