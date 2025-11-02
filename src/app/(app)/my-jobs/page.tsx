@@ -244,7 +244,6 @@ export default async function MyJobsPage({
                         </>
                       ) : (
                         <>
-                          <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                           <p className="font-[450] text-gray-900 mb-1">
                             No Jobs Assigned
                           </p>
