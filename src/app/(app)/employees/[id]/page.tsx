@@ -6,7 +6,19 @@ import { revalidatePath } from "next/cache";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import { ArrowLeft, ChevronLeft, Mail, Phone } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  Mail,
+  Phone,
+  CheckCircle2,
+  DollarSign,
+  AlertTriangle,
+  Calendar,
+  History,
+  Package,
+  FileText,
+} from "lucide-react";
 import { Suspense } from "react";
 import {
   MetricCardSkeleton,
@@ -18,6 +30,7 @@ import { ViewToggle, type ViewType } from "./ViewToggle";
 import { InventoryView } from "./InventoryView";
 import { InventoryViewSkeleton } from "./InventoryViewSkeleton";
 import { ViewSwitcher } from "./ViewSwitcher";
+import { Prisma } from "@prisma/client";
 
 // Server Actions
 async function assignProduct(employeeId: string, formData: FormData) {
@@ -217,20 +230,134 @@ export default async function EmployeePage({
         },
         take: 10,
       },
-      assignedProducts: {
-        include: {
-          product: true,
-        },
-        orderBy: {
-          assignedAt: "desc",
-        },
-      },
     },
   });
 
   if (!employee) {
     redirect("/employees");
   }
+
+  // Parse inventory search params for cursor-based pagination
+  const cursor = (resolvedSearchParams.cursor as string) || null;
+  const direction = (resolvedSearchParams.direction as string) || null;
+  const perPage = Number(resolvedSearchParams.perPage) || 10;
+  const search = (resolvedSearchParams.search as string) || "";
+  const stockStatus = (resolvedSearchParams.stockStatus as string) || "all";
+  const sortBy = (resolvedSearchParams.sortBy as string) || "name";
+  const sortOrder = (resolvedSearchParams.sortOrder as string) || "asc";
+
+  // Build where clause for assigned products
+  const assignedWhere: Prisma.EmployeeProductWhereInput = {
+    employeeId: id,
+  };
+
+  // Search filter
+  if (search) {
+    assignedWhere.OR = [
+      { product: { name: { contains: search, mode: "insensitive" } } },
+      { notes: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  // Stock status filter - we'll apply this after fetching since it requires comparing quantities
+  // For now, fetch all matching products
+  
+  // Build orderBy clause
+  let orderBy: any;
+  switch (sortBy) {
+    case "name":
+      orderBy = { product: { name: sortOrder } };
+      break;
+    case "quantity":
+      orderBy = { quantity: sortOrder };
+      break;
+    case "assignedAt":
+      orderBy = { assignedAt: sortOrder };
+      break;
+    case "value":
+      // For value sorting, we need to sort by quantity * costPerUnit
+      // This is complex in Prisma, so we'll fall back to assignedAt
+      orderBy = { assignedAt: sortOrder };
+      break;
+    default:
+      orderBy = { assignedAt: "desc" };
+  }
+
+  // Cursor-based pagination for assigned products
+  const take = perPage + 1;
+  let assignedProducts;
+
+  if (cursor && direction === "next") {
+    assignedProducts = await db.employeeProduct.findMany({
+      where: assignedWhere,
+      include: { product: true },
+      orderBy,
+      take,
+      skip: 1,
+      cursor: { id: cursor },
+    });
+  } else if (cursor && direction === "prev") {
+    const reverseOrder: any = {};
+    if (sortBy === "name") {
+      reverseOrder.product = { name: sortOrder === "asc" ? "desc" : "asc" };
+    } else if (sortBy === "quantity") {
+      reverseOrder.quantity = sortOrder === "asc" ? "desc" : "asc";
+    } else {
+      reverseOrder.assignedAt = sortOrder === "asc" ? "desc" : "asc";
+    }
+    
+    assignedProducts = await db.employeeProduct.findMany({
+      where: assignedWhere,
+      include: { product: true },
+      orderBy: reverseOrder,
+      take,
+      skip: 1,
+      cursor: { id: cursor },
+    });
+    assignedProducts = assignedProducts.reverse();
+  } else {
+    assignedProducts = await db.employeeProduct.findMany({
+      where: assignedWhere,
+      include: { product: true },
+      orderBy,
+      take,
+    });
+  }
+
+  // Apply stock status filter on fetched data (client-side filtering)
+  let filteredAssignedProducts = [...assignedProducts];
+  if (stockStatus === "in-stock") {
+    filteredAssignedProducts = filteredAssignedProducts.filter(
+      (item) => item.quantity > (item.product.minStock || 0)
+    );
+  } else if (stockStatus === "low-stock") {
+    filteredAssignedProducts = filteredAssignedProducts.filter(
+      (item) =>
+        item.quantity <= (item.product.minStock || 0) && item.quantity > 0
+    );
+  } else if (stockStatus === "out-of-stock") {
+    filteredAssignedProducts = filteredAssignedProducts.filter(
+      (item) => item.quantity === 0
+    );
+  }
+
+  // Check if there are more pages
+  const hasNextPage = filteredAssignedProducts.length > perPage;
+  if (hasNextPage) {
+    filteredAssignedProducts.pop();
+  }
+
+  const hasPrevPage = Boolean(cursor);
+  const nextCursor = hasNextPage
+    ? filteredAssignedProducts[filteredAssignedProducts.length - 1]?.id
+    : null;
+  const prevCursor = filteredAssignedProducts[0]?.id || null;
+
+  // Get all assigned products for metrics (unfiltered)
+  const allAssignedProducts = await db.employeeProduct.findMany({
+    where: { employeeId: id },
+    include: { product: true },
+  });
 
   const now = new Date();
   const completedJobs = employee.jobs.filter(
@@ -297,44 +424,52 @@ export default async function EmployeePage({
     (p) => p.stockLevel <= p.minStock
   );
 
-  const assignedProductIds = (employee as any).assignedProducts.map(
-    (ap: any) => ap.productId
-  );
+  const assignedProductIds = allAssignedProducts.map((ap) => ap.productId);
   const availableProducts = allProducts.filter(
     (p) => !assignedProductIds.includes(p.id) && p.stockLevel > 0
   );
 
+  // Calculate minimum rows for display
+  const minDisplayRows = Math.min(perPage, 10);
+  const placeholderRowCount = Math.max(
+    0,
+    minDisplayRows - filteredAssignedProducts.length
+  );
+
+  // Create data key for loading state
+  const dataKey = `${cursor}-${search}-${stockStatus}-${sortBy}-${sortOrder}-${perPage}-${filteredAssignedProducts.length}`;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <Button
-        variant="ghost"
+        variant="alara"
         size="sm"
         href="/employees"
         submit={false}
         className="!px-2 mb-4">
-        <ChevronLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Employees
       </Button>
 
       <Suspense fallback={<HeaderSkeleton />}>
-        <Card variant="default" className="p-6">
+        <Card variant="ghost" className="py-6">
           <div className="flex items-start justify-between">
             <div className="w-full flex justify-between items-start space-y-3">
               <div>
-                <h1 className="flex items-center gap-2 text-3xl font-[450] text-gray-900 mb-3">
-                  <span className="text-gray-900">{employee.name}</span>
+                <h1 className="flex items-center gap-2 text-3xl font-[450] text-[#005F6A] mb-3">
+                  <span className="text-[#005F6A]">{employee.name}</span>
                   <Badge variant="alara" size="md">
                     {employee.role}
                   </Badge>
                 </h1>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-[#005F6A]/70">
                     <Mail className="w-4 h-4" />
                     <span className="text-sm">{employee.email}</span>
                   </div>
                   {employee.phone && (
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-[#005F6A]/70">
                       <Phone className="w-4 h-4" />
                       <span className="text-sm">{employee.phone}</span>
                     </div>
@@ -353,75 +488,94 @@ export default async function EmployeePage({
         overviewContent={
           <>
             {/* Key Metrics */}
+            <h2 className="text-lg font-[450] text-[#005F6A]">
+              Performance Overview
+            </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Suspense fallback={<MetricCardSkeleton />}>
-                <Card variant="default" className="p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-[450] text-gray-600">
+                <Card variant="alara_light_bordered" className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <div className="text-sm font-[450] text-[#005F6A]/70">
                       Jobs Completed
-                    </p>
-                    <p className="text-3xl font-[450] text-gray-900">
-                      {completedJobs.length}
-                    </p>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-[450] text-[#005F6A]">
+                    {completedJobs.length}
                   </div>
                 </Card>
               </Suspense>
 
               <Suspense fallback={<MetricCardSkeleton />}>
-                <Card variant="default" className="p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-[450] text-gray-600">
+                <Card variant="alara_light_bordered" className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <div className="text-sm font-[450] text-[#005F6A]/70">
                       Total Revenue
-                    </p>
-                    <p className="text-3xl font-[450] text-green-600">
-                      ${totalRevenue.toFixed(2)}
-                    </p>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-[450] text-[#005F6A]">
+                    ${totalRevenue.toFixed(2)}
                   </div>
                 </Card>
               </Suspense>
 
               <Suspense fallback={<MetricCardSkeleton />}>
-                <Card variant="default" className="p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-[450] text-gray-600">
+                <Card variant="alara_light_bordered" className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <div className="text-sm font-[450] text-[#005F6A]/70">
                       Employee Pay
-                    </p>
-                    <p className="text-3xl font-[450] text-[#005F6A]">
-                      ${totalPaid.toFixed(2)}
-                    </p>
-                    {totalTips > 0 && (
-                      <p className="text-xs text-gray-500">
-                        + ${totalTips.toFixed(2)} tips
-                      </p>
-                    )}
+                    </div>
                   </div>
+                  <div className="text-2xl font-[450] text-[#005F6A]">
+                    ${totalPaid.toFixed(2)}
+                  </div>
+                  {totalTips > 0 && (
+                    <p className="text-xs text-[#005F6A]/60 mt-1">
+                      + ${totalTips.toFixed(2)} tips
+                    </p>
+                  )}
                 </Card>
               </Suspense>
 
               <Suspense fallback={<MetricCardSkeleton />}>
-                <Card variant="default" className="p-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-[450] text-gray-600">
+                <Card variant="alara_light_bordered" className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <div className="text-sm font-[450] text-[#005F6A]/70">
                       Unpaid Jobs
-                    </p>
-                    <p className="text-3xl font-[450] text-orange-600">
-                      {unpaidJobs}
-                    </p>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-[450] text-[#005F6A]">
+                    {unpaidJobs}
                   </div>
                 </Card>
               </Suspense>
             </div>
 
             {/* Jobs Overview */}
+            <h2 className="text-lg font-[450] text-[#005F6A] mt-12">Jobs</h2>
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Upcoming Jobs */}
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-[450] text-gray-900">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <Calendar className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <h2 className="text-lg font-[450] text-[#005F6A]">
                       Upcoming Jobs
                     </h2>
-                    <Badge variant="secondary" size="sm">
+                    <Badge variant="alara" size="sm">
                       {upcomingJobs.length}
                     </Badge>
                   </div>
@@ -429,7 +583,7 @@ export default async function EmployeePage({
                   <Suspense fallback={<JobCardSkeleton />}>
                     {upcomingJobs.length === 0 ? (
                       <div className="py-8 text-center">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-[#005F6A]/60">
                           No upcoming jobs.
                         </p>
                       </div>
@@ -442,17 +596,17 @@ export default async function EmployeePage({
                             size="md"
                             href={`/jobs/${job.id}`}
                             submit={false}
-                            className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-gray-100">
+                            className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-[#005F6A]/10">
                             <div className="w-full space-y-2">
                               <div className="flex items-start justify-between">
-                                <p className="font-[450] text-gray-900 text-left">
+                                <p className="font-[450] text-[#005F6A] text-left">
                                   {job.clientName}
                                 </p>
                                 <Badge variant="alara" size="sm">
                                   {job.jobType || "N/A"}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-gray-600 text-left">
+                              <p className="text-xs text-[#005F6A]/60 text-left">
                                 {new Date(job.startTime).toLocaleDateString()}{" "}
                                 at{" "}
                                 {new Date(job.startTime).toLocaleTimeString(
@@ -464,7 +618,7 @@ export default async function EmployeePage({
                                 )}
                               </p>
                               {job.price && (
-                                <p className="text-sm font-[450] text-green-600 text-left">
+                                <p className="text-sm font-[450] text-[#005F6A] text-left">
                                   ${job.price.toFixed(2)}
                                 </p>
                               )}
@@ -480,11 +634,14 @@ export default async function EmployeePage({
               {/* Recent Jobs */}
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-[450] text-gray-900">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <History className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <h2 className="text-lg font-[450] text-[#005F6A]">
                       Recent Jobs
                     </h2>
-                    <Badge variant="secondary" size="sm">
+                    <Badge variant="alara" size="sm">
                       Last 30 Days
                     </Badge>
                   </div>
@@ -492,7 +649,7 @@ export default async function EmployeePage({
                   <Suspense fallback={<JobCardSkeleton />}>
                     {recentJobs.length === 0 ? (
                       <div className="py-8 text-center">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-[#005F6A]/60">
                           No jobs in the last 30 days.
                         </p>
                       </div>
@@ -505,10 +662,10 @@ export default async function EmployeePage({
                             size="md"
                             href={`/jobs/${job.id}`}
                             submit={false}
-                            className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-gray-100">
+                            className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-[#005F6A]/10">
                             <div className="w-full space-y-2">
                               <div className="flex items-start justify-between">
-                                <p className="font-[450] text-gray-900 text-left">
+                                <p className="font-[450] text-[#005F6A] text-left">
                                   {job.clientName}
                                 </p>
                                 <Badge
@@ -519,11 +676,11 @@ export default async function EmployeePage({
                                   {job.paymentReceived ? "Paid" : "Unpaid"}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-gray-600 text-left">
+                              <p className="text-xs text-[#005F6A]/60 text-left">
                                 {new Date(job.startTime).toLocaleDateString()}
                               </p>
                               {job.price && (
-                                <p className="text-sm font-[450] text-green-600 text-left">
+                                <p className="text-sm font-[450] text-[#005F6A] text-left">
                                   ${job.price.toFixed(2)}
                                 </p>
                               )}
@@ -538,17 +695,25 @@ export default async function EmployeePage({
             </div>
 
             {/* Analytics Section */}
+            <h2 className="text-lg font-[450] text-[#005F6A] mt-12">
+              Analytics
+            </h2>
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Top Products */}
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
-                  <h2 className="text-xl font-[450] text-gray-900">
-                    Most Used Products
-                  </h2>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <Package className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <h2 className="text-lg font-[450] text-[#005F6A]">
+                      Most Used Products
+                    </h2>
+                  </div>
 
                   {topProducts.length === 0 ? (
                     <div className="py-8 text-center">
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-[#005F6A]/60">
                         No usage data yet.
                       </p>
                     </div>
@@ -557,12 +722,12 @@ export default async function EmployeePage({
                       {topProducts.map((product, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 bg-[#005F6A]/5 rounded-lg border border-[#005F6A]/10 hover:border-[#005F6A]/20 transition-colors">
+                          className="flex items-center justify-between p-3 bg-[#77C8CC]/10 rounded-lg border border-[#005F6A]/10 hover:border-[#005F6A]/20 transition-colors">
                           <div className="space-y-1">
-                            <p className="font-[450] text-gray-900 text-sm">
+                            <p className="font-[450] text-[#005F6A] text-sm">
                               {product.name}
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-[#005F6A]/60">
                               {product.quantity} {product.unit}
                             </p>
                           </div>
@@ -579,8 +744,11 @@ export default async function EmployeePage({
               {/* Low Stock Alerts */}
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-[450] text-gray-900">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-[#005F6A]" />
+                    </div>
+                    <h2 className="text-lg font-[450] text-[#005F6A]">
                       Low Stock Alerts
                     </h2>
                     {lowStockProducts.length > 0 && (
@@ -592,8 +760,8 @@ export default async function EmployeePage({
 
                   {lowStockProducts.length === 0 ? (
                     <div className="py-8 text-center">
-                      <p className="text-sm text-gray-500">
-                        All products well-stocked! 🎉
+                      <p className="text-sm text-[#005F6A]/60">
+                        All products well-stocked!
                       </p>
                     </div>
                   ) : (
@@ -608,17 +776,17 @@ export default async function EmployeePage({
                           className="w-full !justify-start !h-auto !py-3 hover:bg-red-50 border border-red-200 !rounded-lg">
                           <div className="w-full space-y-1">
                             <div className="flex items-start justify-between">
-                              <p className="font-[450] text-gray-900 text-sm text-left">
+                              <p className="font-[450] text-[#005F6A] text-sm text-left">
                                 {product.name}
                               </p>
                               <Badge variant="error" size="sm">
                                 Low
                               </Badge>
                             </div>
-                            <p className="text-xs text-gray-600 text-left">
+                            <p className="text-xs text-[#005F6A]/60 text-left">
                               Current: {product.stockLevel} {product.unit}
                             </p>
-                            <p className="text-xs text-gray-600 text-left">
+                            <p className="text-xs text-[#005F6A]/60 text-left">
                               Min: {product.minStock} {product.unit}
                             </p>
                           </div>
@@ -629,87 +797,25 @@ export default async function EmployeePage({
                 </div>
               </Card>
             </div>
-
-            {/* Inventory Requests */}
-            <Card variant="default" className="p-6">
-              <div className="space-y-4">
-                <h2 className="text-xl font-[450] text-gray-900">
-                  Inventory Requests History
-                </h2>
-
-                {(employee as any).inventoryRequests.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <p className="text-sm text-gray-500">No requests yet.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
-                            Quantity
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
-                            Reason
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {(employee as any).inventoryRequests.map(
-                          (request: any) => (
-                            <tr key={request.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {new Date(
-                                  request.createdAt
-                                ).toLocaleDateString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {request.quantity}
-                              </td>
-                              <td className="px-6 py-4 text-sm text-gray-600">
-                                {request.reason || "-"}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <Badge
-                                  variant={
-                                    request.status === "FULFILLED"
-                                      ? "success"
-                                      : request.status === "APPROVED"
-                                      ? "secondary"
-                                      : request.status === "REJECTED"
-                                      ? "error"
-                                      : "warning"
-                                  }
-                                  size="sm">
-                                  {request.status}
-                                </Badge>
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </Card>
           </>
         }
         inventoryContent={
           <InventoryView
             employeeId={id}
             searchParams={resolvedSearchParams}
-            assignedProducts={(employee as any).assignedProducts}
+            paginatedProducts={filteredAssignedProducts}
+            allAssignedProducts={allAssignedProducts}
             availableProducts={availableProducts}
             assignAction={assignProduct.bind(null, id)}
             removeAction={unassignProduct}
             updateAction={updateProductQuantity}
+            hasNextPage={hasNextPage}
+            hasPrevPage={hasPrevPage}
+            nextCursor={nextCursor}
+            prevCursor={prevCursor}
+            minDisplayRows={minDisplayRows}
+            placeholderRowCount={placeholderRowCount}
+            dataKey={dataKey}
           />
         }
       />

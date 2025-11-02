@@ -4,8 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
-import Button from "@/components/ui/Button";
+import CustomDropdown from "@/components/ui/custom-dropdown";
 import { useInventoryLoading } from "./InventoryLoadingContext";
 
 export function InventoryFilters() {
@@ -70,18 +69,6 @@ export function InventoryFilters() {
     });
   };
 
-  const handleClearFilters = () => {
-    setSearch("");
-    setLoading(true);
-    startTransition(() => {
-      const params = new URLSearchParams();
-      params.set("view", "inventory");
-      router.push(`${window.location.pathname}?${params.toString()}`);
-    });
-  };
-
-  const hasActiveFilters = search || stockStatus !== "all";
-
   const stockStatusOptions = [
     { value: "all", label: "All Stock" },
     { value: "in-stock", label: "In Stock" },
@@ -97,7 +84,7 @@ export function InventoryFilters() {
   ];
 
   return (
-    <Card variant="default">
+    <Card variant="ghost">
       <div className="flex items-end gap-4 flex-wrap">
         {/* Search */}
         <div className="flex-1 min-w-[250px]">
@@ -115,7 +102,7 @@ export function InventoryFilters() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by product name or notes..."
                 variant="default"
-                size="md"
+                size="lg"
                 className="pr-10"
               />
               <button
@@ -145,13 +132,32 @@ export function InventoryFilters() {
             className="block text-sm font-[450] text-gray-700 mb-1.5">
             Stock Status
           </label>
-          <Select
-            id="stockStatus"
-            value={stockStatus}
-            onChange={handleStockStatusChange}
-            disabled={isPending}
-            options={stockStatusOptions}
-            variant="default"
+          <CustomDropdown
+            trigger={
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-2xl bg-white text-sm text-gray-700 hover:border-gray-400 transition-colors flex items-center justify-between cursor-pointer">
+                <span>
+                  {stockStatusOptions.find((opt) => opt.value === stockStatus)
+                    ?.label || "All Stock"}
+                </span>
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            }
+            options={stockStatusOptions.map((option) => ({
+              label: option.label,
+              onClick: () => handleStockStatusChange(option.value),
+            }))}
+            align="left"
             size="md"
           />
         </div>
@@ -163,30 +169,35 @@ export function InventoryFilters() {
             className="block text-sm font-[450] text-gray-700 mb-1.5">
             Per Page
           </label>
-          <Select
-            id="perPage"
-            value={perPage}
-            onChange={handlePerPageChange}
-            disabled={isPending}
-            options={perPageOptions}
-            variant="default"
+          <CustomDropdown
+            trigger={
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-2xl bg-white text-sm text-gray-700 hover:border-gray-400 transition-colors flex items-center justify-between cursor-pointer">
+                <span>
+                  {perPageOptions.find((opt) => opt.value === perPage)?.label ||
+                    "10"}
+                </span>
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            }
+            options={perPageOptions.map((option) => ({
+              label: option.label,
+              onClick: () => handlePerPageChange(option.value),
+            }))}
+            align="left"
             size="md"
           />
         </div>
-
-        {/* Clear Filters Button */}
-        {hasActiveFilters && (
-          <div className="pb-[2px]">
-            <Button
-              onClick={handleClearFilters}
-              disabled={isPending}
-              variant="outline"
-              size="md"
-              submit={false}>
-              Clear Filters
-            </Button>
-          </div>
-        )}
       </div>
     </Card>
   );

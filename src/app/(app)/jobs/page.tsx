@@ -190,36 +190,41 @@ export default async function JobsPage({
           {/* Header */}
           <Card variant="ghost">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-[450] text-gray-900">
-                Cleaning Jobs
-              </h1>
+              <div>
+                <h1 className="text-3xl font-[450] text-[#005F6A]">
+                  Cleaning Jobs
+                </h1>
+                <h2 className="text-sm font-[450] text-[#005F6A]/70">
+                  Manage your cleaning jobs and track your revenue.
+                </h2>
+              </div>
               <CreateJobButton />
             </div>
           </Card>
 
           {/* Statistics Cards */}
           <div className="grid gap-4 md:grid-cols-3">
-            <Card variant="default">
-              <div className="text-sm font-[450] text-gray-500 mb-1">
+            <Card variant="alara_light_bordered" className="p-6">
+              <div className="text-sm font-[450] text-[#005F6A]/70 mb-1">
                 Total Jobs
               </div>
-              <div className="text-2xl font-[450]" style={{ color: "#005F6A" }}>
+              <div className="text-2xl font-[450] text-[#005F6A]">
                 {totalJobsCount}
               </div>
             </Card>
-            <Card variant="default">
-              <div className="text-sm font-[450] text-gray-500 mb-1">
+            <Card variant="alara_light_bordered" className="p-6">
+              <div className="text-sm font-[450] text-[#005F6A]/70 mb-1">
                 Completed
               </div>
-              <div className="text-2xl font-[450] text-green-600">
+              <div className="text-2xl font-[450] text-[#005F6A]">
                 {completedJobs}
               </div>
             </Card>
-            <Card variant="default">
-              <div className="text-sm font-[450] text-gray-500 mb-1">
+            <Card variant="alara_light_bordered" className="p-6">
+              <div className="text-sm font-[450] text-[#005F6A]/70 mb-1">
                 Total Revenue
               </div>
-              <div className="text-2xl font-[450]" style={{ color: "#77C8CC" }}>
+              <div className="text-2xl font-[450] text-[#005F6A]">
                 ${(totalRevenue._sum.price || 0).toFixed(2)}
               </div>
             </Card>
@@ -242,44 +247,44 @@ export default async function JobsPage({
           <JobsFilters />
 
           {/* Jobs Table */}
-          <Card variant="default">
-            <div className="overflow-hidden rounded-lg relative">
+          <Card variant="ghost" className="!p-0">
+            <div className="overflow-hidden relative">
               <TableLoadingOverlay />
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-2xl overflow-hidden">
                 {/* Header row */}
                 <div
-                  className="grid bg-gray-50/50"
+                  className="grid bg-[#77C8CC]/10"
                   style={{
                     gridTemplateColumns:
                       "120px 1fr 80px 1.5fr 100px 100px 100px 100px 120px 120px 210px",
                   }}>
                   <TableHeader label="Date" sortKey="jobDate" />
                   <TableHeader label="Client" sortKey="clientName" />
-                  <span className="px-4 py-3 text-center text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-center">
+                  <span className="px-4 py-3 text-center text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider flex items-center justify-center">
                     Type
                   </span>
-                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
+                  <span className="px-6 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider flex items-center">
                     Cleaners
                   </span>
                   <TableHeader label="Start" sortKey="startTime" />
                   <TableHeader label="End" sortKey="endTime" />
-                  <span className="px-4 py-3 text-center text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-center">
+                  <span className="px-4 py-3 text-center text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider flex items-center justify-center">
                     Overtime
                   </span>
                   <TableHeader label="Price" sortKey="price" />
                   <TableHeader label="Status" sortKey="status" />
-                  <span className="px-6 py-3 text-center text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-center">
+                  <span className="px-6 py-3 text-center text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider flex items-center justify-center">
                     Payment
                   </span>
-                  <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end">
+                  <span className="px-6 py-3 text-right text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider flex items-center justify-end">
                     Actions
                   </span>
                 </div>
                 {/* Jobs - Fixed height */}
-                <div className="bg-white divide-y divide-gray-50 relative">
+                <div className="bg-white divide-y divide-[#005F6A]/5 relative">
                   {jobs.length === 0 ? (
                     <>
-                      <div className="px-6 py-8 text-center text-sm text-gray-500">
+                      <div className="px-6 py-8 text-center text-sm text-[#005F6A]/70">
                         {search || status !== "all" || payment !== "all"
                           ? "No jobs found matching your filters."
                           : "No jobs found."}

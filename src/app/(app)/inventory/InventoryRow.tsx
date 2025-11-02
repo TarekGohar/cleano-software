@@ -29,9 +29,6 @@ export function ProductRow({ product }: ProductRowProps) {
       {/* Name + Low Stock Warning */}
       <div className="px-6 py-4 flex flex-col justify-center">
         <span className="text-sm font-[450] text-gray-900">{product.name}</span>
-        {product.isLowStock && (
-          <span className="text-xs text-orange-600 mt-0.5">Low stock</span>
-        )}
       </div>
       {/* Description */}
       <span className="px-6 py-4 text-sm text-gray-500 flex items-center">

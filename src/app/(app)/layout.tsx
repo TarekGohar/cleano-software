@@ -32,7 +32,7 @@ export default async function DashboardLayout({
                 className="flex items-center px-2 text-xl font-[450] text-gray-900">
                 Cleano
               </Link>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-0">
                 <NavLink href="/dashboard">Dashboard</NavLink>
                 {isAdmin && (
                   <>

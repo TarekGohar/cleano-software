@@ -64,8 +64,8 @@ export default function InventoryItem({
     });
   };
 
-  // Use 5-column layout for old view, 6-column for new view
-  const gridCols = useFullWidth ? "grid-cols-5" : "grid-cols-6";
+  // Use 5-column layout for old view, 7-column for new view
+  const gridCols = useFullWidth ? "grid-cols-5" : "grid-cols-7";
 
   return (
     <div
@@ -82,19 +82,38 @@ export default function InventoryItem({
         <span className="text-sm text-gray-900">
           {assignment.quantity} {assignment.product.unit}
         </span>
-        {isOutOfStock && (
+        {useFullWidth && isOutOfStock && (
           <Badge variant="error" size="sm">
             Out
           </Badge>
         )}
-        {isLowStock && (
+        {useFullWidth && isLowStock && (
           <Badge variant="warning" size="sm">
             Low
           </Badge>
         )}
       </div>
 
-      {/* Value (only in 6-column) */}
+      {/* Status (only in 7-column) */}
+      {!useFullWidth && (
+        <div className="px-6 py-4">
+          {isOutOfStock ? (
+            <Badge variant="error" size="sm">
+              Out of Stock
+            </Badge>
+          ) : isLowStock ? (
+            <Badge variant="warning" size="sm">
+              Low Stock
+            </Badge>
+          ) : (
+            <Badge variant="success" size="sm">
+              In Stock
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {/* Value (only in 7-column) */}
       {!useFullWidth && (
         <div className="px-6 py-4">
           <span className="text-sm font-[450] text-green-600">
@@ -103,7 +122,7 @@ export default function InventoryItem({
         </div>
       )}
 
-      {/* Assigned Date (only in 6-column) */}
+      {/* Assigned Date (only in 7-column) */}
       {!useFullWidth && (
         <div className="px-6 py-4">
           <span className="text-sm text-gray-500">

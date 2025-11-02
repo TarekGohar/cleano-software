@@ -7,6 +7,8 @@ import InventoryItem from "./InventoryItem";
 import InventoryModal from "./InventoryModal";
 import { InventoryTableHeader } from "./InventoryTableHeader";
 import { InventoryLoadingOverlay } from "./InventoryLoadingOverlay";
+import Card from "@/components/ui/Card";
+import { InventoryFilters } from "./InventoryFilters";
 
 interface Assignment {
   id: string;
@@ -75,23 +77,31 @@ export function InventoryList({
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg relative">
+      <div className="overflow-hidden rounded-2xl relative">
         <InventoryLoadingOverlay />
 
         {/* Add Inventory Button */}
-        <div className="px-6 py-4 flex justify-between items-center">
-          <h3 className="text-lg font-[450] text-gray-900">Inventory Items</h3>
+        <Card
+          variant="ghost"
+          className="py-6 flex justify-between items-center">
+          <h3 className="text-xl font-[450] text-[#005F6A]">Inventory Items</h3>
           <Button onClick={handleOpenModal} variant="primary" submit={false}>
             <Plus className="w-4 h-4 mr-2" />
-            Add Inventory
+            Assign Inventory
           </Button>
-        </div>
+        </Card>
 
-        <div className="overflow-x-auto">
+        {/* Filters */}
+        <InventoryFilters />
+
+        <div className="overflow-x-auto mt-4">
           {/* Header row */}
-          <div className="grid grid-cols-6 bg-gray-50/50">
+          <div className="grid grid-cols-7 bg-gray-50 rounded-t-2xl overflow-hidden">
             <InventoryTableHeader label="Product Name" sortKey="name" />
             <InventoryTableHeader label="Quantity" sortKey="quantity" />
+            <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
+              Status
+            </span>
             <InventoryTableHeader label="Value" sortKey="value" />
             <InventoryTableHeader label="Assigned" sortKey="assignedAt" />
             <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
@@ -114,8 +124,8 @@ export function InventoryList({
                 {Array.from({ length: minDisplayRows - 1 }).map((_, idx) => (
                   <div
                     key={`placeholder-${idx}`}
-                    className="grid grid-cols-6 h-16">
-                    {Array.from({ length: 6 }).map((_, colIdx) => (
+                    className="grid grid-cols-7 h-16">
+                    {Array.from({ length: 7 }).map((_, colIdx) => (
                       <div key={colIdx} className="px-6 py-4"></div>
                     ))}
                   </div>
@@ -136,8 +146,8 @@ export function InventoryList({
                   Array.from({ length: placeholderRowCount }).map((_, idx) => (
                     <div
                       key={`placeholder-${idx}`}
-                      className="grid grid-cols-6 h-16">
-                      {Array.from({ length: 6 }).map((_, colIdx) => (
+                      className="grid grid-cols-7 h-16">
+                      {Array.from({ length: 7 }).map((_, colIdx) => (
                         <div key={colIdx} className="px-6 py-4"></div>
                       ))}
                     </div>

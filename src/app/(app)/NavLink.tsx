@@ -17,10 +17,10 @@ export default function NavLink({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-[450] transition-colors ${
+      className={`inline-flex items-center px-4 pt-1 border-b-2 text-sm font-[450] transition-colors ${
         isActive
-          ? "border-blue-500 text-gray-900"
-          : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+          ? "bg-[#005F6A]/10 text-[#005F6A]"
+          : "border-transparent text-[#005F6A]/70 hover:text-[#005F6A] hover:bg-[#005F6A]/5"
       }`}>
       {children}
     </Link>
