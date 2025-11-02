@@ -119,11 +119,6 @@ export function JobRow({ job, isMainEmployee }: JobRowProps) {
           className="!w-fit">
           {job.status.replace("_", " ")}
         </Badge>
-        {duration && (
-          <span className="text-xs text-gray-500">
-            {Math.floor(duration / 60)}h {duration % 60}m
-          </span>
-        )}
       </div>
 
       {/* Actions */}

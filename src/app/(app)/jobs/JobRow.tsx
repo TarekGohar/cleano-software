@@ -142,14 +142,14 @@ export function JobRow({ job }: JobRowProps) {
       <span className="px-6 py-4 flex items-center justify-center gap-2 whitespace-nowrap">
         <div title="Payment Received">
           {job.paymentReceived ? (
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <CheckCircle2 className="w-5 h-5 text-neutral-950" />
           ) : (
             <CheckCircle2 className="w-5 h-5 text-gray-300" />
           )}
         </div>
         <div title="Invoice Sent">
           {job.invoiceSent ? (
-            <FileText className="w-5 h-5 text-blue-600" />
+            <FileText className="w-5 h-5 text-neutral-950" />
           ) : (
             <FileText className="w-5 h-5 text-gray-300" />
           )}

@@ -90,7 +90,7 @@ export function ProductFilters() {
   ];
 
   return (
-    <Card variant="default">
+    <Card variant="ghost">
       <div className="flex items-end gap-4 flex-wrap">
         {/* Search */}
         <div className="flex-1 min-w-[250px]">
@@ -107,7 +107,7 @@ export function ProductFilters() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name or description..."
-                variant="default"
+                variant="outline"
                 size="md"
                 className="pr-10"
               />

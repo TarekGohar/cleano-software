@@ -105,13 +105,13 @@ export function JobsFilters() {
   ];
 
   return (
-    <Card variant="default">
+    <Card variant="ghost" className="!p-0">
       <div className="flex items-end gap-4 flex-wrap">
         {/* Search */}
         <div className="flex-1 min-w-[250px]">
           <label
             htmlFor="search"
-            className="block text-sm font-[450] text-gray-700 mb-1.5">
+            className="block text-sm font-[450] text-neutral-950/70 mb-1.5">
             Search
           </label>
           <form onSubmit={handleSearch}>

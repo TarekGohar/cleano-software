@@ -91,7 +91,7 @@ export default function ColorPicker({
         />
 
         {/* Color Value Display */}
-        <span className="text-sm text-[#005F6A] font-mono">{value}</span>
+        <span className="text-sm text-neutral-950 font-mono">{value}</span>
       </div>
 
       {/* Color Picker Popup */}

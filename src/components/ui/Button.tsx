@@ -49,21 +49,21 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantClasses = {
       default:
-        "bg-[#005F6A]/3 text-[#005F6A] hover:bg-[#005F6A]/10 border-[#005F6A]/3 backdrop-blur-[3px]",
+        "bg-neutral-950/3 text-neutral-950 hover:bg-neutral-950/10 border-neutral-950/3 backdrop-blur-[3px]",
       secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
       ghost:
         "bg-transparent text-gray-700 hover:bg-gray-100 border-transparent",
       outline:
-        "border-[#005F6A]/10 hover:border-[#005F6A]/20 focus:border-[#77C8CC] text-[#005F6A]",
+        "border-neutral-950/10 hover:border-neutral-950/20 focus:border-neutral-950 text-neutral-950",
       destructive: "bg-red-100 text-red-700 hover:bg-red-200 border-red-200/50",
       recorder:
         "bg-red-200/50 text-red-700 hover:bg-red-200 border-red-200/50 backdrop-blur-[3px]",
       blue: "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-100",
       simple: "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100",
       primary:
-        "bg-[#77C8CC]/30 text-[#2a4a53] hover:bg-[#77C8CC]/50  border-[#77C8CC]/10",
+        "bg-neutral-950/10 text-neutral-950 hover:bg-neutral-950/20  border-neutral-950/10",
       alara:
-        "bg-[#005F6A]/10 text-[#005F6A] hover:bg-[#005F6A]/20 border-[#005F6A]/2 backdrop-blur-[3px]",
+        "bg-neutral-950/10 text-neutral-950 hover:bg-neutral-950/20 border-neutral-950/2 backdrop-blur-[3px]",
       tdo: "bg-purple-100 text-purple-900 hover:bg-purple-200 border-purple-200/20",
       none: "bg-transparent text-gray-700 border-transparent",
       dentitek:
@@ -77,7 +77,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "px-2 py-1.5 text-md",
     }[size];
 
-    const combinedClasses = `${baseClasses} ${variantClasses} ${sizeClasses} ${className} ${border ? "border" : ""}`;
+    const combinedClasses = `${baseClasses} ${variantClasses} ${sizeClasses} ${className} ${
+      border ? "border" : ""
+    }`;
 
     const commonProps = {
       className: combinedClasses,

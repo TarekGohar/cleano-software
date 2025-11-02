@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Archive,
   History,
+  ArrowRight,
 } from "lucide-react";
 import { Prisma } from "@prisma/client";
 import { AssignmentFilters } from "./AssignmentFilters";
@@ -186,9 +187,6 @@ export default async function ProductPage({
     minDisplayRows - employeeAssignments.length
   );
 
-  // Create data key for loading state
-  const dataKey = `${cursor}-${search}-${sortBy}-${sortOrder}-${perPage}-${employeeAssignments.length}`;
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -198,48 +196,44 @@ export default async function ProductPage({
           Back to Inventory
         </Button>
       </Link>
-      <Card variant="ghost" className="py-6">
-        <div className="flex items-start gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-[450] text-[#005F6A]">
-                {product.name}
-              </h1>
-              {product.stockLevel <= product.minStock && (
-                <Badge variant="error" size="md">
-                  Low Stock
-                </Badge>
-              )}
-            </div>
-            {product.description && (
-              <p className="text-[#005F6A]/60 mt-2">{product.description}</p>
+      <Card variant="ghost" className="py-6 px-0">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-[450] text-neutral-950">
+              {product.name}
+            </h1>
+            {product.stockLevel <= product.minStock && (
+              <Badge variant="error" size="md">
+                Low Stock
+              </Badge>
             )}
           </div>
+          {product.description && (
+            <p className="text-neutral-950/60 mt-2">{product.description}</p>
+          )}
         </div>
       </Card>
 
       {/* Key Metrics */}
-      <h2 className="text-lg font-[450] text-[#005F6A]">Inventory Overview</h2>
+      <h2 className="text-lg font-[450] text-neutral-950">
+        Inventory Overview
+      </h2>
       <div className="grid gap-4 md:grid-cols-5">
         <Card
-          variant={
-            product.stockLevel <= product.minStock
-              ? "error"
-              : "alara_light_bordered"
-          }
+          variant={product.stockLevel <= product.minStock ? "error" : "default"}
           className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <div
               className={`p-2 ${
                 product.stockLevel <= product.minStock
                   ? "bg-red-50"
-                  : "bg-[#77C8CC]/20"
+                  : "bg-neutral-950/10"
               } rounded-lg`}>
               <Archive
                 className={`w-5 h-5 ${
                   product.stockLevel <= product.minStock
                     ? "text-red-600"
-                    : "text-[#005F6A]"
+                    : "text-neutral-950"
                 }`}
               />
             </div>
@@ -247,7 +241,7 @@ export default async function ProductPage({
               className={`text-sm font-[450] ${
                 product.stockLevel <= product.minStock
                   ? "text-red-600"
-                  : "text-[#005F6A]/70"
+                  : "text-neutral-950/70"
               }`}>
               In Warehouse
             </div>
@@ -256,135 +250,141 @@ export default async function ProductPage({
             className={`text-2xl font-[450] ${
               product.stockLevel <= product.minStock
                 ? "text-red-600"
-                : "text-[#005F6A]"
+                : "text-neutral-950"
             }`}>
             {product.stockLevel} {product.unit}
           </div>
         </Card>
 
-        <Card variant="alara_light_bordered" className="p-6">
+        <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Users className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Users className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">Assigned</div>
+            <div className="text-sm font-[450] text-neutral-950">Assigned</div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             {totalAssigned} {product.unit}
           </div>
         </Card>
 
-        <Card variant="alara_light_bordered" className="p-6">
+        <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Package className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Package className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">Total</div>
+            <div className="text-sm font-[450] text-neutral-950/70">Total</div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             {(product.stockLevel + totalAssigned).toFixed(2)} {product.unit}
           </div>
-          <p className="text-xs text-[#005F6A]/60 mt-1">Warehouse + Assigned</p>
+          <p className="text-xs text-neutral-950/60 mt-1">
+            Warehouse + Assigned
+          </p>
         </Card>
 
-        <Card variant="alara_light_bordered" className="p-6">
+        <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <DollarSign className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">
+            <div className="text-sm font-[450] text-neutral-950/70">
               Cost/Unit
             </div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             ${product.costPerUnit.toFixed(2)}
           </div>
         </Card>
 
-        <Card variant="alara_light_bordered" className="p-6">
+        <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">
+            <div className="text-sm font-[450] text-neutral-950/70">
               Total Value
             </div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             $
             {(
               (product.stockLevel + totalAssigned) *
               product.costPerUnit
             ).toFixed(2)}
           </div>
+          <p className="text-xs text-neutral-950/60 mt-1">
+            Warehouse + Assigned
+          </p>
         </Card>
       </div>
 
       {/* Grid for Recent Usage and Stock Info */}
-      <h2 className="text-lg font-[450] text-[#005F6A] mt-12">
+      <h2 className="text-lg font-[450] text-neutral-950 mt-12">
         Usage & Stock Details
       </h2>
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Usage */}
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <History className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <History className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">
+            <h2 className="text-lg font-[450] text-neutral-950">
               Recent Usage in Jobs
             </h2>
           </div>
 
           {(product as any).jobUsage.length === 0 ? (
-            <p className="text-[#005F6A]/70 text-center py-4">
+            <p className="text-neutral-950/70 text-center py-4">
               No usage recorded yet.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full rounded-2xl overflow-hidden">
-                <thead className="bg-[#77C8CC]/10 ">
+                <thead className="bg-neutral-950/10 ">
                   <tr>
-                    <th className="px-4 py-2.5 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                       Client
                     </th>
-                    <th className="px-4 py-2.5 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                       Employee
                     </th>
-                    <th className="px-4 py-2.5 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-4 py-2.5 text-right text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-right text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-4 py-2.5 text-right text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-right text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                       Action
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#005F6A]/5">
+                <tbody className="divide-y divide-neutral-950/5">
                   {(product as any).jobUsage.map((usage: any) => (
                     <tr
                       key={usage.id}
-                      className="hover:bg-[#77C8CC]/5 transition-colors">
-                      <td className="px-4 py-3 text-sm font-[450] text-[#005F6A]">
+                      className="hover:bg-neutral-950/2 transition-colors">
+                      <td className="px-4 py-3 text-sm font-[450] text-neutral-950">
                         {usage.job.clientName}
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#005F6A]/70">
+                      <td className="px-4 py-3 text-sm text-neutral-950/70">
                         {usage.job.employee.name}
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#005F6A]/70">
+                      <td className="px-4 py-3 text-sm text-neutral-950/70">
                         {new Date(usage.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-sm font-[450] text-[#005F6A] text-right">
+                      <td className="px-4 py-3 text-sm font-[450] text-neutral-950 text-right">
                         {usage.quantity} {product.unit}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Button
-                          variant="alara"
+                          variant="default"
                           size="sm"
+                          className="text-neutral-950"
                           href={`/jobs/${usage.job.id}`}>
-                          View Job →
+                          View Job <ArrowRight className="w-3 h-3 ml-1" />
                         </Button>
                       </td>
                     </tr>
@@ -398,32 +398,36 @@ export default async function ProductPage({
         {/* Stock Summary */}
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Package className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Package className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">Stock Summary</h2>
+            <h2 className="text-lg font-[450] text-neutral-950">
+              Stock Summary
+            </h2>
           </div>
 
           <dl className="space-y-2">
-            <div className="flex justify-between items-center p-2 rounded-lg bg-[#77C8CC]/10">
-              <dt className="text-sm text-[#005F6A]/70">
+            <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/10">
+              <dt className="text-sm text-neutral-950/70">
                 Minimum Stock Threshold
               </dt>
-              <dd className="text-sm font-[450] text-[#005F6A]">
+              <dd className="text-sm font-[450] text-neutral-950">
                 {product.minStock} {product.unit}
               </dd>
             </div>
 
-            <div className="flex justify-between items-center p-2 rounded-lg bg-[#005F6A]/5">
-              <dt className="text-sm text-[#005F6A]/70">Total Used in Jobs</dt>
-              <dd className="text-sm font-[450] text-[#005F6A]">
+            <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/10">
+              <dt className="text-sm text-neutral-950/70">
+                Total Used in Jobs
+              </dt>
+              <dd className="text-sm font-[450] text-neutral-950">
                 {totalUsed} {product.unit}
               </dd>
             </div>
 
-            <div className="flex justify-between items-center p-2 rounded-lg bg-[#005F6A]/5 border border-[#005F6A]/5 mt-2">
-              <dt className="text-sm font-[450] text-[#005F6A]">Status</dt>
-              <dd className="text-sm font-[450] text-[#005F6A]">
+            <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/5 border border-neutral-950/5 mt-2">
+              <dt className="text-sm font-[450] text-neutral-950">Status</dt>
+              <dd className="text-sm font-[450] text-neutral-950">
                 {product.stockLevel <= product.minStock ? (
                   <Badge variant="error" size="sm">
                     Low Stock
@@ -440,13 +444,13 @@ export default async function ProductPage({
       </div>
 
       {/* Employee Assignments */}
-      <h2 className="text-lg font-[450] text-[#005F6A] mt-12">
+      <h2 className="text-lg font-[450] text-neutral-950 mt-12">
         Employee Assignments
       </h2>
       {allAssignments.length === 0 ? (
         <Card variant="ghost" className="py-6">
           <div className="text-center py-8">
-            <p className="text-[#005F6A]/70 mb-3">
+            <p className="text-neutral-950/70 mb-3">
               This product is not currently assigned to any employees.
             </p>
             <Button variant="alara" size="sm" href="/employees">
@@ -455,44 +459,44 @@ export default async function ProductPage({
           </div>
         </Card>
       ) : (
-        <Card variant="ghost" className="py-3">
+        <Card variant="ghost" className="p-0">
           {/* Filters */}
           <AssignmentFilters />
 
           <div className="overflow-x-auto rounded-2xl overflow-hidden">
-            <table className="min-w-full divide-y divide-[#005F6A]/5">
-              <thead className="bg-[#77C8CC]/10">
+            <table className="min-w-full divide-y divide-neutral-950/5">
+              <thead className="bg-neutral-950/10">
                 <tr>
                   <AssignmentTableHeader
                     label="Employee"
                     sortKey="employeeName"
                   />
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Email
                   </th>
                   <AssignmentTableHeader label="Quantity" sortKey="quantity" />
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Value
                   </th>
                   <AssignmentTableHeader
                     label="Assigned Date"
                     sortKey="assignedAt"
                   />
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Notes
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-transparent divide-y divide-[#005F6A]/5">
+              <tbody className="bg-transparent divide-y divide-neutral-950/5">
                 {employeeAssignments.length === 0 ? (
                   <>
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-6 py-8 text-center text-sm text-gray-500">
+                        className="px-6 py-8 text-center text-sm text-neutral-950/70">
                         {search
                           ? "No employee assignments found matching your filters."
                           : "No employee assignments found."}
@@ -512,36 +516,40 @@ export default async function ProductPage({
                 ) : (
                   <>
                     {employeeAssignments.map((assignment: any) => (
-                      <tr key={assignment.id} className="hover:bg-[#77C8CC]/3">
+                      <tr
+                        key={assignment.id}
+                        className="hover:bg-neutral-950/3">
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-[450] text-[#005F6A]">
+                          <div className="text-sm font-[450] text-neutral-950">
                             {assignment.employee.name}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#005F6A]">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-950">
                           {assignment.employee.email}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#005F6A]">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-950">
                           {assignment.quantity} {product.unit}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-[#005F6A]">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-neutral-950">
                           $
                           {(assignment.quantity * product.costPerUnit).toFixed(
                             2
                           )}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-[#005F6A]/70">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-950/70">
                           {new Date(assignment.assignedAt).toLocaleDateString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#005F6A]/70">
+                        <td className="px-4 py-3 text-sm text-neutral-950/70">
                           {assignment.notes || "-"}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                           <Button
-                            variant="alara"
+                            variant="default"
+                            className="text-neutral-950"
                             size="sm"
                             href={`/employees/${assignment.employee.id}`}>
-                            View Employee →
+                            View Employee{" "}
+                            <ArrowRight className="w-3 h-3 ml-1" />
                           </Button>
                         </td>
                       </tr>
@@ -560,17 +568,17 @@ export default async function ProductPage({
                   </>
                 )}
               </tbody>
-              <tfoot className="bg-[#77C8CC]/10">
+              <tfoot className="bg-neutral-950/10">
                 <tr>
                   <td
                     colSpan={2}
-                    className="px-4 py-3 text-sm font-[450] text-[#005F6A]">
+                    className="px-4 py-3 text-sm font-[450] text-neutral-950">
                     Total Assigned
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-[#005F6A]">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-neutral-950">
                     {totalAssigned} {product.unit}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-[#005F6A]">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-[450] text-neutral-950">
                     ${(totalAssigned * product.costPerUnit).toFixed(2)}
                   </td>
                   <td colSpan={3}></td>

@@ -37,9 +37,9 @@ export default function Checkbox({
       "border-green-300 data-[checked]:bg-green-500 data-[checked]:border-green-500",
     black: "border-black data-[checked]:bg-black data-[checked]:border-black",
     alara:
-      "border-[#005F6A]/70 data-[checked]:bg-[#005F6A]/70 data-[checked]:border-[#005F6A]/70",
+      "border-neutral-950/70 data-[checked]:bg-neutral-950/70 data-[checked]:border-neutral-950/70",
     primary:
-      "border-[#77C8CC]/70 data-[checked]:bg-[#77C8CC]/70 data-[checked]:border-[#77C8CC]/70",
+      "border-neutral-950/70 data-[checked]:bg-neutral-950/70 data-[checked]:border-neutral-950/70",
   }[color];
 
   return (

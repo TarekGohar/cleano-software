@@ -34,13 +34,13 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
     const variantClasses = {
       default:
-        "border border-gray-200 rounded-md hover:border-gray-300 focus:border-[#005F6A]/70 bg-white",
+        "border border-gray-200 rounded-md hover:border-gray-300 focus:border-neutral-950/70 bg-white",
       minimal:
-        "bg-transparent border-0 border-b border-gray-200 rounded-none hover:border-gray-400 focus:border-[#005F6A]/70",
+        "bg-transparent border-0 border-b border-gray-200 rounded-none hover:border-gray-400 focus:border-neutral-950/70",
       ghost:
-        "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:border focus:border-[#005F6A]/70 rounded-md",
+        "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:border focus:border-neutral-950/70 rounded-md",
       outline:
-        "bg-white border border-gray-300 rounded-md hover:border-gray-400 focus:border-[#005F6A]/70",
+        "bg-white border border-gray-300 rounded-md hover:border-gray-400 focus:border-neutral-950/70",
     }[variant];
 
     const errorClasses = error

@@ -84,7 +84,9 @@ export function InventoryList({
         <Card
           variant="ghost"
           className="py-6 flex justify-between items-center">
-          <h3 className="text-xl font-[450] text-[#005F6A]">Inventory Items</h3>
+          <h3 className="text-xl font-[450] text-neutral-950">
+            Inventory Items
+          </h3>
           <Button onClick={handleOpenModal} variant="primary" submit={false}>
             <Plus className="w-4 h-4 mr-2" />
             Assign Inventory

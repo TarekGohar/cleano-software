@@ -36,10 +36,10 @@ export default function ActivityLogPagination({
   };
 
   return (
-    <div className="bg-[#77C8CC]/5 px-6 py-3 border-t border-[#005F6A]/10 -mx-6 -mb-6 rounded-b-2xl">
+    <div className="bg-neutral-950/5 px-6 py-3 border-t border-neutral-950/10 -mx-6 -mb-6 rounded-b-2xl">
       <div className="flex items-center justify-between">
         {/* Results Info */}
-        <div className="text-xs text-[#005F6A]/70">
+        <div className="text-xs text-neutral-950/70">
           Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{" "}
           {totalItems} logs
         </div>
@@ -117,4 +117,3 @@ export default function ActivityLogPagination({
     </div>
   );
 }
-

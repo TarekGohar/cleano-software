@@ -261,7 +261,7 @@ export default async function EmployeePage({
 
   // Stock status filter - we'll apply this after fetching since it requires comparing quantities
   // For now, fetch all matching products
-  
+
   // Build orderBy clause
   let orderBy: any;
   switch (sortBy) {
@@ -305,7 +305,7 @@ export default async function EmployeePage({
     } else {
       reverseOrder.assignedAt = sortOrder === "asc" ? "desc" : "asc";
     }
-    
+
     assignedProducts = await db.employeeProduct.findMany({
       where: assignedWhere,
       include: { product: true },
@@ -457,19 +457,19 @@ export default async function EmployeePage({
           <div className="flex items-start justify-between">
             <div className="w-full flex justify-between items-start space-y-3">
               <div>
-                <h1 className="flex items-center gap-2 text-3xl font-[450] text-[#005F6A] mb-3">
-                  <span className="text-[#005F6A]">{employee.name}</span>
+                <h1 className="flex items-center gap-2 text-3xl font-[450] text-neutral-950 mb-3">
+                  <span className="text-neutral-950">{employee.name}</span>
                   <Badge variant="alara" size="md">
                     {employee.role}
                   </Badge>
                 </h1>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[#005F6A]/70">
+                  <div className="flex items-center gap-2 text-neutral-950/70">
                     <Mail className="w-4 h-4" />
                     <span className="text-sm">{employee.email}</span>
                   </div>
                   {employee.phone && (
-                    <div className="flex items-center gap-2 text-[#005F6A]/70">
+                    <div className="flex items-center gap-2 text-neutral-950/70">
                       <Phone className="w-4 h-4" />
                       <span className="text-sm">{employee.phone}</span>
                     </div>
@@ -488,21 +488,21 @@ export default async function EmployeePage({
         overviewContent={
           <>
             {/* Key Metrics */}
-            <h2 className="text-lg font-[450] text-[#005F6A]">
+            <h2 className="text-lg font-[450] text-neutral-950">
               Performance Overview
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="alara_light_bordered" className="p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <CheckCircle2 className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <div className="text-sm font-[450] text-[#005F6A]/70">
+                    <div className="text-sm font-[450] text-neutral-950/70">
                       Jobs Completed
                     </div>
                   </div>
-                  <div className="text-2xl font-[450] text-[#005F6A]">
+                  <div className="text-2xl font-[450] text-neutral-950">
                     {completedJobs.length}
                   </div>
                 </Card>
@@ -511,14 +511,14 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="alara_light_bordered" className="p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <DollarSign className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <div className="text-sm font-[450] text-[#005F6A]/70">
+                    <div className="text-sm font-[450] text-neutral-950/70">
                       Total Revenue
                     </div>
                   </div>
-                  <div className="text-2xl font-[450] text-[#005F6A]">
+                  <div className="text-2xl font-[450] text-neutral-950">
                     ${totalRevenue.toFixed(2)}
                   </div>
                 </Card>
@@ -527,18 +527,18 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="alara_light_bordered" className="p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <DollarSign className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <div className="text-sm font-[450] text-[#005F6A]/70">
+                    <div className="text-sm font-[450] text-neutral-950/70">
                       Employee Pay
                     </div>
                   </div>
-                  <div className="text-2xl font-[450] text-[#005F6A]">
+                  <div className="text-2xl font-[450] text-neutral-950">
                     ${totalPaid.toFixed(2)}
                   </div>
                   {totalTips > 0 && (
-                    <p className="text-xs text-[#005F6A]/60 mt-1">
+                    <p className="text-xs text-neutral-950/60 mt-1">
                       + ${totalTips.toFixed(2)} tips
                     </p>
                   )}
@@ -548,14 +548,14 @@ export default async function EmployeePage({
               <Suspense fallback={<MetricCardSkeleton />}>
                 <Card variant="alara_light_bordered" className="p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <AlertTriangle className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <div className="text-sm font-[450] text-[#005F6A]/70">
+                    <div className="text-sm font-[450] text-neutral-950/70">
                       Unpaid Jobs
                     </div>
                   </div>
-                  <div className="text-2xl font-[450] text-[#005F6A]">
+                  <div className="text-2xl font-[450] text-neutral-950">
                     {unpaidJobs}
                   </div>
                 </Card>
@@ -563,16 +563,16 @@ export default async function EmployeePage({
             </div>
 
             {/* Jobs Overview */}
-            <h2 className="text-lg font-[450] text-[#005F6A] mt-12">Jobs</h2>
+            <h2 className="text-lg font-[450] text-neutral-950 mt-12">Jobs</h2>
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Upcoming Jobs */}
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <Calendar className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <Calendar className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <h2 className="text-lg font-[450] text-[#005F6A]">
+                    <h2 className="text-lg font-[450] text-neutral-950">
                       Upcoming Jobs
                     </h2>
                     <Badge variant="alara" size="sm">
@@ -583,7 +583,7 @@ export default async function EmployeePage({
                   <Suspense fallback={<JobCardSkeleton />}>
                     {upcomingJobs.length === 0 ? (
                       <div className="py-8 text-center">
-                        <p className="text-sm text-[#005F6A]/60">
+                        <p className="text-sm text-neutral-950/60">
                           No upcoming jobs.
                         </p>
                       </div>
@@ -596,17 +596,17 @@ export default async function EmployeePage({
                             size="md"
                             href={`/jobs/${job.id}`}
                             submit={false}
-                            className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-[#005F6A]/10">
+                            className="w-full !justify-start !h-auto !py-3 hover:bg-neutral-950/5 !rounded-lg border border-neutral-950/10">
                             <div className="w-full space-y-2">
                               <div className="flex items-start justify-between">
-                                <p className="font-[450] text-[#005F6A] text-left">
+                                <p className="font-[450] text-neutral-950 text-left">
                                   {job.clientName}
                                 </p>
                                 <Badge variant="alara" size="sm">
                                   {job.jobType || "N/A"}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-[#005F6A]/60 text-left">
+                              <p className="text-xs text-neutral-950/60 text-left">
                                 {new Date(job.startTime).toLocaleDateString()}{" "}
                                 at{" "}
                                 {new Date(job.startTime).toLocaleTimeString(
@@ -618,7 +618,7 @@ export default async function EmployeePage({
                                 )}
                               </p>
                               {job.price && (
-                                <p className="text-sm font-[450] text-[#005F6A] text-left">
+                                <p className="text-sm font-[450] text-neutral-950 text-left">
                                   ${job.price.toFixed(2)}
                                 </p>
                               )}
@@ -635,10 +635,10 @@ export default async function EmployeePage({
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <History className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <History className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <h2 className="text-lg font-[450] text-[#005F6A]">
+                    <h2 className="text-lg font-[450] text-neutral-950">
                       Recent Jobs
                     </h2>
                     <Badge variant="alara" size="sm">
@@ -649,7 +649,7 @@ export default async function EmployeePage({
                   <Suspense fallback={<JobCardSkeleton />}>
                     {recentJobs.length === 0 ? (
                       <div className="py-8 text-center">
-                        <p className="text-sm text-[#005F6A]/60">
+                        <p className="text-sm text-neutral-950/60">
                           No jobs in the last 30 days.
                         </p>
                       </div>
@@ -662,10 +662,10 @@ export default async function EmployeePage({
                             size="md"
                             href={`/jobs/${job.id}`}
                             submit={false}
-                            className="w-full !justify-start !h-auto !py-3 hover:bg-[#005F6A]/5 !rounded-lg border border-[#005F6A]/10">
+                            className="w-full !justify-start !h-auto !py-3 hover:bg-neutral-950/5 !rounded-lg border border-neutral-950/10">
                             <div className="w-full space-y-2">
                               <div className="flex items-start justify-between">
-                                <p className="font-[450] text-[#005F6A] text-left">
+                                <p className="font-[450] text-neutral-950 text-left">
                                   {job.clientName}
                                 </p>
                                 <Badge
@@ -676,11 +676,11 @@ export default async function EmployeePage({
                                   {job.paymentReceived ? "Paid" : "Unpaid"}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-[#005F6A]/60 text-left">
+                              <p className="text-xs text-neutral-950/60 text-left">
                                 {new Date(job.startTime).toLocaleDateString()}
                               </p>
                               {job.price && (
-                                <p className="text-sm font-[450] text-[#005F6A] text-left">
+                                <p className="text-sm font-[450] text-neutral-950 text-left">
                                   ${job.price.toFixed(2)}
                                 </p>
                               )}
@@ -695,7 +695,7 @@ export default async function EmployeePage({
             </div>
 
             {/* Analytics Section */}
-            <h2 className="text-lg font-[450] text-[#005F6A] mt-12">
+            <h2 className="text-lg font-[450] text-neutral-950 mt-12">
               Analytics
             </h2>
             <div className="grid gap-6 lg:grid-cols-2">
@@ -703,17 +703,17 @@ export default async function EmployeePage({
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <Package className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <Package className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <h2 className="text-lg font-[450] text-[#005F6A]">
+                    <h2 className="text-lg font-[450] text-neutral-950">
                       Most Used Products
                     </h2>
                   </div>
 
                   {topProducts.length === 0 ? (
                     <div className="py-8 text-center">
-                      <p className="text-sm text-[#005F6A]/60">
+                      <p className="text-sm text-neutral-950/60">
                         No usage data yet.
                       </p>
                     </div>
@@ -722,12 +722,12 @@ export default async function EmployeePage({
                       {topProducts.map((product, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 bg-[#77C8CC]/10 rounded-lg border border-[#005F6A]/10 hover:border-[#005F6A]/20 transition-colors">
+                          className="flex items-center justify-between p-3 bg-neutral-950/10 rounded-lg border border-neutral-950/10 hover:border-neutral-950/20 transition-colors">
                           <div className="space-y-1">
-                            <p className="font-[450] text-[#005F6A] text-sm">
+                            <p className="font-[450] text-neutral-950 text-sm">
                               {product.name}
                             </p>
-                            <p className="text-xs text-[#005F6A]/60">
+                            <p className="text-xs text-neutral-950/60">
                               {product.quantity} {product.unit}
                             </p>
                           </div>
@@ -745,10 +745,10 @@ export default async function EmployeePage({
               <Card variant="default" className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                      <AlertTriangle className="w-5 h-5 text-[#005F6A]" />
+                    <div className="p-2 bg-neutral-950/20 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <h2 className="text-lg font-[450] text-[#005F6A]">
+                    <h2 className="text-lg font-[450] text-neutral-950">
                       Low Stock Alerts
                     </h2>
                     {lowStockProducts.length > 0 && (
@@ -760,7 +760,7 @@ export default async function EmployeePage({
 
                   {lowStockProducts.length === 0 ? (
                     <div className="py-8 text-center">
-                      <p className="text-sm text-[#005F6A]/60">
+                      <p className="text-sm text-neutral-950/60">
                         All products well-stocked!
                       </p>
                     </div>
@@ -776,17 +776,17 @@ export default async function EmployeePage({
                           className="w-full !justify-start !h-auto !py-3 hover:bg-red-50 border border-red-200 !rounded-lg">
                           <div className="w-full space-y-1">
                             <div className="flex items-start justify-between">
-                              <p className="font-[450] text-[#005F6A] text-sm text-left">
+                              <p className="font-[450] text-neutral-950 text-sm text-left">
                                 {product.name}
                               </p>
                               <Badge variant="error" size="sm">
                                 Low
                               </Badge>
                             </div>
-                            <p className="text-xs text-[#005F6A]/60 text-left">
+                            <p className="text-xs text-neutral-950/60 text-left">
                               Current: {product.stockLevel} {product.unit}
                             </p>
-                            <p className="text-xs text-[#005F6A]/60 text-left">
+                            <p className="text-xs text-neutral-950/60 text-left">
                               Min: {product.minStock} {product.unit}
                             </p>
                           </div>

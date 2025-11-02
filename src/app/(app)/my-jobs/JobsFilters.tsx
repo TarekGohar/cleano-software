@@ -107,7 +107,7 @@ export function JobsFilters() {
   ];
 
   return (
-    <Card variant="default">
+    <Card variant="ghost" className="!p-0">
       <div className="flex items-end gap-4 flex-wrap">
         {/* Search */}
         <div className="flex-1 min-w-[250px]">
@@ -285,4 +285,3 @@ export function JobsFilters() {
     </Card>
   );
 }
-

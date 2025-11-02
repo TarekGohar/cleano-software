@@ -47,7 +47,7 @@ export function AssignmentPagination({
   const direction = searchParams.get("direction");
 
   return (
-    <div className="mt-4 py-4 border-t border-[#005F6A]/10">
+    <div className="mt-4 py-4 border-t border-neutral-950/10">
       <div className="space-y-4">
         <div className="text-sm text-gray-600 text-center">
           Showing{" "}
@@ -115,4 +115,3 @@ export function AssignmentPagination({
     </div>
   );
 }
-

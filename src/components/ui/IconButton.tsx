@@ -40,7 +40,7 @@ export default function IconButton({
     <button
       {...rest}
       className={`rounded-sm flex items-center justify-center transition-colors cursor-pointer ${sizeClasses} ${variantClasses} ${className}`.trim()}>
-      <Icon className={`${iconSizeClasses} text-[#005F6A]`} />
+      <Icon className={`${iconSizeClasses} text-neutral-950`} />
     </button>
   );
 }

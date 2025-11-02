@@ -118,7 +118,7 @@ export default function SearchableDropdown({
             ${
               error
                 ? "border-red-300 focus:border-red-500 "
-                : "border-gray-300 focus:border-[#005F6A]/20 "
+                : "border-gray-300 focus:border-neutral-950/20 "
             }
             ${
               disabled
@@ -141,7 +141,7 @@ export default function SearchableDropdown({
             ${
               disabled
                 ? "text-gray-400 cursor-not-allowed"
-                : "text-gray-400 hover:text-[#005F6A]"
+                : "text-gray-400 hover:text-neutral-950"
             }
           `}>
           <ChevronDown

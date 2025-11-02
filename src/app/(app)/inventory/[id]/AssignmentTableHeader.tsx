@@ -46,15 +46,15 @@ export function AssignmentTableHeader({
   return (
     <th
       onClick={handleSort}
-      className={`px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider cursor-pointer hover:bg-[#77C8CC]/20 transition-colors group ${className}`}>
+      className={`px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider cursor-pointer hover:bg-neutral-950/10 transition-colors group ${className}`}>
       <div className="flex items-center gap-2">
         <span>{label}</span>
         <span className="text-gray-400 group-hover:text-gray-600">
           {isActive ? (
             currentSortOrder === "asc" ? (
-              <ArrowUp size={14} className="text-[#005F6A]" />
+              <ArrowUp size={14} className="text-neutral-950" />
             ) : (
-              <ArrowDown size={14} className="text-[#005F6A]" />
+              <ArrowDown size={14} className="text-neutral-950" />
             )
           ) : (
             <ArrowUpDown
@@ -67,4 +67,3 @@ export function AssignmentTableHeader({
     </th>
   );
 }
-

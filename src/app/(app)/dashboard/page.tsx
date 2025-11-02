@@ -12,13 +12,14 @@ export default async function DashboardPage() {
   }
 
   const { user } = session;
+  const userWithRole = user as typeof user & { role: "OWNER" | "ADMIN" | "EMPLOYEE" };
 
   return (
     <div>
       <h1 className="text-3xl font-[450] mb-6">Welcome back, {user.name}!</h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {(user.role === "OWNER" || user.role === "ADMIN") && (
+        {(userWithRole.role === "OWNER" || userWithRole.role === "ADMIN") && (
           <>
             <DashboardCard
               title="Total Products"

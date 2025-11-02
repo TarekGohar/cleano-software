@@ -25,13 +25,13 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     const variantClasses = {
       default:
-        "border border-[#005F6A]/10 hover:border-[#005F6A]/20 focus:border-[#77C8CC] ",
+        "border border-neutral-950/10 hover:border-neutral-950/20 focus:border-neutral-950 ",
       minimal:
-        "bg-transparent border-0 border-b border-gray-200 rounded-none hover:border-gray-400 focus:border-[#005F6A]/70",
+        "bg-transparent border-0 border-b border-gray-200 rounded-none hover:border-gray-400 focus:border-neutral-950/70",
       ghost:
-        "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:border focus:border-[#005F6A]/70 rounded-md",
+        "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:border focus:border-neutral-950/70 rounded-md",
       outline:
-        "bg-white border border-gray-300 hover:border-gray-400 focus:border-[#005F6A]/70",
+        "bg-white border border-gray-300 hover:border-gray-400 focus:border-neutral-950/70",
     }[variant];
 
     const errorClasses = error

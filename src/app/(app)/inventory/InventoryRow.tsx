@@ -51,7 +51,7 @@ export function ProductRow({ product }: ProductRowProps) {
       {/* Employee Count */}
       <span className="px-6 py-4 text-sm text-gray-900 flex items-center">
         {product.employeeCount > 0 ? (
-          <span className="text-[#005F6A] font-[450]">
+          <span className="text-neutral-950 font-[450]">
             {product.employeeCount}
           </span>
         ) : (

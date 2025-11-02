@@ -29,9 +29,7 @@ export default function ClockOutButton({
 }: ClockOutButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [inventories, setInventories] = useState<{ [key: string]: string }>(
-    {}
-  );
+  const [inventories, setInventories] = useState<{ [key: string]: string }>({});
 
   const handleOpenModal = () => {
     // Initialize inventories with current quantities
@@ -92,15 +90,15 @@ export default function ClockOutButton({
         title="Clock Out"
         className="max-w-2xl">
         <div className="space-y-4">
-          <p className="text-sm text-[#005F6A]/70">
+          <p className="text-sm text-neutral-950/70">
             Before clocking out, please update your product inventory levels.
             The system will calculate how much you&apos;ve used during this job.
           </p>
 
           {employeeProducts.length === 0 ? (
             <div className="text-center py-8">
-              <Package className="w-12 h-12 text-[#005F6A]/40 mx-auto mb-4" />
-              <p className="text-sm text-[#005F6A]/60">
+              <Package className="w-12 h-12 text-neutral-950/40 mx-auto mb-4" />
+              <p className="text-sm text-neutral-950/60">
                 No products assigned to you
               </p>
             </div>
@@ -116,18 +114,18 @@ export default function ClockOutButton({
                 return (
                   <div
                     key={ep.productId}
-                    className="p-4 bg-[#77C8CC]/10 rounded-lg border border-[#005F6A]/10">
+                    className="p-4 bg-neutral-950/10 rounded-lg border border-neutral-950/10">
                     <div className="flex items-start gap-4">
-                      <div className="p-2 bg-[#005F6A]/10 rounded-lg">
-                        <Package className="w-5 h-5 text-[#005F6A]" />
+                      <div className="p-2 bg-neutral-950/10 rounded-lg">
+                        <Package className="w-5 h-5 text-neutral-950" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h4 className="font-[450] text-[#005F6A]">
+                            <h4 className="font-[450] text-neutral-950">
                               {ep.product.name}
                             </h4>
-                            <p className="text-sm text-[#005F6A]/60">
+                            <p className="text-sm text-neutral-950/60">
                               Started with: {originalValue} {ep.product.unit}
                             </p>
                           </div>
@@ -151,11 +149,11 @@ export default function ClockOutButton({
                           />
 
                           {used > 0 && (
-                            <div className="flex items-center justify-between text-sm p-2 bg-[#005F6A]/5 rounded">
-                              <span className="text-[#005F6A]/70">
+                            <div className="flex items-center justify-between text-sm p-2 bg-neutral-950/5 rounded">
+                              <span className="text-neutral-950/70">
                                 Amount used:
                               </span>
-                              <span className="font-[450] text-[#005F6A]">
+                              <span className="font-[450] text-neutral-950">
                                 {used.toFixed(2)} {ep.product.unit}
                               </span>
                             </div>
@@ -190,4 +188,3 @@ export default function ClockOutButton({
     </>
   );
 }
-

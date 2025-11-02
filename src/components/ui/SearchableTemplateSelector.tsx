@@ -130,10 +130,10 @@ export default function SearchableTemplateSelector({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full px-3 py-2 pr-20 text-sm text-[#005F6A] border border-gray-300 rounded-2xl focus:outline-none  focus:border-[#77C8CC] bg-white transition-all duration-200 ${
+          className={`w-full px-3 py-2 pr-20 text-sm text-neutral-950 border border-gray-300 rounded-2xl focus:outline-none  focus:border-neutral-950 bg-white transition-all duration-200 ${
             disabled
               ? "cursor-not-allowed opacity-50 bg-gray-50"
-              : "cursor-text hover:border-[#005F6A]/50"
+              : "cursor-text hover:border-neutral-950/50"
           }`}
         />
 
@@ -142,20 +142,20 @@ export default function SearchableTemplateSelector({
           {selectedTemplate && !disabled && (
             <button
               onClick={handleClearSelection}
-              className="p-1 hover:bg-[#005F6A]/10 rounded transition-all duration-200"
+              className="p-1 hover:bg-neutral-950/10 rounded transition-all duration-200"
               type="button">
-              <X className="w-3 h-3 text-[#005F6A]/70" />
+              <X className="w-3 h-3 text-neutral-950/70" />
             </button>
           )}
           <button
             onClick={handleDropdownToggle}
             disabled={disabled}
-            className={`p-1 hover:bg-[#005F6A]/10 rounded transition-all duration-200 ${
+            className={`p-1 hover:bg-neutral-950/10 rounded transition-all duration-200 ${
               disabled ? "cursor-not-allowed" : "cursor-pointer"
             }`}
             type="button">
             <ChevronDown
-              className={`w-4 h-4 text-[#005F6A]/70 transition-all duration-200 ${
+              className={`w-4 h-4 text-neutral-950/70 transition-all duration-200 ${
                 isOpen ? "rotate-180" : ""
               }`}
             />
@@ -168,9 +168,9 @@ export default function SearchableTemplateSelector({
         <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg z-50 max-h-64 overflow-hidden">
           {/* Search icon in dropdown header */}
           {searchTerm && (
-            <div className="px-3 py-2 border-b border-gray-100 bg-[#005F6A]/5 flex items-center gap-2">
-              <Search className="w-4 h-4 text-[#005F6A]/70" />
-              <span className="text-sm text-[#005F6A]/70">
+            <div className="px-3 py-2 border-b border-gray-100 bg-neutral-950/5 flex items-center gap-2">
+              <Search className="w-4 h-4 text-neutral-950/70" />
+              <span className="text-sm text-neutral-950/70">
                 Searching for "{searchTerm}"
               </span>
             </div>
@@ -178,7 +178,7 @@ export default function SearchableTemplateSelector({
 
           <div className="max-h-48 overflow-y-auto">
             {filteredTemplates.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-[#005F6A]/50 text-center">
+              <div className="px-3 py-4 text-sm text-neutral-950/50 text-center">
                 {searchTerm
                   ? "No templates match your search"
                   : "No templates available"}
@@ -188,7 +188,7 @@ export default function SearchableTemplateSelector({
                 {/* Clear selection option */}
                 <button
                   onClick={() => handleTemplateSelect(null as any)}
-                  className="w-full px-3 py-2 text-sm text-[#005F6A]/70 hover:bg-[#005F6A]/5 text-left transition-all duration-200 border-b border-gray-100">
+                  className="w-full px-3 py-2 text-sm text-neutral-950/70 hover:bg-neutral-950/5 text-left transition-all duration-200 border-b border-gray-100">
                   <em>Clear selection</em>
                 </button>
 
@@ -197,15 +197,15 @@ export default function SearchableTemplateSelector({
                   <button
                     key={template.id}
                     onClick={() => handleTemplateSelect(template)}
-                    className={`w-full px-3 py-2 text-left hover:bg-[#005F6A]/5 transition-all duration-200 ${
+                    className={`w-full px-3 py-2 text-left hover:bg-neutral-950/5 transition-all duration-200 ${
                       selectedTemplate?.id === template.id
-                        ? "bg-[#77C8CC]/10"
+                        ? "bg-neutral-950/10"
                         : ""
                     }`}>
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-[450] text-[#005F6A] truncate">
+                          <span className="text-sm font-[450] text-neutral-950 truncate">
                             {template.name}
                           </span>
                           {template.isDefault && (
@@ -217,7 +217,7 @@ export default function SearchableTemplateSelector({
                           )}
                         </div>
                         {template.template && (
-                          <div className="text-xs text-[#005F6A]/60 truncate">
+                          <div className="text-xs text-neutral-950/60 truncate">
                             {template.template.slice(0, 80)}
                             {template.template.length > 80 ? "..." : ""}
                           </div>

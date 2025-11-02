@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import signOut from "./actions/signOut";
 import NavLink from "./NavLink";
+import Image from "next/image";
+import InitialsDropdown from "@/components/ui/InitialsDropdown";
 
 export default async function DashboardLayout({
   children,
@@ -19,18 +21,27 @@ export default async function DashboardLayout({
   }
 
   const { user } = session;
-  const isAdmin = user.role === "OWNER" || user.role === "ADMIN";
+  const userWithRole = user as typeof user & {
+    role: "OWNER" | "ADMIN" | "EMPLOYEE";
+  };
+  const isAdmin =
+    userWithRole.role === "OWNER" || userWithRole.role === "ADMIN";
 
   return (
     <div className="min-h-screen bg-white">
-      <nav className="bg-white border-b border-gray-10">
-        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <Link
                 href=""
-                className="flex items-center px-2 text-xl font-[450] text-gray-900">
-                Cleano
+                className="w-[10rem] flex items-center px-2 text-xl font-[450] text-gray-900">
+                <Image
+                  src="/images/logo.svg"
+                  alt="Cleano"
+                  width={1000}
+                  height={1000}
+                />
               </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-0">
                 <NavLink href="/dashboard">Dashboard</NavLink>
@@ -47,17 +58,10 @@ export default async function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <span className="px-2 py-1 text-xs font-[450] rounded-full bg-blue-100 text-blue-800">
-                {user.role}
-              </span>
-              <form action={signOut}>
-                <button
-                  type="submit"
-                  className="text-sm text-gray-700 hover:text-gray-900">
-                  Sign Out
-                </button>
-              </form>
+              <InitialsDropdown
+                userName={userWithRole.name}
+                signOutAction={signOut}
+              />
             </div>
           </div>
         </div>

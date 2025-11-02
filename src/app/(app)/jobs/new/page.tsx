@@ -64,23 +64,23 @@ export default async function JobFormPage({
     const cleanerIds = formData.getAll("cleaners") as string[];
 
     // Parse all form fields according to schema
+    const startDate = formData.get("startDate") as string;
+    const startTime = formData.get("startTime") as string;
+    const endDate = formData.get("endDate") as string;
+    const endTime = formData.get("endTime") as string;
+
     const jobData: any = {
       employeeId: session!.user.id,
       clientName: formData.get("clientName") as string,
       description: (formData.get("description") as string) || null,
       jobType: (formData.get("jobType") as string) || null,
       location: (formData.get("location") as string) || null,
-      jobDate: formData.get("jobDate")
-        ? new Date(formData.get("jobDate") as string)
-        : null,
+      jobDate: startDate ? new Date(startDate) : null,
       startTime:
-        formData.get("startTime") && formData.get("jobDate")
-          ? new Date(`${formData.get("jobDate")}T${formData.get("startTime")}`)
+        startDate && startTime
+          ? new Date(`${startDate}T${startTime}`)
           : new Date(),
-      endTime:
-        formData.get("endTime") && formData.get("jobDate")
-          ? new Date(`${formData.get("jobDate")}T${formData.get("endTime")}`)
-          : null,
+      endTime: endDate && endTime ? new Date(`${endDate}T${endTime}`) : null,
       price: formData.get("price")
         ? parseFloat(formData.get("price") as string)
         : null,
@@ -154,10 +154,10 @@ export default async function JobFormPage({
   return (
     <div className="max-w-[80rem] mx-auto text-black">
       <Card variant="ghost" className="mb-6">
-        <h1 className="text-3xl font-[450] text-[#005F6A]">
+        <h1 className="text-3xl font-[450] text-neutral-950">
           {isEditing ? "Edit Cleaning Job" : "Create New Cleaning Job"}
         </h1>
-        <p className="text-[#005F6A]/80 mt-1">
+        <p className="text-neutral-950/80 mt-1">
           {isEditing
             ? "Update the details for your cleaning job"
             : "Fill in the details for your cleaning job"}
@@ -172,7 +172,7 @@ export default async function JobFormPage({
         {/* Basic Information */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+            <h2 className="text-xl font-[450] text-neutral-950 w-full">
               Basic Information
             </h2>
           </Card>
@@ -180,7 +180,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="clientName"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Client Name <span className="text-red-500">*</span>
               </label>
               <Input
@@ -196,7 +196,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="jobType"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Job Type
               </label>
               <JobTypeSelector initialValue={existingJob?.jobType} />
@@ -205,7 +205,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="location"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Location
               </label>
               <Input
@@ -220,7 +220,7 @@ export default async function JobFormPage({
             <div className="md:col-span-2">
               <label
                 htmlFor="description"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Description
               </label>
               <Textarea
@@ -237,69 +237,107 @@ export default async function JobFormPage({
         {/* Date & Time */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+            <h2 className="text-xl font-[450] text-neutral-950 w-full">
               Date & Time
             </h2>
           </Card>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-4">
+            {/* Start Date & Time */}
             <div>
-              <label
-                htmlFor="jobDate"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
-                Job Date
-              </label>
-              <Input
-                type="date"
-                id="jobDate"
-                name="jobDate"
-                defaultValue={
-                  existingJob?.jobDate
-                    ? new Date(existingJob.jobDate).toISOString().split("T")[0]
-                    : ""
-                }
-              />
+              <h3 className="text-sm font-[500] text-neutral-950/90 mb-2">
+                Start
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="startDate"
+                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    Start Date
+                  </label>
+                  <Input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    defaultValue={
+                      existingJob?.startTime
+                        ? new Date(existingJob.startTime)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="startTime"
+                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    Start Time
+                  </label>
+                  <Input
+                    type="time"
+                    id="startTime"
+                    name="startTime"
+                    defaultValue={
+                      existingJob?.startTime
+                        ? new Date(existingJob.startTime)
+                            .toISOString()
+                            .split("T")[1]
+                            .slice(0, 5)
+                        : ""
+                    }
+                  />
+                </div>
+              </div>
             </div>
 
+            {/* End Date & Time */}
             <div>
-              <label
-                htmlFor="startTime"
-                className="block text-sm font-[450] text-gray-700 mb-1">
-                Start Time
-              </label>
-              <Input
-                type="time"
-                id="startTime"
-                name="startTime"
-                defaultValue={
-                  existingJob
-                    ? new Date(existingJob.startTime)
-                        .toISOString()
-                        .split("T")[1]
-                        .slice(0, 5)
-                    : ""
-                }
-              />
-            </div>
+              <h3 className="text-sm font-[500] text-neutral-950/90 mb-2">
+                End
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="endDate"
+                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    End Date
+                  </label>
+                  <Input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    defaultValue={
+                      existingJob?.endTime
+                        ? new Date(existingJob.endTime)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                  />
+                </div>
 
-            <div>
-              <label
-                htmlFor="endTime"
-                className="block text-sm font-[450] text-gray-700 mb-1">
-                End Time
-              </label>
-              <Input
-                type="time"
-                id="endTime"
-                name="endTime"
-                defaultValue={
-                  existingJob?.endTime
-                    ? new Date(existingJob.endTime)
-                        .toISOString()
-                        .split("T")[1]
-                        .slice(0, 5)
-                    : ""
-                }
-              />
+                <div>
+                  <label
+                    htmlFor="endTime"
+                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    End Time
+                  </label>
+                  <Input
+                    type="time"
+                    id="endTime"
+                    name="endTime"
+                    defaultValue={
+                      existingJob?.endTime
+                        ? new Date(existingJob.endTime)
+                            .toISOString()
+                            .split("T")[1]
+                            .slice(0, 5)
+                        : ""
+                    }
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </Card>
@@ -307,7 +345,7 @@ export default async function JobFormPage({
         {/* Team & Hours */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-[#005F6A] w-full">Team</h2>
+            <h2 className="text-xl font-[450] text-neutral-950 w-full">Team</h2>
           </Card>
           <div className="grid grid-cols-1 gap-4">
             <div>
@@ -322,7 +360,7 @@ export default async function JobFormPage({
         {/* Pricing & Payment */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+            <h2 className="text-xl font-[450] text-neutral-950 w-full">
               Pricing & Payment
             </h2>
           </Card>
@@ -330,7 +368,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="price"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Price
               </label>
               <div className="relative">
@@ -350,7 +388,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="employeePay"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Employee Pay
               </label>
               <div className="relative">
@@ -370,7 +408,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="totalTip"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Total Tip
               </label>
               <div className="relative">
@@ -390,7 +428,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="parking"
-                className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+                className="block text-sm font-[450] text-neutral-950/80 mb-1">
                 Parking
               </label>
               <div className="relative">
@@ -412,14 +450,14 @@ export default async function JobFormPage({
         {/* Notes */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-[#005F6A] w-full">
+            <h2 className="text-xl font-[450] text-neutral-950 w-full">
               Additional Details
             </h2>
           </Card>
           <div>
             <label
               htmlFor="notes"
-              className="block text-sm font-[450] text-[#005F6A]/80 mb-1">
+              className="block text-sm font-[450] text-neutral-950/80 mb-1">
               Notes
             </label>
             <Textarea

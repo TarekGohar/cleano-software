@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import IconButton from "./IconButton";
 
@@ -21,8 +22,8 @@ export default function Modal({
 }: ModalProps) {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0"
@@ -35,7 +36,7 @@ export default function Modal({
 
       {/* Modal */}
       <div
-        className={`relative bg-white rounded-2xl shadow-sm max-h-[90vh] max-w-[45rem] w-full mx-4 flex flex-col ${className}`}>
+        className={`relative z-[10000] bg-white rounded-2xl shadow-sm max-h-[90vh] max-w-[45rem] w-full mx-4 flex flex-col ${className}`}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 pb-0 flex-shrink-0">
           <div>
@@ -55,7 +56,7 @@ export default function Modal({
             onClick={onClose}
             size="sm"
             variant="ghost"
-            className="text-gray-400 hover:text-[#005F6A]"
+            className="text-gray-400 hover:text-neutral-950"
           />
         </div>
 
@@ -64,4 +65,6 @@ export default function Modal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

@@ -69,7 +69,7 @@ export default function PaymentStatusButtons({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-[450] text-[#005F6A]">
+        <span className="text-sm font-[450] text-neutral-950">
           Payment Received
         </span>
         <Button
@@ -78,12 +78,12 @@ export default function PaymentStatusButtons({
           onClick={handleTogglePayment}
           disabled={!isAdmin || loadingPayment}>
           {paymentReceived ? (
-            <div className="flex items-center gap-2 text-[#005F6A]">
+            <div className="flex items-center gap-2 text-neutral-950">
               <CheckCircle2 className="w-5 h-5" />
               <span className="text-sm font-[450]">Paid</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-[#005F6A]/40">
+            <div className="flex items-center gap-2 text-neutral-950/40">
               <XCircle className="w-5 h-5" />
               <span className="text-sm font-[450]">Unpaid</span>
             </div>
@@ -92,19 +92,21 @@ export default function PaymentStatusButtons({
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm font-[450] text-[#005F6A]">Invoice Sent</span>
+        <span className="text-sm font-[450] text-neutral-950">
+          Invoice Sent
+        </span>
         <Button
           variant="alara"
           size="sm"
           onClick={handleToggleInvoice}
           disabled={!isAdmin || loadingInvoice}>
           {invoiceSent ? (
-            <div className="flex items-center gap-2 text-[#005F6A]">
+            <div className="flex items-center gap-2 text-neutral-950">
               <FileText className="w-5 h-5" />
               <span className="text-sm font-[450]">Sent</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-[#005F6A]/40">
+            <div className="flex items-center gap-2 text-neutral-950/40">
               <FileText className="w-5 h-5" />
               <span className="text-sm font-[450]">Not Sent</span>
             </div>

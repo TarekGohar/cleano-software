@@ -76,15 +76,15 @@ export async function InventoryView({
           <Card variant="alara_light_bordered" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-[450] text-[#005F6A]/70">
+                <p className="text-sm font-[450] text-neutral-950/70">
                   Total Items
                 </p>
-                <p className="text-3xl font-[450] text-[#005F6A]">
+                <p className="text-3xl font-[450] text-neutral-950">
                   {totalItems}
                 </p>
               </div>
-              <div className="p-3 bg-[#005F6A]/20 rounded-lg">
-                <Package className="w-6 h-6 text-[#005F6A]" />
+              <div className="p-3 bg-neutral-950/20 rounded-lg">
+                <Package className="w-6 h-6 text-neutral-950" />
               </div>
             </div>
           </Card>
@@ -92,15 +92,15 @@ export async function InventoryView({
           <Card variant="alara_light_bordered" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-[450] text-[#005F6A]/70">
+                <p className="text-sm font-[450] text-neutral-950/70">
                   Total Quantity
                 </p>
-                <p className="text-3xl font-[450] text-[#005F6A]">
+                <p className="text-3xl font-[450] text-neutral-950">
                   {totalQuantity.toFixed(0)}
                 </p>
               </div>
-              <div className="p-3 bg-[#005F6A]/20 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-[#005F6A]" />
+              <div className="p-3 bg-neutral-950/20 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-neutral-950" />
               </div>
             </div>
           </Card>
@@ -108,15 +108,15 @@ export async function InventoryView({
           <Card variant="alara_light_bordered" className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-[450] text-[#005F6A]/70">
+                <p className="text-sm font-[450] text-neutral-950/70">
                   Total Value
                 </p>
-                <p className="text-3xl font-[450] text-[#005F6A]">
+                <p className="text-3xl font-[450] text-neutral-950">
                   ${totalValue.toFixed(2)}
                 </p>
               </div>
-              <div className="p-3 bg-[#005F6A]/20 rounded-lg">
-                <DollarSign className="w-6 h-6 text-[#005F6A]" />
+              <div className="p-3 bg-neutral-950/20 rounded-lg">
+                <DollarSign className="w-6 h-6 text-neutral-950" />
               </div>
             </div>
           </Card>

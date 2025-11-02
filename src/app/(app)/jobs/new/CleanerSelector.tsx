@@ -245,7 +245,7 @@ export default function CleanerSelector({
                 <button
                   type="button"
                   onClick={() => handleRemoveCleaner(cleaner.id)}
-                  className="hover:bg-[#005F6A]/10 rounded-full p-0.5 transition-colors"
+                  className="hover:bg-neutral-950/10 rounded-full p-0.5 transition-colors"
                   aria-label={`Remove ${cleaner.name}`}>
                   <X className="w-3.5 h-3.5" />
                 </button>

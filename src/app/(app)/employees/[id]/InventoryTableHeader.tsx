@@ -62,9 +62,9 @@ export function InventoryTableHeader({
       <span className="text-gray-400 group-hover:text-gray-600">
         {isActive ? (
           currentSortOrder === "asc" ? (
-            <ArrowUp size={14} className="text-[#005F6A]" />
+            <ArrowUp size={14} className="text-neutral-950" />
           ) : (
-            <ArrowDown size={14} className="text-[#005F6A]" />
+            <ArrowDown size={14} className="text-neutral-950" />
           )
         ) : (
           <ArrowUpDown

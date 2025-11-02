@@ -12,7 +12,9 @@ export default async function AnalyticsPage() {
     redirect("/sign-in");
   }
 
-  if (session.user.role === "EMPLOYEE") {
+  const userWithRole = session.user as typeof session.user & { role: "OWNER" | "ADMIN" | "EMPLOYEE" };
+
+  if (userWithRole.role === "EMPLOYEE") {
     redirect("");
   }
 

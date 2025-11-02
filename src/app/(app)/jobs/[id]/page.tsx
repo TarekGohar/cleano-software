@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -21,9 +22,11 @@ import {
   Pencil,
   History,
   Activity,
+  Trash2,
 } from "lucide-react";
 import PaymentStatusButtons from "./PaymentStatusButtons";
 import ActivityLogPagination from "./ActivityLogPagination";
+import DeleteJobButton from "./DeleteJobButton";
 
 export default async function JobPage({
   params,
@@ -118,6 +121,18 @@ export default async function JobPage({
     (session.user as any).role === "OWNER" ||
     (session.user as any).role === "ADMIN";
 
+  // Server action to delete job
+  async function deleteJob() {
+    "use server";
+
+    await db.job.delete({
+      where: { id },
+    });
+
+    revalidatePath("/jobs");
+    redirect("/jobs");
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -131,25 +146,30 @@ export default async function JobPage({
       <Card variant="ghost" className="py-6">
         <div className="flex items-start gap-4">
           <div className="flex-1">
-            <h1 className="text-3xl font-[450] text-[#005F6A]">
+            <h1 className="text-3xl font-[450] text-neutral-950">
               {job.clientName}
             </h1>
             {job.location && (
-              <div className="flex items-center gap-2 text-[#005F6A]/70 mt-2">
+              <div className="flex items-center gap-2 text-neutral-950/70 mt-2">
                 <MapPin className="w-4 h-4" />
                 <span>{job.location}</span>
               </div>
             )}
             {job.description && (
-              <p className="text-[#005F6A]/60 mt-2">{job.description}</p>
+              <p className="text-neutral-950/60 mt-2">{job.description}</p>
             )}
           </div>
-          <Link href={`/jobs/new?edit=${job.id}`}>
-            <Button variant="primary">
-              <Pencil className="w-4 h-4 mr-2" />
-              Edit Job
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/jobs/new?edit=${job.id}`}>
+              <Button variant="primary">
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit Job
+              </Button>
+            </Link>
+            {isAdmin && (
+              <DeleteJobButton jobId={job.id} deleteAction={deleteJob} />
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 mt-4">
@@ -183,8 +203,8 @@ export default async function JobPage({
       {job.status === "COMPLETED" && !job.paymentReceived && (
         <Card variant="alara_light_bordered_high">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-[#005F6A] flex-shrink-0" />
-            <p className="text-sm text-[#005F6A] font-[450]">
+            <AlertTriangle className="h-5 w-5 text-neutral-950 flex-shrink-0" />
+            <p className="text-sm text-neutral-950 font-[450]">
               Payment pending for this completed job
             </p>
           </div>
@@ -192,81 +212,83 @@ export default async function JobPage({
       )}
 
       {/* Financial Overview */}
-      <h2 className="text-lg font-[450] text-[#005F6A]">Financial Overview</h2>
+      <h2 className="text-lg font-[450] text-neutral-950">
+        Financial Overview
+      </h2>
       <div className="grid gap-4 md:grid-cols-4">
         <Card variant="alara_light_bordered" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <DollarSign className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">Price</div>
+            <div className="text-sm font-[450] text-neutral-950/70">Price</div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             {job.price !== null ? `$${job.price.toFixed(2)}` : "-"}
           </div>
         </Card>
 
         <Card variant="alara_light_bordered" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <DollarSign className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">
+            <div className="text-sm font-[450] text-neutral-950/70">
               Employee Pay
             </div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             {job.employeePay !== null ? `-$${job.employeePay.toFixed(2)}` : "-"}
           </div>
         </Card>
 
         <Card variant="alara_light_bordered" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Package className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Package className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">
+            <div className="text-sm font-[450] text-neutral-950/70">
               Product Cost
             </div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             {totalProductCost > 0 ? `-$${totalProductCost.toFixed(2)}` : "-"}
           </div>
         </Card>
 
         <Card variant="alara_light_bordered" className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <DollarSign className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-neutral-950" />
             </div>
-            <div className="text-sm font-[450] text-[#005F6A]/70">
+            <div className="text-sm font-[450] text-neutral-950/70">
               Net Profit
             </div>
           </div>
-          <div className="text-2xl font-[450] text-[#005F6A]">
+          <div className="text-2xl font-[450] text-neutral-950">
             ${netProfit.toFixed(2)}
           </div>
         </Card>
       </div>
 
       {/* Main Content Grid */}
-      <h2 className="text-lg font-[450] text-[#005F6A] mt-12">
+      <h2 className="text-lg font-[450] text-neutral-950 mt-12">
         Cleaning Details
       </h2>
       <div className="grid gap-6 md:grid-cols-2">
         {/* Date & Time */}
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Calendar className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Calendar className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">Date & Time</h2>
+            <h2 className="text-lg font-[450] text-neutral-950">Date & Time</h2>
           </div>
           <dl className="space-y-3">
             {job.jobDate && (
               <div className="flex justify-between items-center">
-                <dt className="text-sm text-[#005F6A]/60">Job Date</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+                <dt className="text-sm text-neutral-950/60">Job Date</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   {new Date(job.jobDate).toLocaleDateString("en-US", {
                     weekday: "short",
                     year: "numeric",
@@ -278,8 +300,8 @@ export default async function JobPage({
             )}
             {job.startTime && (
               <div className="flex justify-between items-center">
-                <dt className="text-sm text-[#005F6A]/60">Start Time</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+                <dt className="text-sm text-neutral-950/60">Start Time</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   {new Date(job.startTime).toLocaleTimeString("en-US", {
                     hour: "numeric",
                     minute: "2-digit",
@@ -290,8 +312,8 @@ export default async function JobPage({
             )}
             {job.endTime && (
               <div className="flex justify-between items-center">
-                <dt className="text-sm text-[#005F6A]/60">End Time</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+                <dt className="text-sm text-neutral-950/60">End Time</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   {new Date(job.endTime).toLocaleTimeString("en-US", {
                     hour: "numeric",
                     minute: "2-digit",
@@ -301,12 +323,12 @@ export default async function JobPage({
               </div>
             )}
             {duration !== null && (
-              <div className="flex justify-between items-center pt-2 border-t border-[#005F6A]/10">
-                <dt className="text-sm text-[#005F6A]/60 flex items-center gap-1">
+              <div className="flex justify-between items-center pt-2 border-t border-neutral-950/10">
+                <dt className="text-sm text-neutral-950/60 flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   Duration
                 </dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+                <dd className="text-sm font-[450] text-neutral-950">
                   {Math.floor(duration / 60)}h {duration % 60}m
                 </dd>
               </div>
@@ -317,19 +339,21 @@ export default async function JobPage({
         {/* Team */}
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Users className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Users className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">Team</h2>
+            <h2 className="text-lg font-[450] text-neutral-950">Team</h2>
           </div>
           <dl className="space-y-3">
             <div className="flex justify-between items-center">
-              <dt className="text-sm text-[#005F6A]/60">Created By</dt>
+              <dt className="text-sm text-neutral-950/60">Created By</dt>
               <Badge variant="alara">{job.employee.name}</Badge>
             </div>
             {job.cleaners.length > 0 && (
               <div className="flex justify-between items-center">
-                <dt className="text-sm text-[#005F6A]/60">Assigned Cleaners</dt>
+                <dt className="text-sm text-neutral-950/60">
+                  Assigned Cleaners
+                </dt>
                 <dd className="flex flex-wrap gap-2">
                   {job.cleaners.map((cleaner: any) => (
                     <Badge key={cleaner.id} variant="alara">
@@ -345,30 +369,23 @@ export default async function JobPage({
 
       {job.notes && (
         <div>
-          <h2 className="text-lg font-[450] text-[#005F6A] mt-12">Notes</h2>
-          <Card variant="alara_light_bordered">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                <FileText className="w-5 h-5 text-[#005F6A]" />
-              </div>
-              <h2 className="text-lg font-[450] text-[#005F6A]">Notes</h2>
-            </div>
-            <p className="text-[#005F6A]/70 whitespace-pre-wrap leading-relaxed">
-              {job.notes}
-            </p>
-          </Card>
+          <h2 className="text-lg font-[450] text-neutral-950 mt-12">Notes</h2>
+
+          <p className="text-neutral-950/70 whitespace-pre-wrap leading-relaxed">
+            {job.notes}
+          </p>
         </div>
       )}
 
-      <h2 className="text-lg font-[450] text-[#005F6A] mt-12">Financials</h2>
+      <h2 className="text-lg font-[450] text-neutral-950 mt-12">Financials</h2>
       <div className="grid gap-6 md:grid-cols-2">
         {/* Payment Status */}
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <CheckCircle2 className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">
+            <h2 className="text-lg font-[450] text-neutral-950">
               Payment Status
             </h2>
           </div>
@@ -383,57 +400,59 @@ export default async function JobPage({
         {/* Enhanced Financial Breakdown */}
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <DollarSign className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">
+            <h2 className="text-lg font-[450] text-neutral-950">
               Financial Details
             </h2>
           </div>
           <dl className="space-y-2">
             {job.price !== null && (
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#77C8CC]/10">
-                <dt className="text-sm text-[#005F6A]/70">Job Price</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/20">
+                <dt className="text-sm text-neutral-950/70">Job Price</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   +${job.price.toFixed(2)}
                 </dd>
               </div>
             )}
             {job.employeePay !== null && (
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#005F6A]/5">
-                <dt className="text-sm text-[#005F6A]/70">Employee Pay</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/5">
+                <dt className="text-sm text-neutral-950/70">Employee Pay</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   -${job.employeePay.toFixed(2)}
                 </dd>
               </div>
             )}
             {job.totalTip !== null && job.totalTip > 0 && (
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#77C8CC]/10">
-                <dt className="text-sm text-[#005F6A]/70">Tips</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/10">
+                <dt className="text-sm text-neutral-950/70">Tips</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   +${job.totalTip.toFixed(2)}
                 </dd>
               </div>
             )}
             {job.parking !== null && job.parking > 0 && (
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#005F6A]/5">
-                <dt className="text-sm text-[#005F6A]/70">Parking Cost</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/5">
+                <dt className="text-sm text-neutral-950/70">Parking Cost</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   -${job.parking.toFixed(2)}
                 </dd>
               </div>
             )}
             {totalProductCost > 0 && (
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#005F6A]/5">
-                <dt className="text-sm text-[#005F6A]/70">Product Cost</dt>
-                <dd className="text-sm font-[450] text-[#005F6A]">
+              <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/5">
+                <dt className="text-sm text-neutral-950/70">Product Cost</dt>
+                <dd className="text-sm font-[450] text-neutral-950">
                   -${totalProductCost.toFixed(2)}
                 </dd>
               </div>
             )}
-            <div className="flex justify-between items-center p-2 rounded-lg bg-[#005F6A]/10 border border-[#005F6A]/20 mt-2">
-              <dt className="text-sm font-[450] text-[#005F6A]">Net Profit</dt>
-              <dd className="text-base font-[450] text-[#005F6A]">
+            <div className="flex justify-between items-center p-2 rounded-lg bg-neutral-950/10 border border-neutral-950/20 mt-2">
+              <dt className="text-sm font-[450] text-neutral-950">
+                Net Profit
+              </dt>
+              <dd className="text-base font-[450] text-neutral-950">
                 ${netProfit.toFixed(2)}
               </dd>
             </div>
@@ -442,15 +461,15 @@ export default async function JobPage({
       </div>
 
       {/* Product Usage */}
-      <h2 className="text-lg font-[450] text-[#005F6A] mt-12">Usage</h2>
+      <h2 className="text-lg font-[450] text-neutral-950 mt-12">Usage</h2>
       {job.productUsage.length > 0 ? (
         <Card variant="default" className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-                <Package className="w-5 h-5 text-[#005F6A]" />
+              <div className="p-2 bg-neutral-950/20 rounded-lg">
+                <Package className="w-5 h-5 text-neutral-950" />
               </div>
-              <h2 className="text-lg font-[450] text-[#005F6A]">
+              <h2 className="text-lg font-[450] text-neutral-950">
                 Product Usage
               </h2>
             </div>
@@ -460,42 +479,42 @@ export default async function JobPage({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[#005F6A]/10">
-              <thead className="bg-[#77C8CC]/10">
+            <table className="min-w-full divide-y divide-neutral-950/10">
+              <thead className="bg-neutral-950/10">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Product
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Quantity
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Cost/Unit
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-[#005F6A]/70 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
                     Notes
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-transparent divide-y divide-[#005F6A]/10">
+              <tbody className="bg-transparent divide-y divide-neutral-950/10">
                 {job.productUsage.map((usage: any) => (
-                  <tr key={usage.id} className="hover:bg-[#77C8CC]/5">
-                    <td className="px-4 py-3 text-sm font-[450] text-[#005F6A]">
+                  <tr key={usage.id} className="hover:bg-neutral-950/5">
+                    <td className="px-4 py-3 text-sm font-[450] text-neutral-950">
                       {usage.product.name}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[#005F6A]">
+                    <td className="px-4 py-3 text-sm text-neutral-950">
                       {usage.quantity} {usage.product.unit}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[#005F6A]/70">
+                    <td className="px-4 py-3 text-sm text-neutral-950/70">
                       ${usage.product.costPerUnit.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-sm font-[450] text-[#005F6A]">
+                    <td className="px-4 py-3 text-sm font-[450] text-neutral-950">
                       ${(usage.quantity * usage.product.costPerUnit).toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-[#005F6A]/70">
+                    <td className="px-4 py-3 text-sm text-neutral-950/70">
                       {usage.notes || "-"}
                     </td>
                   </tr>
@@ -507,27 +526,29 @@ export default async function JobPage({
       ) : (
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <Package className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <Package className="w-5 h-5 text-neutral-950" />
             </div>
           </div>
-          <p className="text-[#005F6A]/70">
+          <p className="text-neutral-950/70">
             No product usage recorded for this job
           </p>
         </Card>
       )}
 
       {/* Activity Log */}
-      <h2 id="logs" className="text-lg font-[450] text-[#005F6A] mt-12">
+      <h2 id="logs" className="text-lg font-[450] text-neutral-950 mt-12">
         Logs
       </h2>
       {logs && logs.length > 0 ? (
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <History className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <History className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">Activity Log</h2>
+            <h2 className="text-lg font-[450] text-neutral-950">
+              Activity Log
+            </h2>
           </div>
 
           <div className="space-y-3">
@@ -560,11 +581,11 @@ export default async function JobPage({
                   <div className="flex gap-3">
                     {/* Timeline line */}
                     {!isLast && (
-                      <div className="absolute left-[17px] top-10 bottom-0 w-px bg-[#005F6A]/10" />
+                      <div className="absolute left-[17px] top-10 bottom-0 w-px bg-neutral-950/10" />
                     )}
 
                     {/* Icon */}
-                    <div className="relative z-10 flex items-center justify-center w-9 h-9 rounded-full bg-[#77C8CC]/20 text-[#005F6A] flex-shrink-0">
+                    <div className="relative z-10 flex items-center justify-center w-9 h-9 rounded-full bg-neutral-950/20 text-neutral-950 flex-shrink-0">
                       {getActionIcon()}
                     </div>
 
@@ -572,21 +593,21 @@ export default async function JobPage({
                     <div className="flex-1 pb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="text-sm font-[450] text-[#005F6A]">
+                          <p className="text-sm font-[450] text-neutral-950">
                             {log.description}
                           </p>
                           {log.user && (
-                            <p className="text-xs text-[#005F6A]/60 mt-1">
+                            <p className="text-xs text-neutral-950/60 mt-1">
                               by {log.user.name}
                             </p>
                           )}
                           {log.field && log.oldValue && log.newValue && (
-                            <p className="text-xs text-[#005F6A]/60 mt-1">
+                            <p className="text-xs text-neutral-950/60 mt-1">
                               {log.field}: {log.oldValue} → {log.newValue}
                             </p>
                           )}
                         </div>
-                        <time className="text-xs text-[#005F6A]/60 ml-4 flex-shrink-0">
+                        <time className="text-xs text-neutral-950/60 ml-4 flex-shrink-0">
                           {new Date(log.createdAt).toLocaleString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -616,12 +637,14 @@ export default async function JobPage({
       ) : (
         <Card variant="default" className="p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#77C8CC]/20 rounded-lg">
-              <History className="w-5 h-5 text-[#005F6A]" />
+            <div className="p-2 bg-neutral-950/10 rounded-lg">
+              <History className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-[#005F6A]">Activity Log</h2>
+            <h2 className="text-lg font-[450] text-neutral-950">
+              Activity Log
+            </h2>
           </div>
-          <p className="text-[#005F6A]/70">No activity logs yet</p>
+          <p className="text-neutral-950/70">No activity logs yet</p>
         </Card>
       )}
     </div>
