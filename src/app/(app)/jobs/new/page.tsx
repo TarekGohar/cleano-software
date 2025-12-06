@@ -154,7 +154,7 @@ export default async function JobFormPage({
   return (
     <div className="max-w-[80rem] mx-auto text-black">
       <Card variant="ghost" className="mb-6">
-        <h1 className="text-3xl font-[450] text-neutral-950">
+        <h1 className="text-3xl font-[400] text-neutral-950">
           {isEditing ? "Edit Cleaning Job" : "Create New Cleaning Job"}
         </h1>
         <p className="text-neutral-950/80 mt-1">
@@ -172,7 +172,7 @@ export default async function JobFormPage({
         {/* Basic Information */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-neutral-950 w-full">
+            <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Basic Information
             </h2>
           </Card>
@@ -180,7 +180,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="clientName"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Client Name <span className="text-red-500">*</span>
               </label>
               <Input
@@ -196,7 +196,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="jobType"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Job Type
               </label>
               <JobTypeSelector initialValue={existingJob?.jobType} />
@@ -205,7 +205,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="location"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Location
               </label>
               <Input
@@ -220,7 +220,7 @@ export default async function JobFormPage({
             <div className="md:col-span-2">
               <label
                 htmlFor="description"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Description
               </label>
               <Textarea
@@ -237,7 +237,7 @@ export default async function JobFormPage({
         {/* Date & Time */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-neutral-950 w-full">
+            <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Date & Time
             </h2>
           </Card>
@@ -251,7 +251,7 @@ export default async function JobFormPage({
                 <div>
                   <label
                     htmlFor="startDate"
-                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    className="block text-sm font-[400] text-neutral-950/80 mb-1">
                     Start Date
                   </label>
                   <Input
@@ -271,7 +271,7 @@ export default async function JobFormPage({
                 <div>
                   <label
                     htmlFor="startTime"
-                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    className="block text-sm font-[400] text-neutral-950/80 mb-1">
                     Start Time
                   </label>
                   <Input
@@ -300,7 +300,7 @@ export default async function JobFormPage({
                 <div>
                   <label
                     htmlFor="endDate"
-                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    className="block text-sm font-[400] text-neutral-950/80 mb-1">
                     End Date
                   </label>
                   <Input
@@ -320,7 +320,7 @@ export default async function JobFormPage({
                 <div>
                   <label
                     htmlFor="endTime"
-                    className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                    className="block text-sm font-[400] text-neutral-950/80 mb-1">
                     End Time
                   </label>
                   <Input
@@ -345,7 +345,7 @@ export default async function JobFormPage({
         {/* Team & Hours */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-neutral-950 w-full">Team</h2>
+            <h2 className="text-xl font-[400] text-neutral-950 w-full">Team</h2>
           </Card>
           <div className="grid grid-cols-1 gap-4">
             <div>
@@ -360,7 +360,7 @@ export default async function JobFormPage({
         {/* Pricing & Payment */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-neutral-950 w-full">
+            <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Pricing & Payment
             </h2>
           </Card>
@@ -368,7 +368,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="price"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Price
               </label>
               <div className="relative">
@@ -388,7 +388,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="employeePay"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Employee Pay
               </label>
               <div className="relative">
@@ -408,7 +408,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="totalTip"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Total Tip
               </label>
               <div className="relative">
@@ -428,7 +428,7 @@ export default async function JobFormPage({
             <div>
               <label
                 htmlFor="parking"
-                className="block text-sm font-[450] text-neutral-950/80 mb-1">
+                className="block text-sm font-[400] text-neutral-950/80 mb-1">
                 Parking
               </label>
               <div className="relative">
@@ -450,14 +450,14 @@ export default async function JobFormPage({
         {/* Notes */}
         <Card variant="ghost">
           <Card variant="alara_dark" className="mb-4">
-            <h2 className="text-xl font-[450] text-neutral-950 w-full">
+            <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Additional Details
             </h2>
           </Card>
           <div>
             <label
               htmlFor="notes"
-              className="block text-sm font-[450] text-neutral-950/80 mb-1">
+              className="block text-sm font-[400] text-neutral-950/80 mb-1">
               Notes
             </label>
             <Textarea

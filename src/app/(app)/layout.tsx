@@ -5,7 +5,7 @@ import Link from "next/link";
 import signOut from "./actions/signOut";
 import NavLink from "./NavLink";
 import Image from "next/image";
-import InitialsDropdown from "@/components/ui/InitialsDropdown";
+import UserActions from "./UserActions";
 
 export default async function DashboardLayout({
   children,
@@ -28,47 +28,57 @@ export default async function DashboardLayout({
     userWithRole.role === "OWNER" || userWithRole.role === "ADMIN";
 
   return (
-    <div className="min-h-screen bg-white">
-      <nav className="">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <Link
-                href=""
-                className="w-[10rem] flex items-center px-2 text-xl font-[450] text-gray-900">
-                <Image
-                  src="/images/logo.svg"
-                  alt="Cleano"
-                  width={1000}
-                  height={1000}
-                />
-              </Link>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-0">
-                <NavLink href="/dashboard">Dashboard</NavLink>
-                {isAdmin && (
-                  <>
-                    <NavLink href="/analytics">Analytics</NavLink>
-                    <NavLink href="/employees">Employees</NavLink>
-                    <NavLink href="/inventory">Inventory</NavLink>
-
-                    <NavLink href="/jobs">Jobs</NavLink>
-                  </>
-                )}
-                <NavLink href="/my-jobs">My Jobs</NavLink>
-              </div>
+    <div className="min-h-screen bg-white flex">
+      {/* Sidebar - Icon Only */}
+      <aside className="w-20 bg-white border-r border-[#005F6A]/10 flex flex-col fixed h-full">
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-center border-b border-[#005F6A]/10">
+          <Link href="/dashboard" className="flex items-center">
+            <div className="w-10 h-10 rounded-xl bg-[#005F6A] flex items-center justify-center">
+              <span className="text-white font-bold text-lg">C</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <InitialsDropdown
-                userName={userWithRole.name}
-                signOutAction={signOut}
-              />
-            </div>
-          </div>
+          </Link>
         </div>
-      </nav>
-      <main className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 text-black">
-        {children}
-      </main>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+          <NavLink href="/dashboard" icon="dashboard" iconOnly>
+            Dashboard
+          </NavLink>
+          {isAdmin && (
+            <>
+              <NavLink href="/analytics" icon="analytics" iconOnly>
+                Analytics
+              </NavLink>
+              <NavLink href="/employees" icon="employees" iconOnly>
+                Employees
+              </NavLink>
+              <NavLink href="/inventory" icon="inventory" iconOnly>
+                Inventory
+              </NavLink>
+              <NavLink href="/jobs" icon="jobs" iconOnly>
+                Jobs
+              </NavLink>
+            </>
+          )}
+          <NavLink href="/my-jobs" icon="my-jobs" iconOnly>
+            My Jobs
+          </NavLink>
+          <NavLink href="/calendar" icon="calendar" iconOnly>
+            Calendar
+          </NavLink>
+        </nav>
+
+        {/* User Section */}
+        <div className="border-t border-[#005F6A]/10 p-4 flex justify-center">
+          <UserActions user={userWithRole} signOutAction={signOut} />
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 ml-20 h-screen overflow-hidden">
+        <main className="h-full bg-white overflow-hidden">{children}</main>
+      </div>
     </div>
   );
 }

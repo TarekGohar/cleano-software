@@ -98,7 +98,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       <Card variant="ghost" className="py-6">
         <div className="flex items-start gap-4">
           <div className="flex-1">
-            <h1 className="text-3xl font-[450] text-neutral-950">
+            <h1 className="text-3xl font-[400] text-neutral-950">
               {job.clientName}
             </h1>
             {job.location && (
@@ -145,7 +145,7 @@ export default async function JobDetailPage({ params }: PageProps) {
         <Card variant="default" className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-[450] text-neutral-950">
+              <h2 className="text-lg font-[400] text-neutral-950">
                 Time Tracking
               </h2>
               <p className="text-sm text-neutral-950/60 mt-1">
@@ -171,7 +171,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       {/* Time Summary */}
       {jobWithClock.clockInTime && (
         <>
-          <h2 className="text-lg font-[450] text-neutral-950 mt-8">
+          <h2 className="text-lg font-[400] text-neutral-950 mt-8">
             Time Summary
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
@@ -180,11 +180,11 @@ export default async function JobDetailPage({ params }: PageProps) {
                 <div className="p-2 bg-neutral-950/20 rounded-lg">
                   <LogIn className="w-5 h-5 text-neutral-950" />
                 </div>
-                <div className="text-sm font-[450] text-neutral-950/70">
+                <div className="text-sm font-[400] text-neutral-950/70">
                   Clocked In
                 </div>
               </div>
-              <div className="text-2xl font-[450] text-neutral-950">
+              <div className="text-2xl font-[400] text-neutral-950">
                 {new Date(jobWithClock.clockInTime).toLocaleString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -202,11 +202,11 @@ export default async function JobDetailPage({ params }: PageProps) {
                     <div className="p-2 bg-neutral-950/20 rounded-lg">
                       <LogOut className="w-5 h-5 text-neutral-950" />
                     </div>
-                    <div className="text-sm font-[450] text-neutral-950/70">
+                    <div className="text-sm font-[400] text-neutral-950/70">
                       Clocked Out
                     </div>
                   </div>
-                  <div className="text-2xl font-[450] text-neutral-950">
+                  <div className="text-2xl font-[400] text-neutral-950">
                     {new Date(jobWithClock.clockOutTime).toLocaleString(
                       "en-US",
                       {
@@ -226,11 +226,11 @@ export default async function JobDetailPage({ params }: PageProps) {
                       <div className="p-2 bg-neutral-950/20 rounded-lg">
                         <Clock className="w-5 h-5 text-neutral-950" />
                       </div>
-                      <div className="text-sm font-[450] text-neutral-950/70">
+                      <div className="text-sm font-[400] text-neutral-950/70">
                         Total Duration
                       </div>
                     </div>
-                    <div className="text-2xl font-[450] text-neutral-950">
+                    <div className="text-2xl font-[400] text-neutral-950">
                       {Math.floor(duration / 60)}h {duration % 60}m
                     </div>
                   </Card>
@@ -242,7 +242,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       )}
 
       {/* Job Details */}
-      <h2 className="text-lg font-[450] text-neutral-950 mt-12">Job Details</h2>
+      <h2 className="text-lg font-[400] text-neutral-950 mt-12">Job Details</h2>
       <div className="grid gap-6 md:grid-cols-2">
         {/* Date & Time */}
         <Card variant="default" className="p-6">
@@ -250,13 +250,13 @@ export default async function JobDetailPage({ params }: PageProps) {
             <div className="p-2 bg-neutral-950/20 rounded-lg">
               <Calendar className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-neutral-950">Date & Time</h2>
+            <h2 className="text-lg font-[400] text-neutral-950">Date & Time</h2>
           </div>
           <dl className="space-y-3">
             {job.jobDate && (
               <div className="flex justify-between items-center">
                 <dt className="text-sm text-neutral-950/60">Job Date</dt>
-                <dd className="text-sm font-[450] text-neutral-950">
+                <dd className="text-sm font-[400] text-neutral-950">
                   {new Date(job.jobDate).toLocaleDateString("en-US", {
                     weekday: "short",
                     year: "numeric",
@@ -269,7 +269,7 @@ export default async function JobDetailPage({ params }: PageProps) {
             {job.startTime && (
               <div className="flex justify-between items-center">
                 <dt className="text-sm text-neutral-950/60">Start Time</dt>
-                <dd className="text-sm font-[450] text-neutral-950">
+                <dd className="text-sm font-[400] text-neutral-950">
                   {new Date(job.startTime).toLocaleTimeString("en-US", {
                     hour: "numeric",
                     minute: "2-digit",
@@ -281,7 +281,7 @@ export default async function JobDetailPage({ params }: PageProps) {
             {job.endTime && (
               <div className="flex justify-between items-center">
                 <dt className="text-sm text-neutral-950/60">End Time</dt>
-                <dd className="text-sm font-[450] text-neutral-950">
+                <dd className="text-sm font-[400] text-neutral-950">
                   {new Date(job.endTime).toLocaleTimeString("en-US", {
                     hour: "numeric",
                     minute: "2-digit",
@@ -299,7 +299,7 @@ export default async function JobDetailPage({ params }: PageProps) {
             <div className="p-2 bg-neutral-950/20 rounded-lg">
               <Users className="w-5 h-5 text-neutral-950" />
             </div>
-            <h2 className="text-lg font-[450] text-neutral-950">Team</h2>
+            <h2 className="text-lg font-[400] text-neutral-950">Team</h2>
           </div>
           <dl className="space-y-3">
             <div className="flex justify-between items-center">
@@ -324,7 +324,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                   <DollarSign className="w-4 h-4" />
                   Your Pay
                 </dt>
-                <dd className="text-lg font-[450] text-neutral-950">
+                <dd className="text-lg font-[400] text-neutral-950">
                   ${job.employeePay.toFixed(2)}
                 </dd>
               </div>
@@ -336,13 +336,13 @@ export default async function JobDetailPage({ params }: PageProps) {
       {/* Notes */}
       {job.notes && (
         <div>
-          <h2 className="text-lg font-[450] text-neutral-950 mt-12">Notes</h2>
+          <h2 className="text-lg font-[400] text-neutral-950 mt-12">Notes</h2>
           <Card variant="alara_light_bordered">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-neutral-950/20 rounded-lg">
                 <FileText className="w-5 h-5 text-neutral-950" />
               </div>
-              <h2 className="text-lg font-[450] text-neutral-950">Notes</h2>
+              <h2 className="text-lg font-[400] text-neutral-950">Notes</h2>
             </div>
             <p className="text-neutral-950/70 whitespace-pre-wrap leading-relaxed">
               {job.notes}
@@ -354,7 +354,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       {/* Product Usage */}
       {job.productUsage.length > 0 && (
         <>
-          <h2 className="text-lg font-[450] text-neutral-950 mt-12">
+          <h2 className="text-lg font-[400] text-neutral-950 mt-12">
             Product Usage
           </h2>
           <Card variant="default" className="p-6">
@@ -362,7 +362,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               <div className="p-2 bg-neutral-950/20 rounded-lg">
                 <Package className="w-5 h-5 text-neutral-950" />
               </div>
-              <h2 className="text-lg font-[450] text-neutral-950">
+              <h2 className="text-lg font-[400] text-neutral-950">
                 Products Used
               </h2>
             </div>
@@ -371,24 +371,24 @@ export default async function JobDetailPage({ params }: PageProps) {
               <table className="min-w-full divide-y divide-neutral-950/10">
                 <thead className="bg-neutral-950/10">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-[400] text-neutral-950/70 uppercase tracking-wider">
                       Product
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-[400] text-neutral-950/70 uppercase tracking-wider">
                       Quantity
                     </th>
                     {jobWithClock.clockOutTime && (
                       <>
-                        <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-[400] text-neutral-950/70 uppercase tracking-wider">
                           Before
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-[400] text-neutral-950/70 uppercase tracking-wider">
                           After
                         </th>
                       </>
                     )}
                     {job.productUsage.some((u: any) => u.notes) && (
-                      <th className="px-4 py-3 text-left text-xs font-[450] text-neutral-950/70 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-[400] text-neutral-950/70 uppercase tracking-wider">
                         Notes
                       </th>
                     )}
@@ -397,7 +397,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                 <tbody className="bg-transparent divide-y divide-neutral-950/10">
                   {job.productUsage.map((usage: any) => (
                     <tr key={usage.id} className="hover:bg-neutral-950/5">
-                      <td className="px-4 py-3 text-sm font-[450] text-neutral-950">
+                      <td className="px-4 py-3 text-sm font-[400] text-neutral-950">
                         {usage.product.name}
                       </td>
                       <td className="px-4 py-3 text-sm text-neutral-950">

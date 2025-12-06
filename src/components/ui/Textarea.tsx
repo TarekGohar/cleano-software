@@ -4,7 +4,7 @@ import React from "react";
 
 interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  variant?: "default" | "minimal" | "ghost" | "outline";
+  variant?: "default" | "minimal" | "ghost" | "outline" | "form";
   error?: boolean;
   size?: "sm" | "md" | "lg";
 }
@@ -32,6 +32,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:border focus:border-neutral-950/70 rounded-md",
       outline:
         "bg-white border border-gray-300 hover:border-gray-400 focus:border-neutral-950/70",
+      form: "bg-[#005F6A]/4 hover:bg-[#005F6A]/7 focus:bg-[#005F6A]/8 text-[#005F6A] placeholder:text-[#005F6A]/40",
     }[variant];
 
     const errorClasses = error

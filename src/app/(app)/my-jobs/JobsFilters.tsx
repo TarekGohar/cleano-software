@@ -113,7 +113,7 @@ export function JobsFilters() {
         <div className="flex-1 min-w-[250px]">
           <label
             htmlFor="search"
-            className="block text-sm font-[450] text-gray-700 mb-1.5">
+            className="block text-sm font-[400] text-gray-700 mb-1.5">
             Search
           </label>
           <form onSubmit={handleSearch}>
@@ -152,7 +152,7 @@ export function JobsFilters() {
         <div className="w-48">
           <label
             htmlFor="status"
-            className="block text-sm font-[450] text-gray-700 mb-1.5">
+            className="block text-sm font-[400] text-gray-700 mb-1.5">
             Status
           </label>
           <CustomDropdown
@@ -192,7 +192,7 @@ export function JobsFilters() {
         <div className="w-48">
           <label
             htmlFor="jobType"
-            className="block text-sm font-[450] text-gray-700 mb-1.5">
+            className="block text-sm font-[400] text-gray-700 mb-1.5">
             Job Type
           </label>
           <CustomDropdown
@@ -232,7 +232,7 @@ export function JobsFilters() {
         <div className="w-32">
           <label
             htmlFor="perPage"
-            className="block text-sm font-[450] text-gray-700 mb-1.5">
+            className="block text-sm font-[400] text-gray-700 mb-1.5">
             Per Page
           </label>
           <CustomDropdown

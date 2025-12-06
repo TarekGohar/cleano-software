@@ -12,3 +12,4 @@ ALTER TYPE "JobStatus" ADD VALUE IF NOT EXISTS 'SCHEDULED';
 -- Note: This only affects new records, existing records remain unchanged
 ALTER TABLE "Job" ALTER COLUMN "status" SET DEFAULT 'CREATED'::"JobStatus";
 
+

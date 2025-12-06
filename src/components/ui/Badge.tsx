@@ -36,8 +36,9 @@ export default function Badge({
     warning: "bg-yellow-100 text-yellow-700",
     error: "bg-red-50 text-red-700",
     tdo: "bg-purple-100 text-purple-700",
-    secondary: "bg-neutral-950/20 text-neutral-950 hover:bg-neutral-950/50",
-    alara: "bg-neutral-950/20 text-neutral-950 hover:bg-neutral-950/50",
+    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+    alara:
+      "bg-[#005F6A]/10 text-[#005F6A] hover:bg-[#005F6A]/20 border-[#005F6A]/2 backdrop-blur-[3px]",
     destructive: "bg-red-100 text-red-700",
     dentitek:
       "bg-[#173f38]/85 text-white hover:bg-[#173f38]/95 border-[#173f38]/20",
@@ -46,7 +47,7 @@ export default function Badge({
 
   return (
     <div
-      className={`inline-flex items-center justify-center rounded-md font-[450] ${sizeClasses} ${variantClasses} ${className}`}
+      className={`inline-flex items-center justify-center rounded-md font-[350] ${sizeClasses} ${variantClasses} ${className}`}
       {...props}>
       {children}
     </div>

@@ -2,16 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import Card from "@/components/ui/Card";
-import { Prisma } from "@prisma/client";
-import { EmployeeFilters } from "./EmployeeFilters";
-import { EmployeePagination } from "./EmployeePagination";
-import { TableHeader } from "./TableHeader";
-import { TableLoadingOverlay } from "./TableLoadingOverlay";
-import { EmployeeLoadingProvider } from "./EmployeeLoadingContext";
-import { ClearLoadingOnMount } from "./ClearLoadingOnMount";
-import { EmployeeModalProvider, CreateEmployeeButton } from "./EmployeesClient";
-import { EmployeeRow } from "./EmployeeRow";
+import EmployeesPageClient from "./EmployeesPageClient";
 
 type SearchParams = Promise<{
   [key: string]: string | string[] | undefined;
@@ -38,121 +29,38 @@ export default async function EmployeesPage({
 
   // Parse search params
   const params = await searchParams;
-  const cursor = (params.cursor as string) || null;
-  const direction = (params.direction as string) || null;
-  const perPage = Number(params.perPage) || 10;
   const search = (params.search as string) || "";
   const role = (params.role as string) || "all";
   const jobStatus = (params.jobStatus as string) || "all";
-  const sortBy = (params.sortBy as string) || "name";
-  const sortOrder = (params.sortOrder as string) || "asc";
+  const page = Number(params.page) || 1;
+  const rowsPerPage = Number(params.rowsPerPage) || 10;
 
-  // Build where clause
-  const where: Prisma.UserWhereInput = {};
+  // Fetch all employees with their jobs
+  const employees = await db.user.findMany({
+    include: {
+      jobs: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 
-  // Search filter
-  if (search) {
-    where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { email: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search, mode: "insensitive" } },
-    ];
-  }
-
-  // Role filter
-  if (role !== "all") {
-    where.role = role as any;
-  }
-
-  // Job status filter (we'll apply this after fetching)
-  // Note: For more efficient filtering, consider aggregating at the database level
-
-  // Cursor-based pagination
-  const take = perPage + 1; // Fetch one extra to check if there's a next page
-  const orderBy: any = { [sortBy]: sortOrder };
-
-  let employees;
-
-  if (cursor && direction === "next") {
-    // Next page
-    employees = await db.user.findMany({
-      where,
-      include: {
-        jobs: {
-          include: {
-            productUsage: true,
-          },
-        },
-      },
-      orderBy,
-      take,
-      skip: 1, // Skip the cursor
-      cursor: { id: cursor },
-    });
-  } else if (cursor && direction === "prev") {
-    // Previous page - reverse the order
-    const reverseOrder: any = {
-      [sortBy]: sortOrder === "asc" ? "desc" : "asc",
-    };
-    employees = await db.user.findMany({
-      where,
-      include: {
-        jobs: {
-          include: {
-            productUsage: true,
-          },
-        },
-      },
-      orderBy: reverseOrder,
-      take,
-      skip: 1, // Skip the cursor
-      cursor: { id: cursor },
-    });
-    // Reverse the results back to correct order
-    employees = employees.reverse();
-  } else {
-    // First page
-    employees = await db.user.findMany({
-      where,
-      include: {
-        jobs: {
-          include: {
-            productUsage: true,
-          },
-        },
-      },
-      orderBy,
-      take,
-    });
-  }
-
-  // Check if there are more pages
-  const hasNextPage = employees.length > perPage;
-  if (hasNextPage) {
-    employees.pop(); // Remove the extra item
-  }
-
-  // Check if there's a previous page (we have a cursor and we're not on the first page)
-  const hasPrevPage = Boolean(cursor);
-
-  // Get cursors for pagination
-  const nextCursor = hasNextPage ? employees[employees.length - 1]?.id : null;
-  const prevCursor = employees[0]?.id || null;
-
-  // Calculate summary stats for each employee
-  let employeeStats = employees.map((emp) => {
-    const completedJobs = emp.jobs.filter((j: any) => j.status === "COMPLETED");
-    const activeJobs = emp.jobs.filter((j: any) => j.status === "IN_PROGRESS");
+  // Calculate stats for each employee
+  const employeesData = employees.map((emp) => {
+    const completedJobs = emp.jobs.filter((j) => j.status === "COMPLETED");
+    const activeJobs = emp.jobs.filter((j) => j.status === "IN_PROGRESS");
     const totalRevenue = completedJobs.reduce(
-      (sum: number, j: any) => sum + (j.price || 0),
+      (sum, j) => sum + (j.price || 0),
       0
     );
-    const unpaidJobs = completedJobs.filter(
-      (j: any) => !j.paymentReceived
-    ).length;
+    const unpaidJobs = completedJobs.filter((j) => !j.paymentReceived).length;
 
     return {
-      ...emp,
+      id: emp.id,
+      name: emp.name,
+      email: emp.email,
+      phone: emp.phone,
+      role: emp.role as "OWNER" | "ADMIN" | "EMPLOYEE",
       completedJobsCount: completedJobs.length,
       activeJobsCount: activeJobs.length,
       totalRevenue,
@@ -160,127 +68,24 @@ export default async function EmployeesPage({
     };
   });
 
-  // Apply job status filter (client-side for calculated fields)
-  if (jobStatus === "active") {
-    employeeStats = employeeStats.filter((e) => e.activeJobsCount > 0);
-  } else if (jobStatus === "completed") {
-    employeeStats = employeeStats.filter((e) => e.completedJobsCount > 0);
-  } else if (jobStatus === "unpaid") {
-    employeeStats = employeeStats.filter((e) => e.unpaidJobs > 0);
-  }
-
-  // Calculate minimum rows to display based on perPage
-  // If perPage <= 10, use perPage as minimum, otherwise use 10 as minimum
-  const minDisplayRows = Math.min(perPage, 10);
-  const placeholderRowCount = Math.max(
-    0,
-    minDisplayRows - employeeStats.length
-  );
-
-  // Create a unique key based on search params to detect data changes
-  const dataKey = `${cursor}-${search}-${role}-${jobStatus}-${sortBy}-${sortOrder}-${perPage}-${employeeStats.length}`;
+  // Calculate overall stats
+  const stats = {
+    totalEmployees: employees.length,
+    admins: employees.filter((e) => e.role === "ADMIN" || e.role === "OWNER")
+      .length,
+    activeEmployees: employeesData.filter((e) => e.activeJobsCount > 0).length,
+    totalRevenue: employeesData.reduce((sum, e) => sum + e.totalRevenue, 0),
+  };
 
   return (
-    <EmployeeLoadingProvider>
-      <EmployeeModalProvider>
-        <ClearLoadingOnMount dataKey={dataKey} />
-        <div className="space-y-6">
-          {/* Header */}
-          <Card variant="ghost">
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-[450] text-gray-900">Employees</h1>
-              <CreateEmployeeButton />
-            </div>
-          </Card>
-
-          {/* Search and Filters */}
-          <EmployeeFilters />
-
-          {/* Employees Table */}
-          <Card variant="default">
-            <div className="overflow-hidden rounded-lg relative">
-              <TableLoadingOverlay />
-              <div className="overflow-x-auto">
-                {/* Header row */}
-                <div className="grid grid-cols-8 bg-gray-50/50">
-                  <TableHeader label="Name" sortKey="name" />
-                  <TableHeader label="Email" sortKey="email" />
-                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
-                    Phone
-                  </span>
-                  <TableHeader label="Role" sortKey="role" />
-                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
-                    Completed Jobs
-                  </span>
-                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
-                    Active Jobs
-                  </span>
-                  <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center">
-                    Total Revenue
-                  </span>
-                  <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end">
-                    Actions
-                  </span>
-                </div>
-                {/* Employees - Fixed height for 10 rows */}
-                <div className="bg-white divide-y divide-gray-50 relative">
-                  {employeeStats.length === 0 ? (
-                    <>
-                      <div className="px-6 py-8 text-center text-sm text-gray-500">
-                        {search || role !== "all" || jobStatus !== "all"
-                          ? "No employees found matching your filters."
-                          : "No employees found."}
-                      </div>
-                      {/* Placeholder rows */}
-                      {Array.from({ length: minDisplayRows - 1 }).map(
-                        (_, idx) => (
-                          <div
-                            key={`placeholder-${idx}`}
-                            className="grid grid-cols-8 h-16">
-                            {Array.from({ length: 8 }).map((_, colIdx) => (
-                              <div key={colIdx} className="px-6 py-4"></div>
-                            ))}
-                          </div>
-                        )
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {employeeStats.map((employee) => (
-                        <EmployeeRow key={employee.id} employee={employee} />
-                      ))}
-                      {/* Placeholder rows to fill up to minimum display rows */}
-                      {placeholderRowCount > 0 &&
-                        Array.from({ length: placeholderRowCount }).map(
-                          (_, idx) => (
-                            <div
-                              key={`placeholder-${idx}`}
-                              className="grid grid-cols-8 h-16">
-                              {Array.from({ length: 8 }).map((_, colIdx) => (
-                                <div key={colIdx} className="px-6 py-4"></div>
-                              ))}
-                            </div>
-                          )
-                        )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Pagination */}
-          <EmployeePagination
-            hasNextPage={hasNextPage}
-            hasPrevPage={hasPrevPage}
-            nextCursor={nextCursor}
-            prevCursor={prevCursor}
-            currentCount={employeeStats.length}
-            perPage={perPage}
-            minDisplayRows={minDisplayRows}
-          />
-        </div>
-      </EmployeeModalProvider>
-    </EmployeeLoadingProvider>
+    <EmployeesPageClient
+      initialEmployees={employeesData}
+      initialStats={stats}
+      initialSearch={search}
+      initialRole={role}
+      initialJobStatus={jobStatus}
+      initialPage={page}
+      initialRowsPerPage={rowsPerPage}
+    />
   );
 }

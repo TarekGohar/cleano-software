@@ -29,7 +29,7 @@ export function JobRow({ job, isMainEmployee }: JobRowProps) {
     <div className="flex hover:bg-gray-50/50 transition-colors items-center min-w-max">
       {/* Client Name */}
       <div className="px-6 py-4 flex items-center w-[200px] min-w-[200px]">
-        <span className="text-sm font-[450] text-gray-900 truncate">
+        <span className="text-sm font-[400] text-gray-900 truncate">
           {job.clientName}
         </span>
       </div>
@@ -91,7 +91,7 @@ export function JobRow({ job, isMainEmployee }: JobRowProps) {
       {/* Actual End Time (Clock Out) */}
       <div className="px-6 py-4 flex items-center w-[150px] min-w-[150px]">
         {jobWithClock.clockOutTime ? (
-          <span className="text-sm font-[450] text-green-600">
+          <span className="text-sm font-[400] text-green-600">
             {new Date(jobWithClock.clockOutTime).toLocaleTimeString("en-US", {
               hour: "numeric",
               minute: "2-digit",

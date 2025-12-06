@@ -64,7 +64,7 @@ export default function RingChart({
       </svg>
       {showPercentage && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-[450] text-gray-700">
+          <span className="text-sm font-[400] text-gray-700">
             {Math.round(percentage)}%
           </span>
         </div>

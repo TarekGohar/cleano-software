@@ -122,7 +122,7 @@ export default function ClockOutButton({
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h4 className="font-[450] text-neutral-950">
+                            <h4 className="font-[400] text-neutral-950">
                               {ep.product.name}
                             </h4>
                             <p className="text-sm text-neutral-950/60">
@@ -153,7 +153,7 @@ export default function ClockOutButton({
                               <span className="text-neutral-950/70">
                                 Amount used:
                               </span>
-                              <span className="font-[450] text-neutral-950">
+                              <span className="font-[400] text-neutral-950">
                                 {used.toFixed(2)} {ep.product.unit}
                               </span>
                             </div>

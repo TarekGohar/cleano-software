@@ -50,7 +50,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-[450] mb-6">Create account</h1>
+        <h1 className="text-2xl font-[400] mb-6">Create account</h1>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="name" className="block text-sm">
@@ -115,7 +115,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-foreground text-background py-2 font-[450] disabled:opacity-60">
+            className="w-full rounded-md bg-foreground text-background py-2 font-[400] disabled:opacity-60">
             {loading ? "Creating account..." : "Sign up"}
           </button>
         </form>

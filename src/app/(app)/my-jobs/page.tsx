@@ -193,7 +193,7 @@ export default async function MyJobsPage({
         {/* Header */}
         <Card variant="ghost">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-[450] text-gray-900">My Jobs</h1>
+            <h1 className="text-3xl font-[400] text-gray-900">My Jobs</h1>
           </div>
         </Card>
 
@@ -210,7 +210,7 @@ export default async function MyJobsPage({
                 <div className="w-[200px] min-w-[200px]">
                   <TableHeader label="Client" sortKey="clientName" />
                 </div>
-                <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center w-[220px] min-w-[220px]">
+                <span className="px-6 py-3 text-left text-xs font-[400] text-gray-500 uppercase tracking-wider flex items-center w-[220px] min-w-[220px]">
                   Location
                 </span>
                 <div className="w-[140px] min-w-[140px]">
@@ -219,16 +219,16 @@ export default async function MyJobsPage({
                 <div className="w-[140px] min-w-[140px]">
                   <TableHeader label="Start Time" sortKey="startTime" />
                 </div>
-                <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center w-[140px] min-w-[140px]">
+                <span className="px-6 py-3 text-left text-xs font-[400] text-gray-500 uppercase tracking-wider flex items-center w-[140px] min-w-[140px]">
                   End Time
                 </span>
-                <span className="px-6 py-3 text-left text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center w-[150px] min-w-[150px]">
+                <span className="px-6 py-3 text-left text-xs font-[400] text-gray-500 uppercase tracking-wider flex items-center w-[150px] min-w-[150px]">
                   Actual End
                 </span>
                 <div className="w-[200px] min-w-[200px]">
                   <TableHeader label="Status" sortKey="status" />
                 </div>
-                <span className="px-6 py-3 text-right text-xs font-[450] text-gray-500 uppercase tracking-wider flex items-center justify-end w-[160px] min-w-[160px]">
+                <span className="px-6 py-3 text-right text-xs font-[400] text-gray-500 uppercase tracking-wider flex items-center justify-end w-[160px] min-w-[160px]">
                   Actions
                 </span>
               </div>
@@ -244,7 +244,7 @@ export default async function MyJobsPage({
                         </>
                       ) : (
                         <>
-                          <p className="font-[450] text-gray-900 mb-1">
+                          <p className="font-[400] text-gray-900 mb-1">
                             No Jobs Assigned
                           </p>
                           <p>

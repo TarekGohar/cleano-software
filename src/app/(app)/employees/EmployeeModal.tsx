@@ -1,16 +1,26 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  X,
+  User,
+  Loader,
+  Trash2,
+  Mail,
+  Phone,
+  Lock,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import CustomDropdown from "@/components/ui/custom-dropdown";
 import createEmployee from "../actions/createEmployee";
 import { updateEmployee } from "../actions/updateEmployee";
 import { deleteEmployee } from "../actions/deleteEmployee";
-import Modal from "@/components/ui/Modal";
-import Input from "@/components/ui/Input";
-import CustomDropdown from "@/components/ui/custom-dropdown";
-import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
-import { Trash2 } from "lucide-react";
 
 interface Employee {
   id: string;
@@ -27,26 +37,37 @@ interface EmployeeModalProps {
   mode: "create" | "edit";
 }
 
-const initialState = {
-  message: "",
-  error: "",
-};
+const createFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().optional(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  role: z.enum(["OWNER", "ADMIN", "EMPLOYEE"]),
+});
 
-function SubmitButton({ mode }: { mode: "create" | "edit" }) {
-  const { pending } = useFormStatus();
+const editFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().optional(),
+  role: z.enum(["OWNER", "ADMIN", "EMPLOYEE"]),
+});
 
-  return (
-    <Button type="submit" disabled={pending} variant="primary" size="md">
-      {pending
-        ? mode === "create"
-          ? "Creating..."
-          : "Updating..."
-        : mode === "create"
-        ? "Create Employee"
-        : "Update Employee"}
-    </Button>
-  );
-}
+type CreateFormValues = z.infer<typeof createFormSchema>;
+type EditFormValues = z.infer<typeof editFormSchema>;
+
+const roleOptions = [
+  {
+    value: "EMPLOYEE",
+    label: "Employee",
+    description: "Can log jobs and request inventory",
+  },
+  { value: "ADMIN", label: "Admin", description: "Can manage everything" },
+  {
+    value: "OWNER",
+    label: "Owner",
+    description: "Full access to all features",
+  },
+];
 
 export function EmployeeModal({
   isOpen,
@@ -54,266 +75,496 @@ export function EmployeeModal({
   employee,
   mode,
 }: EmployeeModalProps) {
-  const [selectedRole, setSelectedRole] = useState(
-    employee?.role || "EMPLOYEE"
-  );
+  const [submitting, setSubmitting] = useState(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<
+    "OWNER" | "ADMIN" | "EMPLOYEE"
+  >(employee?.role || "EMPLOYEE");
 
-  const createAction = async (prevState: any, formData: FormData) => {
-    formData.set("role", selectedRole);
-    return createEmployee(prevState, formData);
-  };
+  const createForm = useForm<CreateFormValues>({
+    resolver: zodResolver(createFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      role: "EMPLOYEE",
+    },
+  });
 
-  const updateAction = async (prevState: any, formData: FormData) => {
-    formData.set("role", selectedRole);
-    return updateEmployee(employee!.id, prevState, formData);
-  };
+  const editForm = useForm<EditFormValues>({
+    resolver: zodResolver(editFormSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: employee?.name || "",
+      email: employee?.email || "",
+      phone: employee?.phone || "",
+      role: employee?.role || "EMPLOYEE",
+    },
+  });
 
-  const [state, formAction] = useFormState(
-    mode === "create" ? createAction : updateAction,
-    initialState
-  );
+  const form = mode === "create" ? createForm : editForm;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = form;
 
+  // Reset form when modal opens or employee changes
   useEffect(() => {
-    if (state.message) {
-      setTimeout(() => {
-        onClose();
-        window.location.reload();
-      }, 500);
+    if (isOpen) {
+      if (mode === "edit" && employee) {
+        editForm.reset({
+          name: employee.name,
+          email: employee.email,
+          phone: employee.phone || "",
+          role: employee.role,
+        });
+        setSelectedRole(employee.role);
+      } else {
+        createForm.reset({
+          name: "",
+          email: "",
+          phone: "",
+          password: "",
+          role: "EMPLOYEE",
+        });
+        setSelectedRole("EMPLOYEE");
+      }
+      setShowDeleteConfirm(false);
+      setGlobalError(null);
+      setSuccessMessage(null);
     }
-  }, [state.message, onClose]);
+  }, [isOpen, employee, mode]);
 
-  // Reset role when employee changes
+  // Update form when role changes
   useEffect(() => {
-    setSelectedRole(employee?.role || "EMPLOYEE");
-    setShowDeleteConfirm(false);
-  }, [employee]);
+    setValue("role" as any, selectedRole);
+  }, [selectedRole, setValue]);
+
+  const disableForm = submitting || isDeleting;
+
+  const onSubmit = async (values: CreateFormValues | EditFormValues) => {
+    setSubmitting(true);
+    setGlobalError(null);
+    setSuccessMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("email", values.email);
+      formData.append("phone", values.phone || "");
+      formData.append("role", selectedRole);
+
+      if (mode === "create" && "password" in values) {
+        formData.append("password", values.password);
+      }
+
+      let result;
+      if (mode === "create") {
+        result = await createEmployee({ message: "", error: "" }, formData);
+      } else {
+        result = await updateEmployee(
+          employee!.id,
+          { message: "", error: "" },
+          formData
+        );
+      }
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      setSuccessMessage(
+        result.message ||
+          (mode === "create"
+            ? "Employee created successfully"
+            : "Employee updated successfully")
+      );
+
+      setTimeout(() => {
+        reset();
+        handleClose();
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error("Submit error:", error);
+      setGlobalError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!employee) return;
 
     setIsDeleting(true);
-    const result = await deleteEmployee(employee.id);
+    setGlobalError(null);
 
-    if (result.success) {
-      onClose();
+    try {
+      const result = await deleteEmployee(employee.id);
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete employee");
+      }
+
+      handleClose();
       window.location.reload();
-    } else {
-      alert(result.error || "Failed to delete employee");
+    } catch (error) {
+      setGlobalError(
+        error instanceof Error ? error.message : "Failed to delete employee"
+      );
       setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
   };
 
-  const roleOptions = [
-    { value: "EMPLOYEE", label: "Employee" },
-    { value: "ADMIN", label: "Admin" },
-    { value: "OWNER", label: "Owner" },
-  ];
+  const handleClose = () => {
+    if (!submitting && !isDeleting) {
+      reset();
+      setGlobalError(null);
+      setSuccessMessage(null);
+      setShowDeleteConfirm(false);
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={mode === "create" ? "Create New Employee" : "Edit Employee"}
-      className="max-w-2xl">
-      <div className="space-y-4">
-        {/* Alerts */}
-        {state.error && (
-          <Card variant="error">
-            <p className="text-sm text-red-700">{state.error}</p>
-          </Card>
-        )}
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+      {/* Blurred backdrop */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backdropFilter: "blur(2px)",
+          backgroundColor: "rgba(175, 175, 175, 0.1)",
+        }}
+        onClick={handleClose}
+      />
 
-        {state.message && (
-          <Card variant="alara_light_bordered">
-            <p className="text-sm text-green-700">{state.message}</p>
-          </Card>
-        )}
-
-        {/* Form */}
-        <form action={formAction} className="space-y-4">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-[450] text-gray-700 mb-1.5">
-              Full Name *
-            </label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              required
-              defaultValue={employee?.name || ""}
-              placeholder="John Doe"
-              variant="default"
-              size="md"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-[450] text-gray-700 mb-1.5">
-              Email Address *
-            </label>
-            <Input
-              type="email"
-              id="email"
-              name="email"
-              required
-              defaultValue={employee?.email || ""}
-              placeholder="john@example.com"
-              variant="default"
-              size="md"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-[450] text-gray-700 mb-1.5">
-              Phone Number
-            </label>
-            <Input
-              type="tel"
-              id="phone"
-              name="phone"
-              defaultValue={employee?.phone || ""}
-              placeholder="(555) 123-4567"
-              variant="default"
-              size="md"
-            />
-          </div>
-
-          {mode === "create" && (
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-[450] text-gray-700 mb-1.5">
-                Password *
-              </label>
-              <Input
-                type="password"
-                id="password"
-                name="password"
-                required
-                minLength={8}
-                placeholder="Minimum 8 characters"
-                variant="default"
-                size="md"
-              />
-              <p className="text-sm text-gray-500 mt-1.5">
-                This will be their initial password. They can change it later.
-              </p>
-            </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-[450] text-gray-700 mb-1.5">
-              Role *
-            </label>
-            <CustomDropdown
-              trigger={
-                <Button
-                  variant="outline"
-                  size="md"
-                  submit={false}
-                  className="w-full flex items-center !justify-between bg-white">
-                  <span>
-                    {
-                      roleOptions.find((opt) => opt.value === selectedRole)
-                        ?.label
-                    }
-                  </span>
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </Button>
-              }
-              options={roleOptions.map((opt) => ({
-                label: opt.label,
-                onClick: () => setSelectedRole(opt.value as any),
-              }))}
-              variant="default"
-              size="md"
-            />
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 space-y-1">
-              <p>
-                <strong>Employee:</strong> Can log jobs and request inventory.
-              </p>
-              <p>
-                <strong>Admin:</strong> Can manage everything.
-              </p>
-              <p>
-                <strong>Owner:</strong> Full access to all features.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center gap-3 pt-4 border-t border-gray-100">
-            {/* Delete button on the left (only in edit mode) */}
-            {mode === "edit" && !showDeleteConfirm && (
+      {/* Modal Container */}
+      <div className="relative z-[1001] w-full max-w-2xl max-h-[95vh] gap-0 bg-white rounded-3xl overflow-hidden">
+        {/* Form Section */}
+        <section className="w-full bg-[#ffffff]/5 flex items-start justify-center overflow-y-auto">
+          <div className="w-full max-w-[80rem] mx-auto px-6 md:px-8 py-6 md:py-8">
+            {/* Header */}
+            <div className="w-full flex items-start justify-between gap-1 mb-8">
+              <div>
+                <h1 className="text-3xl font-[350] tracking-tight text-[#005F6A] max-w-[40rem]">
+                  {mode === "create" ? "Add New Employee" : "Edit Employee"}
+                </h1>
+                <p className="text-sm text-[#005F6A]/80">
+                  {mode === "create"
+                    ? "Add a new team member to your organization"
+                    : "Update employee details"}
+                </p>
+              </div>
               <Button
                 variant="ghost"
-                size="md"
-                submit={false}
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
+                size="sm"
+                onClick={handleClose}
+                disabled={disableForm}
+                className="!p-2">
+                <X className="w-5 h-5" />
               </Button>
-            )}
+            </div>
 
-            {mode === "edit" && showDeleteConfirm && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Are you sure?</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  submit={false}
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  submit={false}
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="bg-red-600 hover:bg-red-700">
-                  {isDeleting ? "Deleting..." : "Confirm Delete"}
-                </Button>
+            {/* Success Message */}
+            {successMessage && (
+              <div className="rounded-2xl p-4 flex items-start gap-3 bg-green-50 border border-green-200 mb-6">
+                <div className="flex flex-col gap-1 flex-1">
+                  <p className="text-sm text-green-700 font-[400]">
+                    {successMessage}
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Action buttons on the right */}
-            <div className="flex gap-3 ml-auto">
-              <Button
-                variant="outline"
-                size="md"
-                submit={false}
-                onClick={onClose}>
-                Cancel
-              </Button>
-              <SubmitButton mode={mode} />
-            </div>
+            {/* Delete Confirmation */}
+            {mode === "edit" && showDeleteConfirm && (
+              <div className="rounded-2xl p-4 flex items-start gap-3 bg-red-50 border border-red-200 mb-6">
+                <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <p className="text-sm text-red-700 font-[400]">
+                    Are you sure you want to delete this employee?
+                  </p>
+                  <p className="text-xs text-red-600/70">
+                    This action cannot be undone. All employee data will be
+                    permanently removed.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      border={false}
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={isDeleting}
+                      className="px-4 py-2">
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      border={false}
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="px-4 py-2">
+                      {isDeleting ? (
+                        <>
+                          <Loader className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Confirm Delete
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form
+              onSubmit={handleSubmit(onSubmit as any)}
+              className="space-y-6">
+              {/* Full Name */}
+              <div>
+                <label className="input-label">
+                  Full Name <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
+                  <Input
+                    variant="form"
+                    type="text"
+                    size="md"
+                    {...register("name")}
+                    disabled={disableForm}
+                    error={!!errors.name}
+                    className="w-full pl-11 px-4 py-3"
+                    placeholder="John Doe"
+                    border={false}
+                  />
+                </div>
+                {errors.name && (
+                  <p className="my-1 text-xs text-red-600">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="input-label">
+                  Email Address <span className="text-red-500 ml-1">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
+                  <Input
+                    variant="form"
+                    type="email"
+                    size="md"
+                    {...register("email")}
+                    disabled={disableForm}
+                    error={!!errors.email}
+                    className="w-full pl-11 px-4 py-3"
+                    placeholder="john@example.com"
+                    border={false}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="my-1 text-xs text-red-600">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="input-label">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
+                  <Input
+                    variant="form"
+                    type="tel"
+                    size="md"
+                    {...register("phone")}
+                    disabled={disableForm}
+                    className="w-full pl-11 px-4 py-3"
+                    placeholder="(555) 123-4567"
+                    border={false}
+                  />
+                </div>
+                <p className="text-xs text-[#005F6A]/60 mt-1">
+                  Optional contact number
+                </p>
+              </div>
+
+              {/* Password (Create mode only) */}
+              {mode === "create" && (
+                <div>
+                  <label className="input-label">
+                    Password <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
+                    <Input
+                      variant="form"
+                      type="password"
+                      size="md"
+                      {...register("password" as any)}
+                      disabled={disableForm}
+                      error={!!(errors as any).password}
+                      className="w-full pl-11 px-4 py-3"
+                      placeholder="Minimum 8 characters"
+                      border={false}
+                    />
+                  </div>
+                  {(errors as any).password && (
+                    <p className="my-1 text-xs text-red-600">
+                      {(errors as any).password.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-[#005F6A]/60 mt-1">
+                    Initial password - they can change it later
+                  </p>
+                </div>
+              )}
+
+              {/* Role */}
+              <div>
+                <label className="input-label">
+                  Role <span className="text-red-500 ml-1">*</span>
+                </label>
+                <CustomDropdown
+                  trigger={
+                    <Button
+                      variant="default"
+                      size="md"
+                      border={false}
+                      type="button"
+                      disabled={disableForm}
+                      className="w-full h-[42px] px-4 py-3 flex items-center justify-between bg-[#005F6A]/5">
+                      <div className="flex items-center gap-3">
+                        <Shield className="w-4 h-4 text-[#005F6A]/50" />
+                        <span className="text-sm font-[350] text-[#005F6A]">
+                          {
+                            roleOptions.find((r) => r.value === selectedRole)
+                              ?.label
+                          }
+                        </span>
+                      </div>
+                      <svg
+                        className="w-4 h-4 text-[#005F6A]/50"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </Button>
+                  }
+                  options={roleOptions.map((opt) => ({
+                    label: opt.label,
+                    onClick: () => setSelectedRole(opt.value as any),
+                  }))}
+                  maxHeight="12rem"
+                />
+                <div className="mt-3 p-3 bg-[#005F6A]/5 rounded-xl">
+                  <p className="text-xs text-[#005F6A]/80">
+                    <strong className="text-[#005F6A]">
+                      {roleOptions.find((r) => r.value === selectedRole)?.label}
+                      :
+                    </strong>{" "}
+                    {
+                      roleOptions.find((r) => r.value === selectedRole)
+                        ?.description
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Global Error */}
+              {globalError && (
+                <div className="bg-red-50 rounded-2xl p-3">
+                  <p className="text-xs text-red-600">{globalError}</p>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <div className="w-full flex flex-col md:flex-row justify-between items-center pt-4 gap-4">
+                {/* Delete button on the left (only in edit mode) */}
+                {mode === "edit" && !showDeleteConfirm && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="md"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={disableForm}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-3 w-full md:w-auto">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Employee
+                  </Button>
+                )}
+
+                {mode === "create" && <div />}
+
+                <div className="flex gap-3 w-full md:w-auto">
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="md"
+                    border={false}
+                    onClick={handleClose}
+                    disabled={disableForm}
+                    className="px-6 py-3 flex-1 md:flex-none">
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    type="submit"
+                    disabled={disableForm}
+                    className="px-6 py-3 flex-1 md:flex-none">
+                    {submitting ? (
+                      <>
+                        <Loader className="w-4 h-4 mr-2 animate-spin" />
+                        {mode === "create" ? "Creating..." : "Updating..."}
+                      </>
+                    ) : (
+                      <>
+                        <User className="w-4 h-4 mr-2" />
+                        {mode === "create"
+                          ? "Create Employee"
+                          : "Update Employee"}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
           </div>
-        </form>
+        </section>
       </div>
-    </Modal>
+    </div>
   );
 }

@@ -50,10 +50,7 @@ export default function CustomDropdown({
       const rect = triggerRef.current.getBoundingClientRect();
 
       // Calculate vertical position (fixed positioning uses viewport coordinates)
-      const top =
-        position === "top"
-          ? rect.top - offset
-          : rect.bottom + offset;
+      const top = position === "top" ? rect.top - offset : rect.bottom + offset;
 
       // Calculate horizontal position based on alignment
       let left = rect.left;
@@ -117,7 +114,7 @@ export default function CustomDropdown({
   const dropdownContent = isOpen && (
     <div
       ref={dropdownRef}
-      className="fixed min-w-40 bg-white border border-gray-200 rounded-2xl !overflow-hidden shadow-lg z-[9999]"
+      className="fixed min-w-40 bg-white border border-[#005F6A]/10 rounded-2xl !overflow-hidden shadow-lg z-[9999]"
       style={{
         top: `${dropdownPosition.top}px`,
         left: `${dropdownPosition.left}px`,
@@ -128,17 +125,17 @@ export default function CustomDropdown({
             align === "right"
               ? "translateX(-100%)"
               : align === "center"
-                ? "translateX(-50%)"
-                : ""
+              ? "translateX(-50%)"
+              : ""
           }`.trim() || "none",
         transformOrigin: position === "top" ? "bottom" : "top",
       }}>
-      <div className="py-1 overflow-y-auto " style={{ maxHeight }}>
+      <div className=" overflow-y-auto " style={{ maxHeight }}>
         {options.map((option, index) => (
           <button
             key={index}
             onClick={() => handleOptionClick(option)}
-            className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors">
+            className="w-full px-4 py-3 text-sm text-[#005F6A] hover:bg-[#005F6A]/5 flex items-center gap-2 transition-colors">
             {option.icon}
             {option.label}
           </button>

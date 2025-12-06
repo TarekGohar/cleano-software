@@ -40,7 +40,7 @@ export default function Modal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 pb-0 flex-shrink-0">
           <div>
-            <h2 className="text-lg font-[450] text-gray-900">{title}</h2>
+            <h2 className="text-lg font-[400] text-gray-900">{title}</h2>
             {subheader && (
               <div className="px-0 pb-0 flex-shrink-0">
                 {typeof subheader === "string" ? (

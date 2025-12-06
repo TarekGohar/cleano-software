@@ -11,9 +11,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     | "outline"
     | "search"
     | "compact"
-    | "large";
+    | "large"
+    | "form";
   error?: boolean;
   size?: "sm" | "md" | "lg" | undefined;
+  border?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -23,6 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       error = false,
       className = "",
       size = "md",
+      border = true,
       ...props
     },
     ref
@@ -32,21 +35,22 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const variantClasses = {
       default:
-        "border border-neutral-950/10 rounded-md hover:border-neutral-950/20 focus:border-neutral-950 ",
+        "border-neutral-950/10 hover:border-neutral-950/20 focus:border-neutral-950 ",
       minimal:
-        "bg-transparent border-0 border-b border-gray-200 rounded-none hover:border-gray-400 focus:border-neutral-950/70",
+        "bg-transparent border-0 border-b border-gray-200 hover:border-gray-400 focus:border-neutral-950/70",
       badge:
-        "font-[450] bg-white border border-gray-200 rounded-md hover:border-gray-300 focus:border-neutral-950/70",
+        "font-[400] bg-white border-gray-200 hover:border-gray-300 focus:border-neutral-950/70",
       search:
-        "pl-3 border border-neutral-950/10 hover:border-neutral-950/20 focus:border-neutral-950",
+        "pl-3 border-neutral-950/10 hover:border-neutral-950/20 focus:border-neutral-950",
       compact:
-        "border border-gray-200 rounded-sm hover:border-gray-300 focus:border-neutral-950/70",
+        "border-gray-200 hover:border-gray-300 focus:border-neutral-950/70",
       large:
-        "border border-gray-200 rounded-2xl hover:border-gray-300 focus:border-neutral-950/70",
+        "border-gray-200 hover:border-gray-300 focus:border-neutral-950/70",
       ghost:
-        "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:border focus:border-neutral-950/70 rounded-md",
+        "bg-transparent border-0 hover:bg-gray-50 focus:bg-white focus:focus:border-neutral-950/70",
       outline:
-        "bg-white border border-neutral-950/10 rounded-md hover:border-neutral-950/20 focus:border-neutral-950/25",
+        "bg-white border-neutral-950/10 hover:border-neutral-950/20 focus:border-neutral-950/25",
+      form: "bg-[#005F6A]/3 hover:bg-[#005F6A]/5 focus:bg-[#005F6A]/6 !text-[#005F6A] placeholder:text-[#005F6A]/40",
     }[variant];
 
     const errorClasses = error
@@ -62,7 +66,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         ref={ref}
-        className={`${baseClasses} ${variantClasses} ${errorClasses} ${sizeClasses} ${className}`}
+        className={`${baseClasses} ${variantClasses} ${errorClasses} ${sizeClasses} ${className} ${
+          border ? "border" : ""
+        }`}
         {...props}
       />
     );

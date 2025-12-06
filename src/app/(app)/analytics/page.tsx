@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
+import AnalyticsView from "./AnalyticsView";
 
 export default async function AnalyticsPage() {
   const session = await auth.api.getSession({
@@ -12,313 +13,365 @@ export default async function AnalyticsPage() {
     redirect("/sign-in");
   }
 
-  const userWithRole = session.user as typeof session.user & { role: "OWNER" | "ADMIN" | "EMPLOYEE" };
+  const userWithRole = session.user as typeof session.user & {
+    role: "OWNER" | "ADMIN" | "EMPLOYEE";
+  };
 
   if (userWithRole.role === "EMPLOYEE") {
-    redirect("");
+    redirect("/dashboard");
   }
 
-  // Get all data for analytics
-  const products = await db.product.findMany();
-  const jobs = await db.job.findMany({
-    include: {
-      productUsage: {
-        include: {
-          product: true,
+  // Date calculations
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  // Fetch all data
+  const [jobs, products, employees, productUsages] = await Promise.all([
+    db.job.findMany({
+      include: {
+        employee: { select: { id: true, name: true } },
+        cleaners: { select: { id: true, name: true } },
+        productUsage: {
+          include: {
+            product: true,
+          },
         },
       },
-      employee: true,
-    },
-  });
-  const employees = await db.user.findMany({
-    where: {
-      role: "EMPLOYEE",
-    },
-  });
+      orderBy: { createdAt: "desc" },
+    }),
+    db.product.findMany(),
+    db.user.findMany({
+      include: {
+        cleaningJobs: {
+          include: {
+            productUsage: {
+              include: { product: true },
+            },
+          },
+        },
+      },
+    }),
+    db.jobProductUsage.findMany({
+      include: {
+        product: true,
+        job: true,
+      },
+    }),
+  ]);
 
-  // Calculate total inventory value
+  // === JOB STATS ===
+  const completedJobs = jobs.filter(
+    (j) => j.status === "COMPLETED" || j.status === "PAID"
+  );
+  const inProgressJobs = jobs.filter((j) => j.status === "IN_PROGRESS");
+  const scheduledJobs = jobs.filter(
+    (j) => j.status === "CREATED" || j.status === "SCHEDULED"
+  );
+  const cancelledJobs = jobs.filter((j) => j.status === "CANCELLED");
+
+  // Average duration (for completed jobs with end time)
+  const jobsWithDuration = completedJobs.filter((j) => j.endTime);
+  const avgDuration =
+    jobsWithDuration.length > 0
+      ? jobsWithDuration.reduce((sum, j) => {
+          const duration =
+            (new Date(j.endTime!).getTime() - new Date(j.startTime).getTime()) /
+            (1000 * 60);
+          return sum + duration;
+        }, 0) / jobsWithDuration.length
+      : 0;
+
+  const jobStats = {
+    total: jobs.length,
+    completed: completedJobs.length,
+    inProgress: inProgressJobs.length,
+    scheduled: scheduledJobs.length,
+    cancelled: cancelledJobs.length,
+    avgDuration,
+    completionRate:
+      jobs.length > 0 ? (completedJobs.length / jobs.length) * 100 : 0,
+  };
+
+  // === REVENUE STATS ===
+  const totalRevenue = completedJobs.reduce(
+    (sum, j) => sum + (j.price || 0),
+    0
+  );
+  const monthlyRevenue = completedJobs
+    .filter((j) => new Date(j.createdAt) >= startOfMonth)
+    .reduce((sum, j) => sum + (j.price || 0), 0);
+  const weeklyRevenue = completedJobs
+    .filter((j) => new Date(j.createdAt) >= startOfWeek)
+    .reduce((sum, j) => sum + (j.price || 0), 0);
+  const avgJobPrice =
+    completedJobs.length > 0 ? totalRevenue / completedJobs.length : 0;
+  const totalEmployeePay = completedJobs.reduce(
+    (sum, j) => sum + (j.employeePay || 0),
+    0
+  );
+  const totalTips = completedJobs.reduce(
+    (sum, j) => sum + (j.totalTip || 0),
+    0
+  );
+  const totalParking = completedJobs.reduce(
+    (sum, j) => sum + (j.parking || 0),
+    0
+  );
+  const totalProductCost = productUsages.reduce(
+    (sum, u) => sum + u.quantity * u.product.costPerUnit,
+    0
+  );
+  const netProfit =
+    totalRevenue +
+    totalTips -
+    totalEmployeePay -
+    totalParking -
+    totalProductCost;
+  const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+  const pendingPaymentJobs = completedJobs.filter((j) => !j.paymentReceived);
+  const pendingAmount = pendingPaymentJobs.reduce(
+    (sum, j) => sum + (j.price || 0),
+    0
+  );
+
+  const revenueStats = {
+    totalRevenue,
+    monthlyRevenue,
+    weeklyRevenue,
+    avgJobPrice,
+    totalEmployeePay,
+    totalTips,
+    totalParking,
+    totalProductCost,
+    netProfit,
+    profitMargin,
+    pendingPayments: pendingPaymentJobs.length,
+    pendingAmount,
+  };
+
+  // === INVENTORY STATS ===
+  const lowStockProducts = products.filter((p) => p.stockLevel <= p.minStock);
   const totalInventoryValue = products.reduce(
     (sum, p) => sum + p.stockLevel * p.costPerUnit,
     0
   );
+  const avgUsagePerJob =
+    completedJobs.length > 0 ? totalProductCost / completedJobs.length : 0;
 
-  // Calculate low stock items
-  const lowStockItems = products.filter((p) => p.stockLevel <= p.minStock);
+  const inventoryStats = {
+    totalProducts: products.length,
+    totalValue: totalInventoryValue,
+    lowStockCount: lowStockProducts.length,
+    totalUsageCost: totalProductCost,
+    avgUsagePerJob,
+  };
 
-  // Calculate total product usage cost
-  const totalUsageCost = jobs.reduce((sum, job) => {
-    return (
-      sum +
-      job.productUsage.reduce((jobSum, usage) => {
-        return jobSum + usage.quantity * usage.product.costPerUnit;
-      }, 0)
-    );
-  }, 0);
+  // === EMPLOYEE STATS ===
+  const admins = employees.filter(
+    (e) => e.role === "ADMIN" || e.role === "OWNER"
+  );
+  const activeEmployees = employees.filter((e) =>
+    e.cleaningJobs.some((j) => j.status === "IN_PROGRESS")
+  );
+  const avgJobsPerEmployee =
+    employees.length > 0
+      ? employees.reduce((sum, e) => sum + e.cleaningJobs.length, 0) /
+        employees.length
+      : 0;
+  const topPerformer =
+    employees.length > 0
+      ? employees.reduce((top, e) =>
+          e.cleaningJobs.length > (top?.cleaningJobs.length || 0) ? e : top
+        )?.name || null
+      : null;
 
-  // Calculate product usage statistics
-  const productUsageStats = products.map((product) => {
-    const usages = jobs.flatMap((job) =>
-      job.productUsage.filter((usage) => usage.productId === product.id)
-    );
-    const totalUsed = usages.reduce((sum, usage) => sum + usage.quantity, 0);
-    const usageCount = usages.length;
-    const totalCost = totalUsed * product.costPerUnit;
+  const employeeStats = {
+    totalEmployees: employees.length,
+    admins: admins.length,
+    activeNow: activeEmployees.length,
+    avgJobsPerEmployee,
+    topPerformer,
+  };
 
-    return {
-      product,
-      totalUsed,
-      usageCount,
-      totalCost,
+  // === PRODUCT USAGE ===
+  const productUsageMap = new Map<
+    string,
+    { totalUsed: number; usageCount: number; totalCost: number }
+  >();
+  productUsages.forEach((usage) => {
+    const existing = productUsageMap.get(usage.productId) || {
+      totalUsed: 0,
+      usageCount: 0,
+      totalCost: 0,
     };
+    productUsageMap.set(usage.productId, {
+      totalUsed: existing.totalUsed + usage.quantity,
+      usageCount: existing.usageCount + 1,
+      totalCost:
+        existing.totalCost + usage.quantity * usage.product.costPerUnit,
+    });
   });
 
-  // Sort by most used
-  productUsageStats.sort((a, b) => b.totalUsed - a.totalUsed);
+  const productUsage = products
+    .map((p) => {
+      const usage = productUsageMap.get(p.id) || {
+        totalUsed: 0,
+        usageCount: 0,
+        totalCost: 0,
+      };
+      return {
+        id: p.id,
+        name: p.name,
+        unit: p.unit,
+        totalUsed: usage.totalUsed,
+        usageCount: usage.usageCount,
+        totalCost: usage.totalCost,
+        stockLevel: p.stockLevel,
+        minStock: p.minStock,
+      };
+    })
+    .sort((a, b) => b.totalUsed - a.totalUsed);
 
-  // Employee performance
-  const employeeStats = employees.map((employee) => {
-    const employeeJobs = jobs.filter((j) => j.employeeId === employee.id);
-    const completedJobs = employeeJobs.filter((j) => j.status === "COMPLETED");
-    const totalUsageCost = employeeJobs.reduce((sum, job) => {
-      return (
-        sum +
-        job.productUsage.reduce((jobSum, usage) => {
-          return jobSum + usage.quantity * usage.product.costPerUnit;
-        }, 0)
+  // === EMPLOYEE PERFORMANCE ===
+  const employeePerformance = employees
+    .map((e) => {
+      const empJobs = e.cleaningJobs;
+      const completedEmpJobs = empJobs.filter(
+        (j) => j.status === "COMPLETED" || j.status === "PAID"
       );
-    }, 0);
+      const totalRevenue = completedEmpJobs.reduce(
+        (sum, j) => sum + (j.price || 0),
+        0
+      );
+      const totalPaid = completedEmpJobs.reduce(
+        (sum, j) => sum + (j.employeePay || 0),
+        0
+      );
+      const avgJobPrice =
+        completedEmpJobs.length > 0
+          ? totalRevenue / completedEmpJobs.length
+          : 0;
+      const completionRate =
+        empJobs.length > 0
+          ? (completedEmpJobs.length / empJobs.length) * 100
+          : 0;
 
-    return {
-      employee,
-      totalJobs: employeeJobs.length,
-      completedJobs: completedJobs.length,
-      totalUsageCost,
-    };
+      return {
+        id: e.id,
+        name: e.name,
+        totalJobs: empJobs.length,
+        completedJobs: completedEmpJobs.length,
+        totalRevenue,
+        totalPaid,
+        avgJobPrice,
+        completionRate,
+      };
+    })
+    .sort((a, b) => b.totalJobs - a.totalJobs);
+
+  // === LOW STOCK PRODUCTS ===
+  const lowStockData = lowStockProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    stockLevel: p.stockLevel,
+    minStock: p.minStock,
+    unit: p.unit,
+  }));
+
+  // === JOB TYPE BREAKDOWN ===
+  const jobTypeMap = new Map<string, { count: number; revenue: number }>();
+  completedJobs.forEach((job) => {
+    const type = job.jobType || "Unspecified";
+    const existing = jobTypeMap.get(type) || { count: 0, revenue: 0 };
+    jobTypeMap.set(type, {
+      count: existing.count + 1,
+      revenue: existing.revenue + (job.price || 0),
+    });
   });
 
-  // Sort by total jobs
-  employeeStats.sort((a, b) => b.totalJobs - a.totalJobs);
+  const jobTypeBreakdown = Array.from(jobTypeMap.entries())
+    .map(([type, data]) => ({
+      type,
+      count: data.count,
+      revenue: data.revenue,
+    }))
+    .sort((a, b) => b.count - a.count);
 
-  // Recent activity
-  const recentJobs = jobs
-    .sort(
-      (a, b) =>
-        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-    )
-    .slice(0, 5);
+  // === MONTHLY DATA ===
+  const monthlyDataMap = new Map<
+    string,
+    { revenue: number; jobs: number; costs: number }
+  >();
+
+  // Get last 6 months
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    const monthKey = date.toLocaleString("default", {
+      month: "short",
+      year: "2-digit",
+    });
+    monthlyDataMap.set(monthKey, { revenue: 0, jobs: 0, costs: 0 });
+  }
+
+  completedJobs.forEach((job) => {
+    const date = new Date(job.createdAt);
+    const monthKey = date.toLocaleString("default", {
+      month: "short",
+      year: "2-digit",
+    });
+    if (monthlyDataMap.has(monthKey)) {
+      const existing = monthlyDataMap.get(monthKey)!;
+      const jobProductCost = job.productUsage.reduce(
+        (sum, u) => sum + u.quantity * u.product.costPerUnit,
+        0
+      );
+      monthlyDataMap.set(monthKey, {
+        revenue: existing.revenue + (job.price || 0),
+        jobs: existing.jobs + 1,
+        costs:
+          existing.costs +
+          (job.employeePay || 0) +
+          (job.parking || 0) +
+          jobProductCost,
+      });
+    }
+  });
+
+  const monthlyData = Array.from(monthlyDataMap.entries()).map(
+    ([month, data]) => ({
+      month,
+      revenue: data.revenue,
+      jobs: data.jobs,
+      profit: data.revenue - data.costs,
+    })
+  );
+
+  // === RECENT JOBS ===
+  const recentJobs = jobs.slice(0, 10).map((job) => ({
+    id: job.id,
+    clientName: job.clientName,
+    status: job.status,
+    price: job.price,
+    date: new Date(job.createdAt).toLocaleDateString(),
+    employeeName: job.employee.name,
+  }));
 
   return (
-    <div>
-      <h1 className="text-3xl font-[450] mb-6">Analytics & Reports</h1>
-
-      {/* Overview Stats */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-[450] text-gray-500 mb-1">
-            Total Inventory Value
-          </div>
-          <div className="text-2xl font-[450]">
-            ${totalInventoryValue.toFixed(2)}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-[450] text-gray-500 mb-1">
-            Low Stock Items
-          </div>
-          <div className="text-2xl font-[450] text-red-600">
-            {lowStockItems.length}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-[450] text-gray-500 mb-1">
-            Total Jobs
-          </div>
-          <div className="text-2xl font-[450]">{jobs.length}</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-[450] text-gray-500 mb-1">
-            Total Usage Cost
-          </div>
-          <div className="text-2xl font-[450]">
-            ${totalUsageCost.toFixed(2)}
-          </div>
-        </div>
-      </div>
-
-      {/* Low Stock Alert */}
-      {lowStockItems.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-[450] text-red-900 mb-4">
-            ⚠️ Low Stock Alerts
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {lowStockItems.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg p-4">
-                <div className="font-[450] text-gray-900">{product.name}</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  Current: {product.stockLevel} {product.unit}
-                </div>
-                <div className="text-sm text-red-600">
-                  Minimum: {product.minStock} {product.unit}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Product Usage Statistics */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-[450] mb-4">Product Usage Statistics</h2>
-        {productUsageStats.length === 0 ? (
-          <p className="text-gray-500">No usage data available yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Product
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Total Used
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Times Used
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Total Cost
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Current Stock
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {productUsageStats.slice(0, 10).map((stat) => (
-                  <tr key={stat.product.id}>
-                    <td className="px-4 py-3 text-sm font-[450] text-gray-900">
-                      {stat.product.name}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {stat.totalUsed.toFixed(2)} {stat.product.unit}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {stat.usageCount}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-[450] text-gray-900">
-                      ${stat.totalCost.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {stat.product.stockLevel} {stat.product.unit}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Employee Performance */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-[450] mb-4">Employee Performance</h2>
-        {employeeStats.length === 0 ? (
-          <p className="text-gray-500">No employee data available yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Employee
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Total Jobs
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Completed Jobs
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Total Usage Cost
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-[450] text-gray-500 uppercase">
-                    Avg Cost/Job
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {employeeStats.map((stat) => (
-                  <tr key={stat.employee.id}>
-                    <td className="px-4 py-3 text-sm font-[450] text-gray-900">
-                      {stat.employee.name}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {stat.totalJobs}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {stat.completedJobs}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-[450] text-gray-900">
-                      ${stat.totalUsageCost.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      $
-                      {stat.totalJobs > 0
-                        ? (stat.totalUsageCost / stat.totalJobs).toFixed(2)
-                        : "0.00"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-[450] mb-4">Recent Job Activity</h2>
-        {recentJobs.length === 0 ? (
-          <p className="text-gray-500">No recent activity.</p>
-        ) : (
-          <div className="space-y-3">
-            {recentJobs.map((job) => (
-              <div
-                key={job.id}
-                className="flex justify-between items-start p-4 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="font-[450] text-gray-900">
-                    {job.clientName}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {job.employee.name} •{" "}
-                    {new Date(job.startTime).toLocaleDateString()}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {job.productUsage.length} product(s) used
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span
-                    className={`px-2 py-1 text-xs font-[450] rounded-full ${
-                      job.status === "COMPLETED"
-                        ? "bg-green-100 text-green-800"
-                        : job.status === "IN_PROGRESS"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}>
-                    {job.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <AnalyticsView
+      jobStats={jobStats}
+      revenueStats={revenueStats}
+      inventoryStats={inventoryStats}
+      employeeStats={employeeStats}
+      productUsage={productUsage}
+      employeePerformance={employeePerformance}
+      lowStockProducts={lowStockData}
+      jobTypeBreakdown={jobTypeBreakdown}
+      monthlyData={monthlyData}
+      recentJobs={recentJobs}
+    />
   );
 }

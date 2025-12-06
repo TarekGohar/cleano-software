@@ -16,7 +16,9 @@ const jobTypeOptions = [
   { value: "F - Follow-up", label: "F - Follow-up" },
 ];
 
-export default function JobTypeSelector({ initialValue }: JobTypeSelectorProps) {
+export default function JobTypeSelector({
+  initialValue,
+}: JobTypeSelectorProps) {
   const [jobType, setJobType] = useState(initialValue || "");
 
   return (
@@ -57,4 +59,3 @@ export default function JobTypeSelector({ initialValue }: JobTypeSelectorProps) 
     </>
   );
 }
-

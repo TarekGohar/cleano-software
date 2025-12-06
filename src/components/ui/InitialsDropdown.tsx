@@ -110,13 +110,13 @@ export default function InitialsDropdown({
       <div className="py-1">
         <button
           onClick={handleAccountSettings}
-          className="w-full px-4 py-2.5 text-sm font-[450] text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors">
+          className="w-full px-4 py-2.5 text-sm font-[400] text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors">
           <Settings className="w-4 h-4" />
           Account Settings
         </button>
         <button
           onClick={handleSignOut}
-          className="w-full px-4 py-2.5 text-sm font-[450] text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors border-t border-gray-100">
+          className="w-full px-4 py-2.5 text-sm font-[400] text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors border-t border-gray-100">
           <LogOut className="w-4 h-4" />
           Sign Out
         </button>
@@ -138,4 +138,3 @@ export default function InitialsDropdown({
     </>
   );
 }
-
