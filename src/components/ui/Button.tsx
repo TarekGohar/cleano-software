@@ -15,7 +15,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | "outline"
     | "destructive"
     | "recorder"
-    | "alara"
+    | "cleano"
     | "simple"
     | "tdo"
     | "dentitek"
@@ -71,7 +71,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       simple: "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100",
       primary:
         "bg-[#D7F0F1] text-[#005F6A] hover:bg-[#D7F0F1]/80  border-[#D7F0F1]/5",
-      alara:
+      cleano:
         "bg-[#005F6A]/10 text-[#005F6A] hover:bg-[#005F6A]/20 border-[#005F6A]/2 backdrop-blur-[3px]",
       tdo: "bg-purple-100 text-purple-900 hover:bg-purple-200 border-purple-200/20",
       none: "bg-transparent text-gray-700 border-transparent",

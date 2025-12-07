@@ -29,12 +29,12 @@ export const CalendarConfigProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  // Default per-type colors (aligned with job types)
+  // Default per-type colors (aligned with the app palette so events stay visible)
   const defaultEventTypes: Record<string, any> = {
-    "R - Residential": { color: "#fefefe" }, // light blue
-    "C - Commercial": { color: "#F59E0B" }, // amber
-    "PC - Post Construction": { color: "#8B5CF6" }, // violet
-    "F - Follow-up": { color: "#10B981" }, // green
+    "R - Residential": { color: "#005F6A" }, // teal (app primary family)
+    "C - Commercial": { color: "#005F6A" }, // amber
+    "PC - Post Construction": { color: "#005F6A" }, // violet
+    "F - Follow-up": { color: "#005F6A" }, // green
   };
 
   const [config, setConfig] = useState<ICalendarConfig | null>({

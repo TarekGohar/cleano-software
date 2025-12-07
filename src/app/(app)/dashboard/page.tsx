@@ -188,7 +188,7 @@ export default async function DashboardPage() {
   }) => {
     const content = (
       <Card
-        variant={variant === "warning" ? "warning" : "alara_light"}
+        variant={variant === "warning" ? "warning" : "cleano_light"}
         className={`p-6 h-[7rem] ${
           href ? "hover:bg-[#005F6A]/8 transition-colors cursor-pointer" : ""
         }`}>
@@ -570,7 +570,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     {job.jobType && (
-                      <Badge variant="alara" size="sm">
+                      <Badge variant="cleano" size="sm">
                         {job.jobType}
                       </Badge>
                     )}

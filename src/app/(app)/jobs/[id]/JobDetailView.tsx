@@ -220,7 +220,7 @@ export default function JobDetailView({
       SCHEDULED: { variant: "warning", label: "Scheduled" },
       IN_PROGRESS: { variant: "secondary", label: "In Progress" },
       COMPLETED: { variant: "success", label: "Completed" },
-      PAID: { variant: "alara", label: "Paid" },
+      PAID: { variant: "cleano", label: "Paid" },
       CANCELLED: { variant: "error", label: "Cancelled" },
     };
     const config = statusConfig[status] || {
@@ -322,7 +322,7 @@ export default function JobDetailView({
     value: string;
     variant?: "default" | "positive" | "negative";
   }) => (
-    <Card variant="alara_light" className="p-6 h-[8rem]">
+    <Card variant="cleano_light" className="p-6 h-[8rem]">
       <div className="h-full flex flex-col justify-between">
         <span className="app-title-small !text-[#005F6A]/70">{label}</span>
         <p
@@ -421,7 +421,7 @@ export default function JobDetailView({
           <div className="space-y-3">
             <div className="flex justify-between items-center p-3 rounded-xl bg-[#005F6A]/2">
               <span className="input-label !text-[#005F6A]/70">Created By</span>
-              <Badge variant="alara" size="sm" className="px-2 py-1">
+              <Badge variant="cleano" size="sm" className="px-2 py-1">
                 {job.employee.name}
               </Badge>
             </div>
@@ -434,7 +434,7 @@ export default function JobDetailView({
                   {job.cleaners.map((cleaner) => (
                     <Badge
                       key={cleaner.id}
-                      variant="alara"
+                      variant="cleano"
                       size="sm"
                       className="px-2 py-1">
                       {cleaner.name}
@@ -453,7 +453,7 @@ export default function JobDetailView({
           <h2 className="text-lg font-[350] tracking-tight text-[#005F6A]">
             Notes
           </h2>
-          <Card variant="alara_light" className="p-6">
+          <Card variant="cleano_light" className="p-6">
             <p className="text-sm text-[#005F6A]/80 whitespace-pre-wrap leading-relaxed">
               {job.notes}
             </p>
@@ -611,7 +611,7 @@ export default function JobDetailView({
                 Products Used
               </h3>
             </div>
-            <Badge variant="alara" size="sm">
+            <Badge variant="cleano" size="sm">
               Total: ${totalProductCost.toFixed(2)}
             </Badge>
           </div>
@@ -791,7 +791,7 @@ export default function JobDetailView({
               </h1>
               {getStatusBadge(job.status)}
               {job.jobType && (
-                <Badge variant="alara" size="md" className="px-2 py-1">
+                <Badge variant="cleano" size="md" className="px-2 py-1">
                   {getJobTypeLabel(job.jobType)}
                 </Badge>
               )}

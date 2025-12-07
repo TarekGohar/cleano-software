@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import Button from "@/components/ui/Button";
 import { useCalendar } from "@/components/calendar/CalendarContext";
 import { useCalendarConfig } from "@/contexts/CalendarConfigContext";
@@ -60,6 +60,41 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     moveStartY,
     setHasMoved,
   } = useCalendar();
+
+  // Track latest move/resize targets for global pointer-up guard
+  const movingEventRef = useRef<CalendarEvent | null>(null);
+  const resizingEventRef = useRef<CalendarEvent | null>(null);
+
+  useEffect(() => {
+    movingEventRef.current = movingEvent ?? null;
+  }, [movingEvent]);
+
+  useEffect(() => {
+    resizingEventRef.current = resizingEvent ?? null;
+  }, [resizingEvent]);
+
+  // Global pointer-up guard: finalize moves/resizes even if the transient
+  // listeners haven't attached yet or mouseup happens outside the grid.
+  useEffect(() => {
+    const handlePointerUp = () => {
+      if (movingEventRef.current) {
+        finalizeEventMove();
+      }
+      if (resizingEventRef.current) {
+        finalizeEventResize();
+      }
+    };
+
+    window.addEventListener("mouseup", handlePointerUp, true);
+    window.addEventListener("pointerup", handlePointerUp, true);
+    window.addEventListener("blur", handlePointerUp, true);
+
+    return () => {
+      window.removeEventListener("mouseup", handlePointerUp, true);
+      window.removeEventListener("pointerup", handlePointerUp, true);
+      window.removeEventListener("blur", handlePointerUp, true);
+    };
+  }, [finalizeEventMove, finalizeEventResize]);
 
   const [listMode, setListMode] = useState(false);
   const { config: calendarConfig } = useCalendarConfig();

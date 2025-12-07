@@ -176,7 +176,7 @@ export default function ProductDetailView({
           ? "error"
           : variant === "warning"
           ? "warning"
-          : "alara_light"
+          : "cleano_light"
       }
       className="p-6 h-[7rem]">
       <div className="h-full flex flex-col justify-between">
@@ -306,7 +306,7 @@ export default function ProductDetailView({
       {product.description && (
         <>
           <h2 className="input-label !text-[#005F6A]/70">Description</h2>
-          <Card variant="alara_light" className="p-6">
+          <Card variant="cleano_light" className="p-6">
             <p className="text-sm text-[#005F6A]/80 whitespace-pre-wrap leading-relaxed">
               {product.description}
             </p>
@@ -330,7 +330,7 @@ export default function ProductDetailView({
                 Usage in Jobs
               </h3>
             </div>
-            <Badge variant="alara" size="sm">
+            <Badge variant="cleano" size="sm">
               Total: {totalUsed} {product.unit}
             </Badge>
           </div>
@@ -350,7 +350,7 @@ export default function ProductDetailView({
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge variant="alara" size="sm">
+                  <Badge variant="cleano" size="sm">
                     {usage.quantity} {product.unit}
                   </Badge>
                   <Button
@@ -494,7 +494,7 @@ export default function ProductDetailView({
                           </p>
                         </div>
                         <div className="w-[120px] p-4">
-                          <Badge variant="alara" size="sm">
+                          <Badge variant="cleano" size="sm">
                             {assignment.quantity} {product.unit}
                           </Badge>
                         </div>
@@ -559,7 +559,10 @@ export default function ProductDetailView({
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-3 p-4">
               {paginatedAssignments.map((assignment) => (
-                <Card key={assignment.id} variant="alara_light" className="p-4">
+                <Card
+                  key={assignment.id}
+                  variant="cleano_light"
+                  className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
@@ -570,7 +573,7 @@ export default function ProductDetailView({
                           {assignment.employee.email}
                         </p>
                       </div>
-                      <Badge variant="alara" size="sm">
+                      <Badge variant="cleano" size="sm">
                         {assignment.quantity} {product.unit}
                       </Badge>
                     </div>
@@ -645,7 +648,7 @@ export default function ProductDetailView({
                       return (
                         <Button
                           key={pageNum}
-                          variant={page === pageNum ? "alara" : "default"}
+                          variant={page === pageNum ? "cleano" : "default"}
                           border={false}
                           size="md"
                           onClick={() => goToPage(pageNum)}

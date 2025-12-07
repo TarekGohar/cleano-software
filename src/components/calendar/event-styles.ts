@@ -51,7 +51,7 @@ export function getEventStyleInfo(
     // Apply color based on job status
     switch (jobStatus) {
       case "CREATED":
-        jobColor = "#94A3B8"; // Slate - newly created
+        jobColor = "#005F6A"; // Slate - newly created
         break;
       case "SCHEDULED":
         jobColor = "#3B82F6"; // Blue - scheduled

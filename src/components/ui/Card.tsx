@@ -9,18 +9,18 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     | "minimal"
     | "elevated"
     | "recorder"
-    | "alara_light"
-    | "alara_light_bordered_high"
-    | "alara_light_bordered"
-    | "alara_light_lighter"
-    | "alara_dark"
-    | "alara_dark_lighter"
+    | "cleano_light"
+    | "cleano_light_bordered_high"
+    | "cleano_light_bordered"
+    | "cleano_light_lighter"
+    | "cleano_dark"
+    | "cleano_dark_lighter"
     | "error"
     | "ghost"
     | "warning"
     | "alert"
-    | "alara_dark_solid"
-    | "alara_light_solid"
+    | "cleano_dark_solid"
+    | "cleano_light_solid"
     | "glassy"
     | "glassy_dark"
     | "glassy_high";
@@ -33,14 +33,14 @@ const VARIANT_CLASSES = {
   minimal: "bg-gray-50/50 border border-gray-100",
   elevated: "bg-white border border-gray-200 shadow-lg",
   recorder: "bg-red-100 border border-red-200",
-  alara_light: "bg-[#77C8CC]/10 text-[#77C8CC] hover:bg-[#77C8CC]/15",
-  alara_light_bordered_high: "bg-[#77C8CC]/20 border-[#77C8CC]/20",
-  alara_light_bordered: "bg-[#77C8CC]/10 border-[#77C8CC]/10",
-  alara_light_lighter: "bg-[#77C8CC]/5 text-[#77C8CC] hover:bg-[#77C8CC]/10",
-  alara_dark: "bg-[#005F6A]/10 text-[#005F6A] hover:bg-[#005F6A]/30",
-  alara_dark_lighter: "bg-[#005F6A]/5 text-[#005F6A] hover:bg-[#005F6A]/10",
-  alara_dark_solid: "bg-[#005F6A]/4 text-white",
-  alara_light_solid: "bg-[#77C8CC]/40 text-white",
+  cleano_light: "bg-[#77C8CC]/10 text-[#77C8CC] hover:bg-[#77C8CC]/15",
+  cleano_light_bordered_high: "bg-[#77C8CC]/20 border-[#77C8CC]/20",
+  cleano_light_bordered: "bg-[#77C8CC]/10 border-[#77C8CC]/10",
+  cleano_light_lighter: "bg-[#77C8CC]/5 text-[#77C8CC] hover:bg-[#77C8CC]/10",
+  cleano_dark: "bg-[#005F6A]/10 text-[#005F6A] hover:bg-[#005F6A]/30",
+  cleano_dark_lighter: "bg-[#005F6A]/5 text-[#005F6A] hover:bg-[#005F6A]/10",
+  cleano_dark_solid: "bg-[#005F6A]/4 text-white",
+  cleano_light_solid: "bg-[#77C8CC]/40 text-white",
   error: "bg-red-50/50 border-red-100",
   ghost: "bg-transparent border-none",
   warning: "bg-orange-50/20 border-orange-100",

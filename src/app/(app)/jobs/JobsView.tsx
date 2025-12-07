@@ -100,7 +100,7 @@ export default function JobsView({
       SCHEDULED: { variant: "warning", label: "Scheduled" },
       IN_PROGRESS: { variant: "secondary", label: "In Progress" },
       COMPLETED: { variant: "success", label: "Completed" },
-      PAID: { variant: "alara", label: "Paid" },
+      PAID: { variant: "cleano", label: "Paid" },
       CANCELLED: { variant: "error", label: "Cancelled" },
     };
     const config = statusConfig[status] || {
@@ -120,7 +120,7 @@ export default function JobsView({
       R: { variant: "secondary", label: "R" },
       C: { variant: "default", label: "C" },
       PC: { variant: "warning", label: "PC" },
-      F: { variant: "alara", label: "F" },
+      F: { variant: "cleano", label: "F" },
     };
     const config = typeConfig[jobType] || {
       variant: "default",
@@ -196,7 +196,7 @@ export default function JobsView({
     variant?: "default" | "warning";
   }) => (
     <Card
-      variant={variant === "warning" ? "warning" : "alara_light"}
+      variant={variant === "warning" ? "warning" : "cleano_light"}
       className="p-6 h-[7rem]">
       <div className="h-full flex flex-col justify-between">
         <span
@@ -645,7 +645,7 @@ export default function JobsView({
               {/* Mobile Card View */}
               <div className="lg:hidden space-y-3 p-4">
                 {paginatedJobs.map((job) => (
-                  <Card key={job.id} variant="alara_light" className="p-4">
+                  <Card key={job.id} variant="cleano_light" className="p-4">
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <div>
@@ -771,7 +771,7 @@ export default function JobsView({
                           return (
                             <Button
                               key={pageNum}
-                              variant={page === pageNum ? "alara" : "default"}
+                              variant={page === pageNum ? "cleano" : "default"}
                               border={false}
                               size="md"
                               onClick={() => goToPage(pageNum)}

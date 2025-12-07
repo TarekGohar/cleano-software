@@ -110,7 +110,7 @@ export function JobRow({ job, isMainEmployee }: JobRowProps) {
         <Badge
           variant={
             job.status === "COMPLETED"
-              ? "alara"
+              ? "cleano"
               : job.status === "IN_PROGRESS"
               ? "secondary"
               : "default"

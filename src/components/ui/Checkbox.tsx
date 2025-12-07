@@ -14,7 +14,7 @@ interface CheckboxProps
     | "blue"
     | "green"
     | "black"
-    | "alara"
+    | "cleano"
     | "primary";
 }
 
@@ -36,7 +36,7 @@ export default function Checkbox({
     green:
       "border-green-300 data-[checked]:bg-green-500 data-[checked]:border-green-500",
     black: "border-black data-[checked]:bg-black data-[checked]:border-black",
-    alara:
+    cleano:
       "border-neutral-950/70 data-[checked]:bg-neutral-950/70 data-[checked]:border-neutral-950/70",
     primary:
       "border-neutral-950/70 data-[checked]:bg-neutral-950/70 data-[checked]:border-neutral-950/70",

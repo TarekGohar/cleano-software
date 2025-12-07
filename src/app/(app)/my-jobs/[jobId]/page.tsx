@@ -90,7 +90,7 @@ export default async function JobDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <Button variant="alara" size="sm" href="/my-jobs" className="mb-4">
+      <Button variant="cleano" size="sm" href="/my-jobs" className="mb-4">
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to My Jobs
       </Button>
@@ -117,7 +117,7 @@ export default async function JobDetailPage({ params }: PageProps) {
           <Badge
             variant={
               job.status === "COMPLETED"
-                ? "alara"
+                ? "cleano"
                 : job.status === "IN_PROGRESS"
                 ? "secondary"
                 : "default"
@@ -125,7 +125,7 @@ export default async function JobDetailPage({ params }: PageProps) {
             {job.status.replace("_", " ")}
           </Badge>
           {job.jobType && (
-            <Badge variant="alara">
+            <Badge variant="cleano">
               {job.jobType === "R"
                 ? "Residential"
                 : job.jobType === "C"
@@ -175,7 +175,7 @@ export default async function JobDetailPage({ params }: PageProps) {
             Time Summary
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
-            <Card variant="alara_light_bordered" className="p-6">
+            <Card variant="cleano_light_bordered" className="p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-neutral-950/20 rounded-lg">
                   <LogIn className="w-5 h-5 text-neutral-950" />
@@ -197,7 +197,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
             {jobWithClock.clockOutTime && (
               <>
-                <Card variant="alara_light_bordered" className="p-6">
+                <Card variant="cleano_light_bordered" className="p-6">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-neutral-950/20 rounded-lg">
                       <LogOut className="w-5 h-5 text-neutral-950" />
@@ -221,7 +221,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                 </Card>
 
                 {duration && (
-                  <Card variant="alara_light_bordered" className="p-6">
+                  <Card variant="cleano_light_bordered" className="p-6">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 bg-neutral-950/20 rounded-lg">
                         <Clock className="w-5 h-5 text-neutral-950" />
@@ -304,14 +304,14 @@ export default async function JobDetailPage({ params }: PageProps) {
           <dl className="space-y-3">
             <div className="flex justify-between items-center">
               <dt className="text-sm text-neutral-950/60">Lead</dt>
-              <Badge variant="alara">{job.employee.name}</Badge>
+              <Badge variant="cleano">{job.employee.name}</Badge>
             </div>
             {job.cleaners.length > 0 && (
               <div className="flex justify-between items-center">
                 <dt className="text-sm text-neutral-950/60">Team Members</dt>
                 <dd className="flex flex-wrap gap-2 justify-end">
                   {job.cleaners.map((cleaner: any) => (
-                    <Badge key={cleaner.id} variant="alara">
+                    <Badge key={cleaner.id} variant="cleano">
                       {cleaner.name}
                     </Badge>
                   ))}
@@ -337,7 +337,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       {job.notes && (
         <div>
           <h2 className="text-lg font-[400] text-neutral-950 mt-12">Notes</h2>
-          <Card variant="alara_light_bordered">
+          <Card variant="cleano_light_bordered">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-neutral-950/20 rounded-lg">
                 <FileText className="w-5 h-5 text-neutral-950" />

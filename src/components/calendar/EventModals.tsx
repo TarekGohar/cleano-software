@@ -318,7 +318,9 @@ export const EventModals = () => {
             const endHours = Math.floor(endMinutes / 60);
             const endMins = endMinutes % 60;
             setEndTime(
-              `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`
+              `${endHours.toString().padStart(2, "0")}:${endMins
+                .toString()
+                .padStart(2, "0")}`
             );
           }
         } catch (error) {
@@ -693,15 +695,15 @@ export const EventModals = () => {
                     {isEditingTdoAppointment
                       ? "Edit TDO Appointment"
                       : editingEvent
-                        ? "Edit Appointment"
-                        : "New Appointment"}
+                      ? "Edit Appointment"
+                      : "New Appointment"}
                   </h1>
                   <p className="h2-subheader">
                     {isEditingTdoAppointment
                       ? "Update the date, time, or notes for this TDO appointment"
                       : editingEvent
-                        ? "Update the appointment details below"
-                        : "Fill in the details to schedule a new appointment"}
+                      ? "Update the appointment details below"
+                      : "Fill in the details to schedule a new appointment"}
                   </p>
                 </div>
                 <Button
@@ -958,7 +960,9 @@ export const EventModals = () => {
                     </div>
 
                     <div
-                      className={`grid gap-4 ${isEditingTdoAppointment ? "grid-cols-2" : "grid-cols-3"}`}>
+                      className={`grid gap-4 ${
+                        isEditingTdoAppointment ? "grid-cols-2" : "grid-cols-3"
+                      }`}>
                       <div>
                         <label className="input-label">
                           Start Time{" "}
@@ -998,7 +1002,13 @@ export const EventModals = () => {
                             !!modalSelectedEventType &&
                             modalSelectedEventType !== "block"
                           }
-                          className={`w-full px-4 py-3 ${!isEditingTdoAppointment && modalSelectedEventType && modalSelectedEventType !== "block" ? "opacity-60 cursor-not-allowed" : ""}`}
+                          className={`w-full px-4 py-3 ${
+                            !isEditingTdoAppointment &&
+                            modalSelectedEventType &&
+                            modalSelectedEventType !== "block"
+                              ? "opacity-60 cursor-not-allowed"
+                              : ""
+                          }`}
                           border={false}
                           error={!!timeSlotError || !!scheduleConflictError}
                         />
@@ -1063,7 +1073,7 @@ export const EventModals = () => {
                     <div className="flex items-center gap-3">
                       <label className="flex !items-center gap-3 cursor-pointer">
                         <Checkbox
-                          color="alara"
+                          color="cleano"
                           checked={modalConfirmed}
                           onChange={(e) => setModalConfirmed(e.target.checked)}
                         />
@@ -1181,22 +1191,19 @@ export const EventModals = () => {
 
           <div className="relative z-[1001] w-full max-w-2xl max-h-[95vh] bg-white rounded-3xl overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-[#005F6A]/10 flex items-start justify-between gap-4">
+            <div className="p-6 !pb-0 flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0 space-y-2">
                 <h1 className="text-2xl font-[350] tracking-tight text-[#005F6A] truncate">
                   {selectedEvent.title || "Job"}
                 </h1>
                 <div className="flex flex-wrap gap-2">
-                  <Badge size="md" variant="primary">
-                    Cleaning Job
-                  </Badge>
                   {selectedEvent.metadata?.status && (
                     <Badge size="md" variant="secondary">
                       {selectedEvent.metadata.status.replace("_", " ")}
                     </Badge>
                   )}
                   {selectedEvent.metadata?.jobType && (
-                    <Badge size="md" variant="default">
+                    <Badge size="md" variant="cleano">
                       {selectedEvent.metadata.jobType}
                     </Badge>
                   )}
@@ -1216,25 +1223,21 @@ export const EventModals = () => {
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card variant="ghost" className="!p-4 space-y-2">
-                  <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
-                    Client
-                  </p>
-                  <p className="text-sm text-[#005F6A] font-[400]">
+                <Card variant="ghost" className="!p-0 space-y-2">
+                  <p className="section-title">Client</p>
+                  <p className="app-title">
                     {selectedEvent.metadata?.clientName || "Not provided"}
                   </p>
-                  <p className="text-xs text-[#005F6A]/60">
+                  <p className="app-subtitle">
                     {selectedEvent.metadata?.clientPhone || ""}
                   </p>
                 </Card>
 
-                <Card variant="ghost" className="!p-4 space-y-2">
-                  <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
-                    Location
-                  </p>
-                  <p className="text-sm text-[#005F6A] font-[400]">
+                <Card variant="ghost" className="!p-0 space-y-2">
+                  <p className="section-title">Location</p>
+                  <p className="app-title">
                     {selectedEvent.metadata?.location ||
                       selectedEvent.metadata?.jobLocation ||
                       "Not provided"}
@@ -1242,25 +1245,23 @@ export const EventModals = () => {
                 </Card>
               </div>
 
-              <Card variant="ghost" className="!p-4 space-y-3">
-                <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
-                  Schedule
-                </p>
+              <Card variant="ghost" className="!p-0 space-y-3">
+                <p className="section-title">Schedule</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex items-start gap-2">
-                    <Clock className="w-4 h-4 text-[#005F6A]/70 mt-[2px]" />
                     <div>
-                      <p className="text-xs text-[#005F6A]/60">Start</p>
-                      <p className="text-sm text-[#005F6A] font-[400]">
+                      <p className="app-title-small !text-[#005F6A]/60">
+                        Start
+                      </p>
+                      <p className="app-title">
                         {formatDateTime(selectedEvent.start)}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Clock className="w-4 h-4 text-[#005F6A]/70 mt-[2px]" />
                     <div>
-                      <p className="text-xs text-[#005F6A]/60">End</p>
-                      <p className="text-sm text-[#005F6A] font-[400]">
+                      <p className="app-title-small !text-[#005F6A]/60">End</p>
+                      <p className="app-title">
                         {formatDateTime(selectedEvent.end)}
                       </p>
                     </div>
@@ -1268,18 +1269,16 @@ export const EventModals = () => {
                 </div>
               </Card>
 
-              <Card variant="ghost" className="!p-4 space-y-2">
-                <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
-                  Details
-                </p>
-                <p className="text-sm text-[#005F6A] whitespace-pre-wrap">
+              <Card variant="ghost" className="!p-0 space-y-2">
+                <p className="section-title">Details</p>
+                <p className="app-title whitespace-pre-wrap">
                   {selectedEvent.description || "No additional details"}
                 </p>
               </Card>
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-[#005F6A]/10 flex flex-col sm:flex-row justify-between gap-3">
+            <div className="p-6 !pt-0 flex flex-col sm:flex-row justify-between gap-3">
               <Button
                 variant="primary"
                 size="md"
@@ -1290,7 +1289,7 @@ export const EventModals = () => {
                 View Full Job Details
               </Button>
               <Button
-                variant="ghost"
+                variant="default"
                 size="md"
                 className="!px-6 !py-3"
                 onClick={() => {
@@ -1417,7 +1416,10 @@ export const EventModals = () => {
                         timeFormatOptions
                       )}
                       {selectedEvent.end &&
-                        ` - ${selectedEvent.end.toLocaleTimeString([], timeFormatOptions)}`}
+                        ` - ${selectedEvent.end.toLocaleTimeString(
+                          [],
+                          timeFormatOptions
+                        )}`}
                     </p>
                   </div>
                 </div>
@@ -1584,7 +1586,9 @@ export const EventModals = () => {
                           Invoice Status
                         </p>
                         <p className="app-title">
-                          {selectedEvent.metadata.invoiceSent ? "✓ Sent" : "Not Sent"}
+                          {selectedEvent.metadata.invoiceSent
+                            ? "✓ Sent"
+                            : "Not Sent"}
                         </p>
                       </div>
                     )}

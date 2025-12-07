@@ -210,7 +210,7 @@ export default function SearchableTemplateSelector({
                           </span>
                           {template.isDefault && (
                             <Badge
-                              variant="alara"
+                              variant="cleano"
                               className="text-xs py-0 px-1">
                               Default
                             </Badge>

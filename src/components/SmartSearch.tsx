@@ -169,7 +169,7 @@ export default function SmartSearch<T extends SmartSearchItem>({
           {item.name}
         </span>
         {isSelected && (
-          <Badge variant="alara" className="text-xs">
+          <Badge variant="cleano" className="text-xs">
             Selected
           </Badge>
         )}

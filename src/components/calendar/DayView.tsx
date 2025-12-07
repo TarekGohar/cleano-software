@@ -9,23 +9,14 @@ import React, {
 } from "react";
 import { useCalendar } from "./CalendarContext";
 import { useCalendarConfig } from "@/contexts/CalendarConfigContext";
-import {
-  isSameDay,
-  eventOverlapsDay,
-  hexToRgba,
-  isEventUnassigned,
-} from "./utils";
+import { isSameDay, eventOverlapsDay, isEventUnassigned } from "./utils";
 import { CalendarEvent } from "./types";
 import {
   getEventStyleInfo,
-  getEventBackgroundColor,
-  getEventBoxShadow,
-  getBlockStripeStyle,
   EventTypesConfig,
 } from "./event-styles";
 import {
   MIN_EVENT_HEIGHT,
-  MIN_BLOCK_HEIGHT,
   DRAG_THRESHOLD,
   OfficeHours,
   getVisibleTimeBounds,
@@ -34,10 +25,12 @@ import {
   computeEventLayout,
   formatHour,
 } from "./calendar-helpers";
-import { ResizeHandles, CurrentTimeIndicator } from "./calendar-components";
+import { CurrentTimeIndicator } from "./calendar-components";
 import { ScheduleBlocksConfig } from "@/types/calendar";
-import { getBlockedTimeSlots } from "@/lib/schedule-blocks";
-import Button from "@/components/ui/Button";
+import EventCard from "./EventCard";
+import ScheduleBlocks from "./ScheduleBlocks";
+import { getCurrentTimeMeta, useTimezoneLabel } from "./time-utils";
+import useDragSelection from "./useDragSelection";
 
 /** Selection preview overlay during drag */
 const SelectionPreview: React.FC<{
@@ -169,12 +162,7 @@ export const DayView: React.FC = () => {
   // ---------------------------------------------------------------------------
 
   /** Timezone label (e.g., "GMT+2") */
-  const timezoneLabel = useMemo(() => {
-    const offset = -new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(offset) / 60);
-    const sign = offset >= 0 ? "+" : "-";
-    return `GMT${sign}${hours}`;
-  }, []);
+  const timezoneLabel = useTimezoneLabel();
 
   /** Office hours configuration */
   const officeHours = useMemo((): OfficeHours | null => {
@@ -208,26 +196,11 @@ export const DayView: React.FC = () => {
   /** Total grid height in pixels */
   const gridHeight = visibleHours.length * zoomLevel;
 
-  /** Current time info */
-  const currentHour = currentTime.getHours();
-  const currentMin = currentTime.getMinutes();
-
-  /** Whether current time indicator should be visible */
-  const showCurrentTimeIndicator = useMemo(() => {
-    const isCurrentDay = isSameDay(currentDate, currentTime);
-    const isWithinOfficeHours =
-      !officeHours ||
-      (currentHour >= officeHours.start && currentHour <= officeHours.end);
-    return isCurrentDay && isWithinOfficeHours;
-  }, [currentDate, currentTime, currentHour, officeHours]);
-
-  /** Current time indicator position */
-  const currentTimeTop = useMemo(() => {
-    const officeStart = officeHours?.start || 0;
-    return (
-      (currentHour - officeStart) * zoomLevel + (currentMin * zoomLevel) / 60
-    );
-  }, [currentHour, currentMin, officeHours, zoomLevel]);
+  /** Current time indicator meta */
+  const { show: showCurrentTimeIndicator, top: currentTimeTop } =
+    getCurrentTimeMeta(currentTime, officeHours, zoomLevel, {
+      day: currentDate,
+    });
 
   /** Day events including preview */
   const dayEvents = useMemo(() => {
@@ -374,22 +347,35 @@ export const DayView: React.FC = () => {
     [zoomLevel, officeHours, visibleHours.length]
   );
 
-  /** Determine which room column the mouse is over based on X position */
-  const getRoomFromXPosition = useCallback(
-    (clientX: number): { roomName: string; index: number } | null => {
-      for (let i = 0; i < roomColumnRefs.current.length; i++) {
-        const colEl = roomColumnRefs.current[i];
-        if (colEl) {
-          const rect = colEl.getBoundingClientRect();
-          if (clientX >= rect.left && clientX <= rect.right) {
-            return { roomName: roomNames[i], index: i };
-          }
-        }
-      }
-      return null;
+  const toTimeStr = useCallback((mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  }, []);
+
+  const { startSelection: startDragSelection } = useDragSelection({
+    gridRef: dayGridRef,
+    yToMinutes: yPositionToMinutes,
+    snapMinutes: 15,
+    dragThreshold: DRAG_THRESHOLD,
+    onPreviewChange: setCurrentDragRoomIndex,
+    state: {
+      dragSelectionStart,
+      setDragSelectionStart,
+      dragSelectionEnd,
+      setDragSelectionEnd,
+      dragStartPosition,
+      setDragStartPosition,
+      isDraggingSelection,
+      setIsDraggingSelection,
     },
-    [roomNames]
-  );
+    onComplete: (start, end) => {
+      const startTimeStr = toTimeStr(start.minutes);
+      const endTimeStr = toTimeStr(end.minutes);
+      openEventModal(currentDate, startTimeStr, endTimeStr);
+      setCurrentDragRoomIndex(-1);
+    },
+  });
 
   /** Handle mouse down on 15-minute tile - start drag selection */
   const handleDragSelectionStart = useCallback(
@@ -399,189 +385,12 @@ export const DayView: React.FC = () => {
       hourIndex: number,
       minuteOffset: number = 0
     ) => {
-      // Don't start drag if clicking on an event
-      if ((e.target as HTMLElement).closest("[data-event-card]")) {
-        return;
-      }
-
-      // The actual hour for this row
       const actualHour = visibleHours[hourIndex];
-      // Total minutes from midnight (start of this 15-minute tile)
       const startMinutes = actualHour * 60 + minuteOffset;
-
-      setCurrentDragRoomIndex(roomIndex);
-      setDragStartPosition({ x: e.clientX, y: e.clientY });
-      setDragSelectionStart({ day: currentDate, minutes: startMinutes });
-      setDragSelectionEnd({ day: currentDate, minutes: startMinutes + 15 }); // Initial selection of 15 minutes
+      startDragSelection(e, currentDate, startMinutes, roomIndex);
     },
-    [
-      visibleHours,
-      currentDate,
-      setDragStartPosition,
-      setDragSelectionStart,
-      setDragSelectionEnd,
-    ]
+    [visibleHours, currentDate, startDragSelection]
   );
-
-  /** Handle mouse move during drag selection */
-  const handleDragSelectionMove = useCallback(
-    (e: MouseEvent) => {
-      if (!dragStartPosition || !dragSelectionStart) return;
-
-      // Check if we've moved beyond threshold
-      const deltaX = Math.abs(e.clientX - dragStartPosition.x);
-      const deltaY = Math.abs(e.clientY - dragStartPosition.y);
-
-      if (
-        !isDraggingSelection &&
-        (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)
-      ) {
-        setIsDraggingSelection(true);
-      }
-
-      if (
-        !isDraggingSelection &&
-        deltaX <= DRAG_THRESHOLD &&
-        deltaY <= DRAG_THRESHOLD
-      ) {
-        return;
-      }
-
-      // Calculate minutes from Y position relative to the grid
-      const gridEl = dayGridRef.current;
-      if (!gridEl) return;
-
-      const gridRect = gridEl.getBoundingClientRect();
-      const y = e.clientY - gridRect.top;
-      const minutes = yPositionToMinutes(y);
-
-      // Update end position (already snapped in yPositionToMinutes, add 15 for the end)
-      setDragSelectionEnd({ day: currentDate, minutes: minutes + 15 });
-    },
-    [
-      dragStartPosition,
-      dragSelectionStart,
-      isDraggingSelection,
-      setIsDraggingSelection,
-      yPositionToMinutes,
-      setDragSelectionEnd,
-      currentDate,
-    ]
-  );
-
-  /** Handle mouse up - finalize drag selection */
-  const handleDragSelectionEnd = useCallback(
-    (e: MouseEvent) => {
-      if (!dragSelectionStart) {
-        // Reset state
-        setDragStartPosition(null);
-        setDragSelectionStart(null);
-        setDragSelectionEnd(null);
-        setIsDraggingSelection(false);
-        setCurrentDragRoomIndex(-1);
-        return;
-      }
-
-      const wasDragging = isDraggingSelection;
-
-      // Reset drag state
-      setIsDraggingSelection(false);
-      setDragStartPosition(null);
-
-      if (!wasDragging) {
-        // This was a simple click, not a drag
-        // Use the 15-minute tile values that were set on mouse down
-        const startMinutes = dragSelectionStart.minutes;
-        const endMinutes = dragSelectionEnd?.minutes ?? startMinutes + 15;
-
-        // Convert minutes to time strings
-        const toTimeStr = (mins: number) => {
-          const h = Math.floor(mins / 60);
-          const m = mins % 60;
-          return `${h.toString().padStart(2, "0")}:${m
-            .toString()
-            .padStart(2, "0")}`;
-        };
-
-        const startTimeStr = toTimeStr(startMinutes);
-        const endTimeStr = toTimeStr(endMinutes);
-
-        // Clear selection state
-        setDragSelectionStart(null);
-        setDragSelectionEnd(null);
-        setCurrentDragRoomIndex(-1);
-
-        // Open the modal with the 15-minute tile range
-        openEventModal(currentDate, startTimeStr, endTimeStr);
-        return;
-      }
-
-      // This was a drag - calculate the selection range
-      const selectionEnd = dragSelectionEnd;
-      if (!selectionEnd) {
-        setDragSelectionStart(null);
-        setDragSelectionEnd(null);
-        setCurrentDragRoomIndex(-1);
-        return;
-      }
-
-      // Determine start and end, handling backward selections
-      let startMinutes = dragSelectionStart.minutes;
-      let endMinutes = selectionEnd.minutes;
-
-      // Swap if needed
-      if (endMinutes < startMinutes) {
-        [startMinutes, endMinutes] = [endMinutes - 15, startMinutes + 15];
-      }
-
-      // Convert minutes to time strings
-      const toTimeStr = (mins: number) => {
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
-        return `${h.toString().padStart(2, "0")}:${m
-          .toString()
-          .padStart(2, "0")}`;
-      };
-
-      const startTimeStr = toTimeStr(startMinutes);
-      const endTimeStr = toTimeStr(endMinutes);
-
-      // Clear selection state
-      setDragSelectionStart(null);
-      setDragSelectionEnd(null);
-      setCurrentDragRoomIndex(-1);
-
-      // Open the modal with the selected range
-      openEventModal(currentDate, startTimeStr, endTimeStr);
-    },
-    [
-      dragSelectionStart,
-      dragSelectionEnd,
-      isDraggingSelection,
-      setIsDraggingSelection,
-      setDragStartPosition,
-      setDragSelectionStart,
-      setDragSelectionEnd,
-      openEventModalAtTime,
-      openEventModal,
-      officeHours,
-      zoomLevel,
-      currentDate,
-    ]
-  );
-
-  // Attach document event listeners for drag selection
-  useEffect(() => {
-    if (dragStartPosition) {
-      document.addEventListener("mousemove", handleDragSelectionMove);
-      document.addEventListener("mouseup", handleDragSelectionEnd);
-
-      return () => {
-        document.removeEventListener("mousemove", handleDragSelectionMove);
-        document.removeEventListener("mouseup", handleDragSelectionEnd);
-      };
-    }
-  }, [dragStartPosition, handleDragSelectionMove, handleDragSelectionEnd]);
 
   /** Handle preset drop from sidebar */
   const handlePresetDrop = useCallback(
@@ -618,79 +427,6 @@ export const DayView: React.FC = () => {
   // ---------------------------------------------------------------------------
   // Render Helpers
   // ---------------------------------------------------------------------------
-
-  /** Render schedule blocks for a day */
-  const renderScheduleBlocks = useCallback(
-    (day: Date, roomName?: string) => {
-      const blockedSlots = getBlockedTimeSlots(day, scheduleBlocks, roomName);
-      const { start: visibleStart, end: visibleEnd } = getVisibleTimeBounds(
-        day,
-        officeHours
-      );
-
-      return blockedSlots
-        .map((block) => {
-          const [startHour, startMin] = block.startTime.split(":").map(Number);
-          const [endHour, endMin] = block.endTime.split(":").map(Number);
-
-          const blockStart = new Date(day);
-          blockStart.setHours(startHour, startMin, 0, 0);
-          const blockEnd = new Date(day);
-          blockEnd.setHours(endHour, endMin, 0, 0);
-
-          // Skip blocks outside visible range
-          if (
-            blockStart.getTime() >= visibleEnd.getTime() ||
-            blockEnd.getTime() <= visibleStart.getTime()
-          ) {
-            return null;
-          }
-
-          // Clip to visible boundaries
-          const segStart = new Date(
-            Math.max(blockStart.getTime(), visibleStart.getTime())
-          );
-          const segEnd = new Date(
-            Math.min(blockEnd.getTime(), visibleEnd.getTime())
-          );
-
-          const officeStart = officeHours?.start || 0;
-          const top =
-            (segStart.getHours() - officeStart) * zoomLevel +
-            (segStart.getMinutes() * zoomLevel) / 60;
-          const height = Math.max(
-            MIN_BLOCK_HEIGHT,
-            (segEnd.getHours() - segStart.getHours()) * zoomLevel +
-              ((segEnd.getMinutes() - segStart.getMinutes()) * zoomLevel) / 60
-          );
-
-          const blockColor = block.color || "#EF4444";
-
-          return (
-            <div
-              key={`${block.id}-${day.toISOString()}`}
-              className="absolute left-0 right-0 z-10 border-l-2 pointer-events-none"
-              style={{
-                backgroundColor: hexToRgba(blockColor, 0.15),
-                borderColor: hexToRgba(blockColor, 0.3),
-                top: `${top}px`,
-                height: `${height}px`,
-              }}
-              title={`${block.title} (${block.startTime} - ${block.endTime})`}>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span
-                  className="text-xs font-medium px-1 py-0.5 rounded bg-white/70"
-                  style={{ color: blockColor }}>
-                  {block.title}
-                </span>
-              </div>
-            </div>
-          );
-        })
-        .filter(Boolean);
-    },
-    [scheduleBlocks, officeHours, zoomLevel]
-  );
 
   /** Render a single event card */
   const renderEventCard = useCallback(
@@ -734,73 +470,33 @@ export const DayView: React.FC = () => {
       const canResize = event.id !== "preview" && isEventResizable(event);
 
       return (
-        <Button
+        <EventCard
           key={event.id}
-          data-event-card
-          variant="primary"
-          border={false}
-          className={`
-            absolute flex flex-col justify-start items-start px-2 z-30 overflow-hidden transition-none
-            ${position.height > MIN_EVENT_HEIGHT ? "py-1" : "py-0"}
-            ${isBeingMoved ? "opacity-70" : ""}
-            ${borderRadiusClasses}
-            cursor-move
-          `}
-          style={{
-            backgroundColor: getEventBackgroundColor(styleInfo),
-            top: `${position.top + 0.5}px`,
-            height: `${position.height}px`,
+          event={event}
+          layout={{
+            top: position.top,
+            height: position.height,
             left: position.left,
             width: position.width,
-            boxShadow: getEventBoxShadow(styleInfo),
           }}
+          styleInfo={styleInfo}
+          isBeingMoved={isBeingMoved}
+          canResize={canResize}
+          minEventHeight={MIN_EVENT_HEIGHT}
+          className={borderRadiusClasses}
           onMouseDown={(e) => handleEventMouseDown(e, event, day)}
-          onClick={(e) => handleEventClick(e, event)}>
-          {/* Diagonal stripes overlay for blocks */}
-          {styleInfo.isBlock && (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={getBlockStripeStyle(styleInfo.color)}
-            />
-          )}
-
-          {canResize && (
-            <ResizeHandles
-              onResizeStart={(edge, e) => handleResizeStart(event, edge, e)}
-            />
-          )}
-
-          <div
-            className="app-title-small truncate"
-            style={{ color: styleInfo.color }}>
-            {event.title}
-            {event.metadata?.jobId && event.metadata?.status && (
-              <span
-                className="ml-1 text-[10px] px-1 py-0.5 rounded"
-                style={{
-                  backgroundColor: styleInfo.color + "30",
-                }}>
-                {event.metadata.status.replace("_", " ").slice(0, 4)}
-              </span>
-            )}
-          </div>
-
-          {position.height > 30 && event.label && (
-            <div
-              className="app-subtitle truncate"
-              style={{ color: styleInfo.color }}>
-              {event.label}
-            </div>
-          )}
-
-          {position.height > 50 && event.metadata?.location && (
-            <div
-              className="app-subtitle truncate text-[10px]"
-              style={{ color: styleInfo.color, opacity: 0.7 }}>
-              📍 {event.metadata.location}
-            </div>
-          )}
-        </Button>
+          onClick={(e) => handleEventClick(e, event)}
+          onResizeStart={(edge, e) => handleResizeStart(event, edge, e)}
+          renderLocation={(ev, color) =>
+            ev.metadata?.location ? (
+              <div
+                className="app-subtitle truncate text-[10px]"
+                style={{ color, opacity: 0.7 }}>
+                📍 {ev.metadata.location}
+              </div>
+            ) : null
+          }
+        />
       );
     },
     [
@@ -951,7 +647,13 @@ export const DayView: React.FC = () => {
                   onDrop={(e) => handlePresetDrop(e, roomName)}
                   onDragOver={(e) => e.preventDefault()}>
                   {/* Schedule Blocks */}
-                  {renderScheduleBlocks(currentDate, roomName)}
+                  <ScheduleBlocks
+                    day={currentDate}
+                    scheduleBlocks={scheduleBlocks}
+                    officeHours={officeHours}
+                    zoomLevel={zoomLevel}
+                    roomName={roomName}
+                  />
 
                   {/* Events */}
                   {columnEvents.map((event) => {

@@ -171,7 +171,7 @@ export default async function JobFormPage({
         )}
         {/* Basic Information */}
         <Card variant="ghost">
-          <Card variant="alara_dark" className="mb-4">
+          <Card variant="cleano_dark" className="mb-4">
             <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Basic Information
             </h2>
@@ -236,7 +236,7 @@ export default async function JobFormPage({
 
         {/* Date & Time */}
         <Card variant="ghost">
-          <Card variant="alara_dark" className="mb-4">
+          <Card variant="cleano_dark" className="mb-4">
             <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Date & Time
             </h2>
@@ -344,7 +344,7 @@ export default async function JobFormPage({
 
         {/* Team & Hours */}
         <Card variant="ghost">
-          <Card variant="alara_dark" className="mb-4">
+          <Card variant="cleano_dark" className="mb-4">
             <h2 className="text-xl font-[400] text-neutral-950 w-full">Team</h2>
           </Card>
           <div className="grid grid-cols-1 gap-4">
@@ -359,7 +359,7 @@ export default async function JobFormPage({
 
         {/* Pricing & Payment */}
         <Card variant="ghost">
-          <Card variant="alara_dark" className="mb-4">
+          <Card variant="cleano_dark" className="mb-4">
             <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Pricing & Payment
             </h2>
@@ -449,7 +449,7 @@ export default async function JobFormPage({
 
         {/* Notes */}
         <Card variant="ghost">
-          <Card variant="alara_dark" className="mb-4">
+          <Card variant="cleano_dark" className="mb-4">
             <h2 className="text-xl font-[400] text-neutral-950 w-full">
               Additional Details
             </h2>

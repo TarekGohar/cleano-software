@@ -134,7 +134,7 @@ export default function EmployeeDetailView({
 
   const getRoleBadge = (role: string) => {
     const roleConfig: Record<string, { variant: any; label: string }> = {
-      OWNER: { variant: "alara", label: "Owner" },
+      OWNER: { variant: "cleano", label: "Owner" },
       ADMIN: { variant: "secondary", label: "Admin" },
       EMPLOYEE: { variant: "default", label: "Employee" },
     };
@@ -159,7 +159,7 @@ export default function EmployeeDetailView({
     variant?: "default" | "warning";
   }) => (
     <Card
-      variant={variant === "warning" ? "warning" : "alara_light"}
+      variant={variant === "warning" ? "warning" : "cleano_light"}
       className="p-6 h-[7rem]">
       <div className="h-full flex flex-col justify-between">
         <span
@@ -302,7 +302,7 @@ export default function EmployeeDetailView({
                 Scheduled Jobs
               </h3>
             </div>
-            <Badge variant="alara" size="sm">
+            <Badge variant="cleano" size="sm">
               {upcomingJobs.length}
             </Badge>
           </div>
@@ -325,7 +325,7 @@ export default function EmployeeDetailView({
                 </div>
                 <div className="flex items-center gap-3">
                   {job.jobType && (
-                    <Badge variant="alara" size="sm">
+                    <Badge variant="cleano" size="sm">
                       {job.jobType}
                     </Badge>
                   )}
@@ -443,7 +443,7 @@ export default function EmployeeDetailView({
                     {product.quantity} {product.unit}
                   </p>
                 </div>
-                <Badge variant="alara" size="sm">
+                <Badge variant="cleano" size="sm">
                   #{idx + 1}
                 </Badge>
               </div>
@@ -476,7 +476,7 @@ export default function EmployeeDetailView({
                 Current Inventory
               </h3>
             </div>
-            <Badge variant="alara" size="sm">
+            <Badge variant="cleano" size="sm">
               {assignedProducts.length} items
             </Badge>
           </div>

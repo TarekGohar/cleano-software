@@ -351,7 +351,7 @@ export default function InventoryView({
                         {/* Assigned */}
                         <div className="w-[150px] p-4">
                           {product.totalAssigned > 0 ? (
-                            <Badge variant="alara" size="sm">
+                            <Badge variant="cleano" size="sm">
                               {product.totalAssigned} {product.unit}
                             </Badge>
                           ) : (
@@ -407,7 +407,7 @@ export default function InventoryView({
                 {paginatedProducts.map((product) => (
                   <Card
                     key={product.id}
-                    variant="alara_light"
+                    variant="cleano_light"
                     className="p-4 cursor-pointer"
                     onClick={() => onViewProduct(product)}>
                     <div className="space-y-3">
@@ -507,7 +507,7 @@ export default function InventoryView({
                           return (
                             <Button
                               key={pageNum}
-                              variant={page === pageNum ? "alara" : "default"}
+                              variant={page === pageNum ? "cleano" : "default"}
                               border={false}
                               size="md"
                               onClick={() => goToPage(pageNum)}

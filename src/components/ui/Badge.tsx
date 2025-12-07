@@ -10,7 +10,7 @@ interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
     | "warning"
     | "error"
     | "tdo"
-    | "alara"
+    | "cleano"
     | "destructive"
     | "dentitek"
     | "pro";
@@ -37,7 +37,7 @@ export default function Badge({
     error: "bg-red-50 text-red-700",
     tdo: "bg-purple-100 text-purple-700",
     secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
-    alara:
+    cleano:
       "bg-[#005F6A]/10 text-[#005F6A] hover:bg-[#005F6A]/20 border-[#005F6A]/2 backdrop-blur-[3px]",
     destructive: "bg-red-100 text-red-700",
     dentitek:

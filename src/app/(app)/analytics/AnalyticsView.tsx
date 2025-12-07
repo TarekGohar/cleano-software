@@ -262,8 +262,8 @@ function MetricCard({
         variant === "warning"
           ? "warning"
           : variant === "success"
-          ? "alara_light"
-          : "alara_light"
+          ? "cleano_light"
+          : "cleano_light"
       }
       className="p-6 h-[7rem]">
       <div className="h-full flex flex-col justify-between">
@@ -424,26 +424,26 @@ export default function AnalyticsView({
 
       {/* Quick Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card variant="alara_light" className="p-4 text-center">
+        <Card variant="cleano_light" className="p-4 text-center">
           <p className="text-2xl font-[400] text-[#005F6A]">
             {employeeStats.totalEmployees}
           </p>
           <p className="text-xs text-[#005F6A]/60 mt-1">Total Employees</p>
         </Card>
-        <Card variant="alara_light" className="p-4 text-center">
+        <Card variant="cleano_light" className="p-4 text-center">
           <p className="text-2xl font-[400] text-[#005F6A]">
             {inventoryStats.totalProducts}
           </p>
           <p className="text-xs text-[#005F6A]/60 mt-1">Products</p>
         </Card>
-        <Card variant="alara_light" className="p-4 text-center">
+        <Card variant="cleano_light" className="p-4 text-center">
           <p className="text-2xl font-[400] text-[#005F6A]">
             ${revenueStats.avgJobPrice.toFixed(0)}
           </p>
           <p className="text-xs text-[#005F6A]/60 mt-1">Avg Job Price</p>
         </Card>
         <Card
-          variant={lowStockProducts.length > 0 ? "warning" : "alara_light"}
+          variant={lowStockProducts.length > 0 ? "warning" : "cleano_light"}
           className="p-4 text-center">
           <p
             className={`text-2xl font-[400] ${
@@ -835,7 +835,7 @@ export default function AnalyticsView({
                   href={`/inventory/${product.id}`}
                   className="flex items-center justify-between p-3 rounded-xl bg-[#005F6A]/5 hover:bg-[#005F6A]/8 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Badge variant="alara" size="sm">
+                    <Badge variant="cleano" size="sm">
                       #{idx + 1}
                     </Badge>
                     <div>
@@ -1014,7 +1014,7 @@ export default function AnalyticsView({
                     className="flex items-center hover:bg-[#005F6A]/1 transition-colors">
                     <div className="w-[180px] p-3 flex items-center gap-2">
                       {idx === 0 && (
-                        <Badge variant="alara" size="sm">
+                        <Badge variant="cleano" size="sm">
                           Top
                         </Badge>
                       )}

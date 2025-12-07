@@ -76,7 +76,7 @@ export default function ClockOutButton({
   return (
     <>
       <Button
-        variant="alara"
+        variant="cleano"
         size="md"
         onClick={handleOpenModal}
         className="flex-1">

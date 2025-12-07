@@ -83,7 +83,7 @@ export default function EmployeesView({
 }: EmployeesViewProps) {
   const getRoleBadge = (role: string) => {
     const roleConfig: Record<string, { variant: any; label: string }> = {
-      OWNER: { variant: "alara", label: "Owner" },
+      OWNER: { variant: "cleano", label: "Owner" },
       ADMIN: { variant: "secondary", label: "Admin" },
       EMPLOYEE: { variant: "default", label: "Employee" },
     };
@@ -151,7 +151,7 @@ export default function EmployeesView({
     variant?: "default" | "warning";
   }) => (
     <Card
-      variant={variant === "warning" ? "warning" : "alara_light"}
+      variant={variant === "warning" ? "warning" : "cleano_light"}
       className="p-6 h-[7rem]">
       <div className="h-full flex flex-col justify-between">
         <span
@@ -517,7 +517,10 @@ export default function EmployeesView({
               {/* Mobile Card View */}
               <div className="lg:hidden space-y-3 p-4">
                 {paginatedEmployees.map((employee) => (
-                  <Card key={employee.id} variant="alara_light" className="p-4">
+                  <Card
+                    key={employee.id}
+                    variant="cleano_light"
+                    className="p-4">
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <div>
@@ -631,7 +634,7 @@ export default function EmployeesView({
                           return (
                             <Button
                               key={pageNum}
-                              variant={page === pageNum ? "alara" : "default"}
+                              variant={page === pageNum ? "cleano" : "default"}
                               border={false}
                               size="md"
                               onClick={() => goToPage(pageNum)}

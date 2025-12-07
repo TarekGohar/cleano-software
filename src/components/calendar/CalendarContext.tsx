@@ -510,104 +510,115 @@ export const CalendarProvider = ({
       hasMoved,
       moveOriginalEvent,
     });
-    if (movingEvent && hasMoved && moveOriginalEvent) {
-      // Check if this is a job event
-      if (movingEvent.metadata?.jobId) {
-        try {
-          showNotification(
-            "loading",
-            "Updating Job",
-            "Saving new date and time..."
-          );
 
-          // Import the update action dynamically
-          const { updateJobDates } = await import(
-            "@/app/(app)/actions/updateJobDates"
-          );
-
-          console.log("[CalendarContext] updateJobDates payload", {
-            jobId: movingEvent.metadata.jobId,
-            start: movingEvent.start,
-            end: movingEvent.end,
-          });
-
-          const result = await updateJobDates(
-            movingEvent.metadata.jobId,
-            movingEvent.start,
-            movingEvent.end
-          );
-
-          console.log("[CalendarContext] updateJobDates result", result);
-
-          if (result.success) {
-            showNotification(
-              "success",
-              "Job Updated",
-              "Job date and time updated successfully"
-            );
-            // Update local state to reflect the change - keep the new position
-            setLocalEvents((prev) =>
-              prev.map((e) =>
-                e.id === movingEvent.id
-                  ? { ...e, start: movingEvent.start, end: movingEvent.end }
-                  : e
-              )
-            );
-
-            // Invalidate affected days
-            const oldDay = toDateStr(moveOriginalEvent.start);
-            const newDay = toDateStr(movingEvent.start);
-            invalidateDays(oldDay === newDay ? [oldDay] : [oldDay, newDay]);
-          } else {
-            showNotification(
-              "error",
-              "Update Failed",
-              result.error || "Failed to update job"
-            );
-            // Revert to original event state on error
-            setLocalEvents((prev) =>
-              prev.map((e) =>
-                e.id === movingEvent.id
-                  ? {
-                      ...e,
-                      start: moveOriginalEvent.start,
-                      end: moveOriginalEvent.end,
-                    }
-                  : e
-              )
-            );
+    // Capture payload before we clear move state so UI stops dragging immediately
+    const payload =
+      movingEvent && hasMoved && moveOriginalEvent
+        ? {
+            moved: { ...movingEvent },
+            original: { ...moveOriginalEvent },
           }
-        } catch (error) {
-          showNotification(
-            "error",
-            "Update Failed",
-            "An error occurred while updating the job"
-          );
-          // Revert to original event state on error
-          if (moveOriginalEvent) {
-            setLocalEvents((prev) =>
-              prev.map((e) =>
-                e.id === movingEvent.id
-                  ? {
-                      ...e,
-                      start: moveOriginalEvent.start,
-                      end: moveOriginalEvent.end,
-                    }
-                  : e
-              )
-            );
-          }
-          console.error("Error updating job:", error);
-        }
-      }
-    }
+        : null;
 
+    // Clear drag state right away to prevent further visual movement
     setMovingEvent(null);
     setMoveOriginalDate(null);
     setMoveOriginalEvent(null);
     setMoveStartX(null);
     setMoveStartY(null);
     setHasMoved(false);
+
+    if (!payload) {
+      return;
+    }
+
+    const { moved, original } = payload;
+
+    // Check if this is a job event
+    if (moved.metadata?.jobId) {
+      try {
+        showNotification(
+          "loading",
+          "Updating Job",
+          "Saving new date and time..."
+        );
+
+        // Import the update action dynamically
+        const { updateJobDates } = await import(
+          "@/app/(app)/actions/updateJobDates"
+        );
+
+        console.log("[CalendarContext] updateJobDates payload", {
+          jobId: moved.metadata.jobId,
+          start: moved.start,
+          end: moved.end,
+        });
+
+        const result = await updateJobDates(
+          moved.metadata.jobId,
+          moved.start,
+          moved.end
+        );
+
+        console.log("[CalendarContext] updateJobDates result", result);
+
+        if (result.success) {
+          showNotification(
+            "success",
+            "Job Updated",
+            "Job date and time updated successfully"
+          );
+          // Update local state to reflect the change - keep the new position
+          setLocalEvents((prev) =>
+            prev.map((e) =>
+              e.id === moved.id ? { ...e, start: moved.start, end: moved.end } : e
+            )
+          );
+
+          // Invalidate affected days
+          const oldDay = toDateStr(original.start);
+          const newDay = toDateStr(moved.start);
+          invalidateDays(oldDay === newDay ? [oldDay] : [oldDay, newDay]);
+        } else {
+          showNotification(
+            "error",
+            "Update Failed",
+            result.error || "Failed to update job"
+          );
+          // Revert to original event state on error
+          setLocalEvents((prev) =>
+            prev.map((e) =>
+              e.id === moved.id
+                ? {
+                    ...e,
+                    start: original.start,
+                    end: original.end,
+                  }
+                : e
+            )
+          );
+        }
+      } catch (error) {
+        showNotification(
+          "error",
+          "Update Failed",
+          "An error occurred while updating the job"
+        );
+        // Revert to original event state on error
+        setLocalEvents((prev) =>
+          prev.map((e) =>
+            e.id === moved.id
+              ? {
+                  ...e,
+                  start: original.start,
+                  end: original.end,
+                }
+              : e
+          )
+        );
+        console.error("Error updating job:", error);
+      }
+    }
   }, [
     movingEvent,
     hasMoved,
