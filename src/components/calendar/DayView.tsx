@@ -104,7 +104,7 @@ export const DayView: React.FC = () => {
     currentDate,
     events,
     zoomLevel,
-    eventsLoading,
+    hasMoved,
     setMovingEvent,
     setMoveOriginalDate,
     setMouseDownTime,
@@ -121,6 +121,7 @@ export const DayView: React.FC = () => {
     setResizeStartY,
     setResizeOriginalStart,
     setResizeOriginalEnd,
+    resizingEvent,
     openEventDetailsModal,
     openEventModal,
     // Drag selection state
@@ -318,6 +319,19 @@ export const DayView: React.FC = () => {
       setMoveStartX,
       setMoveStartY,
     ]
+  );
+
+  /** Handle simple click on an event (no drag) */
+  const handleEventClick = useCallback(
+    (e: React.MouseEvent, event: CalendarEvent) => {
+      e.stopPropagation();
+
+      // Ignore clicks that were part of a drag/resize or preview events
+      if (hasMoved || resizingEvent || event.id === "preview") return;
+
+      openEventDetailsModal(event);
+    },
+    [hasMoved, resizingEvent, openEventDetailsModal]
   );
 
   /** Handle resize start */
@@ -740,7 +754,8 @@ export const DayView: React.FC = () => {
             width: position.width,
             boxShadow: getEventBoxShadow(styleInfo),
           }}
-          onMouseDown={(e) => handleEventMouseDown(e, event, day)}>
+          onMouseDown={(e) => handleEventMouseDown(e, event, day)}
+          onClick={(e) => handleEventClick(e, event)}>
           {/* Diagonal stripes overlay for blocks */}
           {styleInfo.isBlock && (
             <div
@@ -937,19 +952,6 @@ export const DayView: React.FC = () => {
                   onDragOver={(e) => e.preventDefault()}>
                   {/* Schedule Blocks */}
                   {renderScheduleBlocks(currentDate, roomName)}
-
-                  {/* Skeletons during loading */}
-                  {eventsLoading &&
-                    [0, 1, 2].map((i) => (
-                      <div
-                        key={`skeleton-${roomName}-${i}`}
-                        className="absolute left-2 right-2 rounded-lg bg-[#005F6A]/10 animate-pulse"
-                        style={{
-                          top: 20 + i * (zoomLevel * 1.4),
-                          height: Math.max(MIN_EVENT_HEIGHT, zoomLevel * 0.9),
-                        }}
-                      />
-                    ))}
 
                   {/* Events */}
                   {columnEvents.map((event) => {

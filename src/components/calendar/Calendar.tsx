@@ -1,18 +1,25 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
 import { useCalendar } from "@/components/calendar/CalendarContext";
 import { useCalendarConfig } from "@/contexts/CalendarConfigContext";
 import { MonthView } from "@/components/calendar/MonthView";
 import { WeekView } from "@/components/calendar/WeekView";
 import { DayView } from "@/components/calendar/DayView";
+import { ListView } from "@/components/calendar/ListView";
 import { EventModals } from "@/components/calendar/EventModals";
 import ZoomControls from "@/components/calendar/ZoomControls";
 import { format, addDays, startOfWeek } from "@/components/calendar/utils";
 import { CalendarRef, CalendarEvent } from "@/components/calendar/types";
 import Card from "@/components/ui/Card";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Inbox,
+  Plus,
+} from "lucide-react";
 import { OfficeHours } from "@/components/calendar/calendar-helpers";
 
 interface CalendarProps {
@@ -54,6 +61,7 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     setHasMoved,
   } = useCalendar();
 
+  const [listMode, setListMode] = useState(false);
   const { config: calendarConfig } = useCalendarConfig();
 
   const officeHours = useMemo((): OfficeHours | null => {
@@ -86,6 +94,15 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
   useEffect(() => {
     props.onEventsChange?.(events);
   }, [events, props.onEventsChange]);
+
+  const renderCurrentView = () => {
+    if (listMode) {
+      return <ListView view={view as "month" | "week" | "day"} />;
+    }
+    if (view === "month") return <MonthView />;
+    if (view === "week") return <WeekView />;
+    return <DayView />;
+  };
 
   const getHeaderTitle = () => {
     if (view === "month" || view === "week")
@@ -235,11 +252,10 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
         });
 
         // Update through setEvents
-        setEvents((prev) =>
-          prev.map((ev: CalendarEvent) =>
-            ev.id === movingEvent.id ? updatedEvent : ev
-          )
+        const nextEvents = events.map((ev: CalendarEvent) =>
+          ev.id === movingEvent.id ? updatedEvent : ev
         );
+        setEvents(nextEvents);
         // Keep movingEvent in sync so finalizeEventMove sees the new times
         setMovingEvent(updatedEvent);
       }
@@ -363,7 +379,7 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
                   border={false}
                   variant={view === v ? "action" : "ghost"}
                   size="md"
-                  className="text-[#005F6A] !px-6 !py-3"
+                  className="text-[#005F6A] !px-6 !py-4"
                   onClick={() => setView(v)}>
                   {v.charAt(0).toUpperCase() + v.slice(1)}
                 </Button>
@@ -372,11 +388,39 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
           </div>
 
           <div className="w-full flex items-center justify-end gap-2">
+            <div className="w-fit flex gap-1 rounded-2xl overflow-hidden bg-neutral-50">
+              <Button
+                variant={listMode ? "ghost" : "action"}
+                size="md"
+                className="text-[#005F6A] !px-6 py-3"
+                onClick={() => setListMode(false)}
+                aria-label="Calendar view">
+                <CalendarDays className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={listMode ? "action" : "ghost"}
+                size="md"
+                className="text-[#005F6A] !px-6 py-3"
+                onClick={() => setListMode(true)}
+                aria-label="List view">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  viewBox="0 0 24 24">
+                  <rect x="4" y="5" width="16" height="2" rx="1" />
+                  <rect x="4" y="11" width="16" height="2" rx="1" />
+                  <rect x="4" y="17" width="16" height="2" rx="1" />
+                </svg>
+              </Button>
+            </div>
+
             <Card className="!p-0 !w-fit flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="md"
-                className="px-6 py-3"
+                className="px-3 py-3"
                 onClick={handlePrev}>
                 <ChevronLeft
                   className="w-4 h-4 text-[#005F6A]"
@@ -396,7 +440,7 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
               <Button
                 variant="ghost"
                 size="md"
-                className="px-6 py-3"
+                className="px-3 py-3"
                 onClick={handleNext}>
                 <ChevronRight
                   className="w-4 h-4 text-[#005F6A]"
@@ -412,7 +456,6 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
                 setModalDate(currentDate);
                 setShowModal(true);
               }}>
-              <Plus className="w-4 h-4 mr-2" />
               New Event
             </Button>
           </div>
@@ -421,9 +464,7 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
 
       {/* Scrollable Calendar Body */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        {view === "month" && <MonthView />}
-        {view === "week" && <WeekView />}
-        {view === "day" && <DayView />}
+        {renderCurrentView()}
       </div>
 
       <EventModals />

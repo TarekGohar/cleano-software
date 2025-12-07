@@ -21,12 +21,6 @@ const calendarMenuItems = [
     path: "/calendar",
   },
   {
-    id: "requests",
-    label: "Requests",
-    icon: Inbox,
-    path: "/calendar/requests",
-  },
-  {
     id: "settings",
     label: "Settings",
     icon: Settings,
@@ -118,25 +112,7 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
     <div className="h-full flex overflow-hidden">
       {/* Left Sidebar Navigation */}
       <div className="w-[14rem] flex-shrink-0 bg-[#005F6A]/2 rounded-2xl !my-2">
-        <div className="p-2 py-0 h-full overflow-y-auto flex flex-col gap-4">
-          {/* Header Card */}
-          <Card variant="ghost" className="py-2">
-            <div className="flex items-center gap-3">
-              <Card
-                border={false}
-                variant="alara_dark"
-                className="p-3 rounded-xl !w-fit">
-                <CalendarDays className="w-6 h-6 text-[#005F6A]" />
-              </Card>
-              <div className="flex-1 min-w-0">
-                <h2 className="app-title-small truncate !mb-0">Calendar</h2>
-                <p className="app-subtitle !text-[#005F6A]/80">
-                  Manage appointments
-                </p>
-              </div>
-            </div>
-          </Card>
-
+        <div className="p-2 py-3 h-full overflow-y-auto flex flex-col gap-4">
           {/* Menu */}
           <div className="!p-0 flex-1">
             <h3 className="section-title mb-3 px-1">Navigation</h3>
@@ -168,7 +144,7 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
                 <div>
                   <p className="app-title-small">{monthLabel}</p>
                 </div>
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -191,11 +167,11 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
                       strokeWidth={1.5}
                     />
                   </Button>
-                </div>
+                </div> */}
               </div>
 
               {/* Weekday Labels */}
-              <div className="grid grid-cols-7 gap-2 app-title-small !font-[450] !mb-0">
+              <div className="grid grid-cols-7 gap-2 app-title-small !font-[350] !mb-0">
                 {weekdayLabels.map((day) => (
                   <span key={day.key} className="text-center">
                     {day.label}

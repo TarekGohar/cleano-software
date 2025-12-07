@@ -26,11 +26,13 @@ import { Toast } from "@/components/ui/Toast";
 import { mutate as swrMutate } from "swr";
 import { useCalendarData } from "@/hooks/useCalendarData";
 
+type CalendarView = "month" | "week" | "day" | "list";
+
 interface CalendarState {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
-  view: "month" | "week" | "day";
-  setView: (view: "month" | "week" | "day") => void;
+  view: CalendarView;
+  setView: (view: CalendarView) => void;
   zoomLevel: number;
   setZoomLevel: (level: number) => void;
   events: CalendarEvent[];
@@ -160,15 +162,17 @@ export const CalendarProvider = ({
   children,
   initialDate = new Date(),
   initialEvents = [],
+  initialView = "month",
 }: {
   children: ReactNode;
   initialDate?: Date;
   initialEvents?: CalendarEvent[];
+  initialView?: CalendarView;
 }) => {
   const { config: calendarConfig } = useCalendarConfig();
 
   const [currentDate, setCurrentDate] = useState(initialDate);
-  const [view, setView] = useState<"month" | "week" | "day">("month");
+  const [view, setView] = useState<CalendarView>(initialView);
   const [localEvents, setLocalEvents] =
     useState<CalendarEvent[]>(initialEvents);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
@@ -363,8 +367,11 @@ export const CalendarProvider = ({
       setCurrentDate((prev) => subMonths(prev, 1));
     } else if (view === "week") {
       setCurrentDate((prev) => addDays(prev, -7));
-    } else {
+    } else if (view === "day") {
       setCurrentDate((prev) => addDays(prev, -1));
+    } else {
+      // list view follows week-sized jumps
+      setCurrentDate((prev) => addDays(prev, -7));
     }
   }, [view]);
 
@@ -380,8 +387,11 @@ export const CalendarProvider = ({
       setCurrentDate((prev) => addMonths(prev, 1));
     } else if (view === "week") {
       setCurrentDate((prev) => addDays(prev, 7));
-    } else {
+    } else if (view === "day") {
       setCurrentDate((prev) => addDays(prev, 1));
+    } else {
+      // list view follows week-sized jumps
+      setCurrentDate((prev) => addDays(prev, 7));
     }
   }, [view]);
 

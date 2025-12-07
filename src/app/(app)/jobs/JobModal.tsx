@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import {
   X,
   Briefcase,
@@ -68,10 +68,10 @@ const formSchema = z.object({
   startTime: z.string().optional(),
   endDate: z.string().optional(),
   endTime: z.string().optional(),
-  price: z.coerce.number().min(0).optional().or(z.literal("")),
-  employeePay: z.coerce.number().min(0).optional().or(z.literal("")),
-  totalTip: z.coerce.number().min(0).optional().or(z.literal("")),
-  parking: z.coerce.number().min(0).optional().or(z.literal("")),
+  price: z.union([z.coerce.number().min(0), z.literal("")]).optional(),
+  employeePay: z.union([z.coerce.number().min(0), z.literal("")]).optional(),
+  totalTip: z.union([z.coerce.number().min(0), z.literal("")]).optional(),
+  parking: z.union([z.coerce.number().min(0), z.literal("")]).optional(),
   notes: z.string().optional(),
 });
 
@@ -90,6 +90,388 @@ const STEPS = [
   { id: 2, title: "Schedule & Team", icon: Calendar },
   { id: 3, title: "Pricing & Notes", icon: DollarSign },
 ];
+
+type CustomDatePickerProps = {
+  label: string;
+  value?: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+};
+
+const toISODate = (year: number, month: number, day: number) =>
+  `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(
+    2,
+    "0"
+  )}`;
+
+function CustomDatePicker({
+  label,
+  value,
+  onChange,
+  placeholder = "Select date",
+  disabled,
+}: CustomDatePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState<Date>(
+    value ? new Date(`${value}T00:00:00`) : new Date()
+  );
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (value) {
+      setViewDate(new Date(`${value}T00:00:00`));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (isOpen && pickerRef.current) {
+      const rect = pickerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, [isOpen]);
+
+  const selectedDate = value ? new Date(`${value}T00:00:00`) : null;
+  const monthLabel = viewDate.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+  const startDay = new Date(
+    viewDate.getFullYear(),
+    viewDate.getMonth(),
+    1
+  ).getDay();
+  const daysInMonth = new Date(
+    viewDate.getFullYear(),
+    viewDate.getMonth() + 1,
+    0
+  ).getDate();
+  const today = new Date();
+
+  const handleSelectDay = (day: number) => {
+    const isoDate = toISODate(viewDate.getFullYear(), viewDate.getMonth(), day);
+    onChange(isoDate);
+    setIsOpen(false);
+  };
+
+  const handleToday = () => {
+    const isoDate = toISODate(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    setViewDate(today);
+    onChange(isoDate);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    onChange("");
+    setIsOpen(false);
+  };
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  return (
+    <div className="space-y-2 relative" ref={pickerRef}>
+      <label className="input-label tracking-tight">{label}</label>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className={`w-full px-4 py-3 rounded-2xl border border-[#005F6A]/15 bg-[#005F6A]/5 flex items-center justify-between text-left transition-all tracking-tight ${
+          disabled
+            ? "opacity-60 cursor-not-allowed"
+            : "hover:border-[#005F6A]/40"
+        }`}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center border border-[#005F6A]/15">
+            <Calendar className="w-4 h-4 text-[#005F6A]" />
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs text-[#005F6A]/70">Selected date</span>
+            <span
+              className={`text-sm font-[450] ${
+                value ? "text-[#005F6A]" : "text-[#005F6A]/50"
+              }`}>
+              {value
+                ? new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : placeholder}
+            </span>
+          </div>
+        </div>
+        <ChevronDown className="w-4 h-4 text-[#005F6A]/60 flex-shrink-0" />
+      </button>
+
+      {isOpen && (
+        <div
+          className="fixed z-[9999] w-full max-w-sm rounded-2xl bg-white shadow-xl border border-[#005F6A]/10 p-4"
+          style={{ top: dropdownPosition.top, left: dropdownPosition.left }}>
+          <div className="flex items-center justify-between mb-3">
+            <button
+              type="button"
+              className="p-2 rounded-lg hover:bg-[#005F6A]/10 text-[#005F6A]"
+              onClick={() =>
+                setViewDate(
+                  new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
+                )
+              }>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <p className="text-sm font-[600] text-[#005F6A] tracking-tight">
+              {monthLabel}
+            </p>
+            <button
+              type="button"
+              className="p-2 rounded-lg hover:bg-[#005F6A]/10 text-[#005F6A]"
+              onClick={() =>
+                setViewDate(
+                  new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
+                )
+              }>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 text-[11px] text-[#005F6A]/60 mb-2 tracking-tight">
+            {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+              <div key={day} className="text-center py-1">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: startDay }).map((_, index) => (
+              <div key={`empty-${index}`} />
+            ))}
+            {Array.from({ length: daysInMonth }).map((_, index) => {
+              const day = index + 1;
+              const candidate = new Date(
+                viewDate.getFullYear(),
+                viewDate.getMonth(),
+                day
+              );
+              const isSelected =
+                !!selectedDate && isSameDay(selectedDate, candidate);
+              const isToday = isSameDay(today, candidate);
+
+              return (
+                <button
+                  type="button"
+                  key={day}
+                  onClick={() => handleSelectDay(day)}
+                  className={`h-10 rounded-xl text-sm font-[450] transition-all tracking-tight ${
+                    isSelected
+                      ? "bg-[#005F6A] text-white shadow-sm"
+                      : "hover:bg-[#005F6A]/10 text-[#005F6A]"
+                  } ${
+                    isToday && !isSelected ? "border border-[#005F6A]/30" : ""
+                  }`}>
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between mt-3 gap-2">
+            <button
+              type="button"
+              className="flex-1 px-3 py-2 rounded-xl bg-[#005F6A]/10 text-[#005F6A] text-sm font-[500] tracking-tight hover:bg-[#005F6A]/15"
+              onClick={handleToday}>
+              Today
+            </button>
+            <button
+              type="button"
+              className="flex-1 px-3 py-2 rounded-xl bg-white border border-[#005F6A]/20 text-[#005F6A]/80 text-sm font-[500] tracking-tight hover:border-[#005F6A]/40"
+              onClick={handleClear}>
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type CustomTimePickerProps = {
+  label: string;
+  value?: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+};
+
+function CustomTimePicker({
+  label,
+  value,
+  onChange,
+  placeholder = "Select time",
+  disabled,
+}: CustomTimePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && pickerRef.current) {
+      const rect = pickerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, [isOpen]);
+
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const timeString = `${String(hour).padStart(2, "0")}:${String(
+          minute
+        ).padStart(2, "0")}`;
+        options.push(timeString);
+      }
+    }
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  const formatTimeDisplay = (time: string) => {
+    if (!time) return "";
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const handleTimeSelect = (time: string) => {
+    onChange(time);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    onChange("");
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="space-y-2 relative" ref={pickerRef}>
+      <label className="input-label tracking-tight">{label}</label>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        className={`w-full px-4 py-3 rounded-2xl border border-[#005F6A]/15 bg-[#005F6A]/5 flex items-center justify-between text-left transition-all tracking-tight ${
+          disabled
+            ? "opacity-60 cursor-not-allowed"
+            : "hover:border-[#005F6A]/40"
+        }`}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center border border-[#005F6A]/15">
+            <Calendar className="w-4 h-4 text-[#005F6A]" />
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs text-[#005F6A]/70">Selected time</span>
+            <span
+              className={`text-sm font-[450] ${
+                value ? "text-[#005F6A]" : "text-[#005F6A]/50"
+              }`}>
+              {value ? formatTimeDisplay(value) : placeholder}
+            </span>
+          </div>
+        </div>
+        <ChevronDown className="w-4 h-4 text-[#005F6A]/60 flex-shrink-0" />
+      </button>
+
+      {isOpen && (
+        <div
+          className="fixed z-[9999] w-full max-w-sm rounded-2xl bg-white shadow-xl border border-[#005F6A]/10 max-h-64 overflow-y-auto"
+          style={{ top: dropdownPosition.top, left: dropdownPosition.left }}>
+          <div className="p-2">
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                className="flex-1 px-3 py-2 rounded-xl bg-[#005F6A] text-white text-sm font-[500] tracking-tight hover:bg-[#005F6A]/90"
+                onClick={() =>
+                  handleTimeSelect(new Date().toTimeString().slice(0, 5))
+                }>
+                Now
+              </button>
+              <button
+                type="button"
+                className="flex-1 px-3 py-2 rounded-xl bg-white border border-[#005F6A]/20 text-[#005F6A]/80 text-sm font-[500] tracking-tight hover:border-[#005F6A]/40"
+                onClick={handleClear}>
+                Clear
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {timeOptions.map((time) => (
+                <button
+                  key={time}
+                  type="button"
+                  onClick={() => handleTimeSelect(time)}
+                  className={`px-3 py-2 rounded-lg text-sm font-[450] tracking-tight transition-all ${
+                    value === time
+                      ? "bg-[#005F6A] text-white"
+                      : "bg-[#005F6A]/5 text-[#005F6A] hover:bg-[#005F6A]/10"
+                  }`}>
+                  {formatTimeDisplay(time)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function JobModal({
   isOpen,
@@ -115,8 +497,9 @@ export default function JobModal({
     formState: { errors },
     reset,
     trigger,
+    control,
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: (zodResolver as any)(formSchema) as Resolver<FormValues>,
     mode: "onChange",
   });
 
@@ -231,7 +614,7 @@ export default function JobModal({
     );
   };
 
-  const handleFormSubmit = async (values: FormValues) => {
+  const handleFormSubmit: SubmitHandler<FormValues> = async (values) => {
     setSubmitting(true);
     setGlobalError(null);
     setSuccessMessage(null);
@@ -338,9 +721,9 @@ export default function JobModal({
       />
 
       {/* Modal Container */}
-      <div className="relative z-[1001] w-full max-w-2xl max-h-[95vh] bg-white rounded-3xl overflow-hidden">
+      <div className="relative z-[1001] w-full max-w-2xl max-h-[95vh] bg-white rounded-3xl tracking-tight">
         {/* Scrollable Content */}
-        <div className="w-full max-h-[95vh] overflow-y-auto">
+        <div className="w-full max-h-[95vh] overflow-y-auto overflow-x-visible">
           <div className="w-full px-6 md:px-8 py-6 md:py-8">
             {/* Header */}
             <div className="w-full flex items-start justify-between gap-1 mb-6">
@@ -467,7 +850,7 @@ export default function JobModal({
                 <div className="space-y-5">
                   {/* Client Name */}
                   <div>
-                    <label className="input-label">
+                    <label className="input-label tracking-tight">
                       Client Name <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -479,7 +862,7 @@ export default function JobModal({
                         {...register("clientName")}
                         disabled={disableForm}
                         error={!!errors.clientName}
-                        className="w-full pl-11 px-4 py-3"
+                        className="w-full pl-11 px-4 py-3 tracking-tight placeholder:tracking-tight"
                         placeholder="e.g., Alexis Juarez"
                         border={false}
                       />
@@ -493,7 +876,9 @@ export default function JobModal({
 
                   {/* Location */}
                   <div>
-                    <label className="input-label">Location</label>
+                    <label className="input-label tracking-tight">
+                      Location
+                    </label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
                       <Input
@@ -502,7 +887,7 @@ export default function JobModal({
                         size="md"
                         {...register("location")}
                         disabled={disableForm}
-                        className="w-full pl-11 px-4 py-3"
+                        className="w-full pl-11 px-4 py-3 tracking-tight placeholder:tracking-tight"
                         placeholder="Address or area"
                         border={false}
                       />
@@ -511,7 +896,9 @@ export default function JobModal({
 
                   {/* Job Type */}
                   <div>
-                    <label className="input-label">Job Type</label>
+                    <label className="input-label tracking-tight">
+                      Job Type
+                    </label>
                     <CustomDropdown
                       trigger={
                         <Button
@@ -538,14 +925,16 @@ export default function JobModal({
 
                   {/* Description */}
                   <div>
-                    <label className="input-label">Description</label>
+                    <label className="input-label tracking-tight">
+                      Description
+                    </label>
                     <div className="relative">
                       <Textarea
                         size="md"
                         variant="form"
                         {...register("description")}
                         disabled={disableForm}
-                        className="w-full px-4 py-3"
+                        className="w-full px-4 py-3 tracking-tight placeholder:tracking-tight"
                         placeholder="Brief description of the job..."
                         rows={4}
                       />
@@ -559,69 +948,73 @@ export default function JobModal({
                 <div className="space-y-6">
                   {/* Date & Time Section */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-[400] text-[#005F6A] uppercase tracking-wide flex items-center gap-2">
+                    <h3 className="text-sm font-[400] text-[#005F6A] uppercase tracking-tight flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       Schedule
                     </h3>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="input-label">Start Date</label>
-                        <Input
-                          variant="form"
-                          type="date"
-                          size="md"
-                          {...register("startDate")}
-                          disabled={disableForm}
-                          className="w-full px-4 py-3"
-                          border={false}
-                        />
-                      </div>
+                      <Controller
+                        name="startDate"
+                        control={control}
+                        render={({ field }) => (
+                          <CustomDatePicker
+                            label="Start Date"
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={disableForm}
+                            placeholder="Select start date"
+                          />
+                        )}
+                      />
 
-                      <div>
-                        <label className="input-label">Start Time</label>
-                        <Input
-                          variant="form"
-                          type="time"
-                          size="md"
-                          {...register("startTime")}
-                          disabled={disableForm}
-                          className="w-full px-4 py-3"
-                          border={false}
-                        />
-                      </div>
+                      <Controller
+                        name="startTime"
+                        control={control}
+                        render={({ field }) => (
+                          <CustomTimePicker
+                            label="Start Time"
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={disableForm}
+                            placeholder="Select start time"
+                          />
+                        )}
+                      />
 
-                      <div>
-                        <label className="input-label">End Date</label>
-                        <Input
-                          variant="form"
-                          type="date"
-                          size="md"
-                          {...register("endDate")}
-                          disabled={disableForm}
-                          className="w-full px-4 py-3"
-                          border={false}
-                        />
-                      </div>
+                      <Controller
+                        name="endDate"
+                        control={control}
+                        render={({ field }) => (
+                          <CustomDatePicker
+                            label="End Date"
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={disableForm}
+                            placeholder="Select end date"
+                          />
+                        )}
+                      />
 
-                      <div>
-                        <label className="input-label">End Time</label>
-                        <Input
-                          variant="form"
-                          type="time"
-                          size="md"
-                          {...register("endTime")}
-                          disabled={disableForm}
-                          className="w-full px-4 py-3"
-                          border={false}
-                        />
-                      </div>
+                      <Controller
+                        name="endTime"
+                        control={control}
+                        render={({ field }) => (
+                          <CustomTimePicker
+                            label="End Time"
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={disableForm}
+                            placeholder="Select end time"
+                          />
+                        )}
+                      />
                     </div>
                   </div>
 
                   {/* Team Section */}
                   <div className="space-y-4">
-                    <h3 className="input-label flex items-center gap-2">
+                    <h3 className="input-label tracking-tight flex items-center gap-2">
                       <Users className="w-4 h-4" />
                       Assign Cleaners
                     </h3>
@@ -690,14 +1083,16 @@ export default function JobModal({
                 <div className="space-y-6">
                   {/* Pricing Section */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-[400] text-[#005F6A] uppercase tracking-wide flex items-center gap-2">
+                    <h3 className="text-sm font-[400] text-[#005F6A] uppercase tracking-tight flex items-center gap-2">
                       <DollarSign className="w-4 h-4" />
                       Pricing & Payment
                     </h3>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="input-label">Price</label>
+                        <label className="input-label tracking-tight">
+                          Price
+                        </label>
                         <div className="relative">
                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
                           <Input
@@ -708,7 +1103,7 @@ export default function JobModal({
                             min="0"
                             {...register("price")}
                             disabled={disableForm}
-                            className="w-full pl-11 px-4 py-3"
+                            className="w-full pl-11 px-4 py-3 tracking-tight placeholder:tracking-tight"
                             placeholder="0.00"
                             border={false}
                           />
@@ -716,7 +1111,9 @@ export default function JobModal({
                       </div>
 
                       <div>
-                        <label className="input-label">Employee Pay</label>
+                        <label className="input-label tracking-tight">
+                          Employee Pay
+                        </label>
                         <div className="relative">
                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
                           <Input
@@ -727,7 +1124,7 @@ export default function JobModal({
                             min="0"
                             {...register("employeePay")}
                             disabled={disableForm}
-                            className="w-full pl-11 px-4 py-3"
+                            className="w-full pl-11 px-4 py-3 tracking-tight placeholder:tracking-tight"
                             placeholder="0.00"
                             border={false}
                           />
@@ -735,7 +1132,9 @@ export default function JobModal({
                       </div>
 
                       <div>
-                        <label className="input-label">Total Tip</label>
+                        <label className="input-label tracking-tight">
+                          Total Tip
+                        </label>
                         <div className="relative">
                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
                           <Input
@@ -746,7 +1145,7 @@ export default function JobModal({
                             min="0"
                             {...register("totalTip")}
                             disabled={disableForm}
-                            className="w-full pl-11 px-4 py-3"
+                            className="w-full pl-11 px-4 py-3 tracking-tight placeholder:tracking-tight"
                             placeholder="0.00"
                             border={false}
                           />
@@ -754,7 +1153,9 @@ export default function JobModal({
                       </div>
 
                       <div>
-                        <label className="input-label">Parking</label>
+                        <label className="input-label tracking-tight">
+                          Parking
+                        </label>
                         <div className="relative">
                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-[#005F6A]/50" />
                           <Input
@@ -765,7 +1166,7 @@ export default function JobModal({
                             min="0"
                             {...register("parking")}
                             disabled={disableForm}
-                            className="w-full pl-11 px-4 py-3"
+                            className="w-full pl-11 px-4 py-3 tracking-tight placeholder:tracking-tight"
                             placeholder="0.00"
                             border={false}
                           />
@@ -776,7 +1177,7 @@ export default function JobModal({
 
                   {/* Notes Section */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-[400] text-[#005F6A] uppercase tracking-wide flex items-center gap-2">
+                    <h3 className="text-sm font-[400] text-[#005F6A] uppercase tracking-tight flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Additional Notes
                     </h3>
@@ -785,7 +1186,7 @@ export default function JobModal({
                       size="md"
                       {...register("notes")}
                       disabled={disableForm}
-                      className="w-full px-4 py-3 min-h-[120px] bg-[#005F6A]/5 border-0 focus:ring-1 focus:ring-[#005F6A]/20 rounded-2xl"
+                      className="w-full px-4 py-3 min-h-[120px] bg-[#005F6A]/5 border-0 focus:ring-1 focus:ring-[#005F6A]/20 rounded-2xl tracking-tight placeholder:tracking-tight"
                       placeholder="Any additional notes or special requirements..."
                       rows={4}
                     />

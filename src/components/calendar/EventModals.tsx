@@ -77,6 +77,7 @@ export const EventModals = () => {
   } = useCalendar();
 
   const { config: calendarConfig } = useCalendarConfig();
+  const isJobEvent = !!selectedEvent?.metadata?.jobId;
 
   // Parse event types from calendar config
   const eventTypes: EventTypesConfig =
@@ -97,6 +98,17 @@ export const EventModals = () => {
     hour: "numeric",
     minute: "2-digit",
     hour12: !calendarConfig?.use24HourClock,
+  };
+
+  const formatDateTime = (date?: Date) => {
+    if (!date) return "—";
+    return date.toLocaleString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // Validation state for time slots and patient info
@@ -1152,8 +1164,148 @@ export const EventModals = () => {
         </div>
       )}
 
+      {/* Job Event Details Modal (styled like JobModal) */}
+      {showEventModal && selectedEvent && isJobEvent && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0"
+            style={{
+              backdropFilter: "blur(2px)",
+              backgroundColor: "rgba(175, 175, 175, 0.1)",
+            }}
+            onClick={() => {
+              setShowEventModal(false);
+              setSelectedEvent(null);
+            }}
+          />
+
+          <div className="relative z-[1001] w-full max-w-2xl max-h-[95vh] bg-white rounded-3xl overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-[#005F6A]/10 flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0 space-y-2">
+                <h1 className="text-2xl font-[350] tracking-tight text-[#005F6A] truncate">
+                  {selectedEvent.title || "Job"}
+                </h1>
+                <div className="flex flex-wrap gap-2">
+                  <Badge size="md" variant="primary">
+                    Cleaning Job
+                  </Badge>
+                  {selectedEvent.metadata?.status && (
+                    <Badge size="md" variant="secondary">
+                      {selectedEvent.metadata.status.replace("_", " ")}
+                    </Badge>
+                  )}
+                  {selectedEvent.metadata?.jobType && (
+                    <Badge size="md" variant="default">
+                      {selectedEvent.metadata.jobType}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setShowEventModal(false);
+                  setSelectedEvent(null);
+                }}
+                className="!p-2 -mt-1 -mr-1">
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card variant="ghost" className="!p-4 space-y-2">
+                  <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
+                    Client
+                  </p>
+                  <p className="text-sm text-[#005F6A] font-[400]">
+                    {selectedEvent.metadata?.clientName || "Not provided"}
+                  </p>
+                  <p className="text-xs text-[#005F6A]/60">
+                    {selectedEvent.metadata?.clientPhone || ""}
+                  </p>
+                </Card>
+
+                <Card variant="ghost" className="!p-4 space-y-2">
+                  <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
+                    Location
+                  </p>
+                  <p className="text-sm text-[#005F6A] font-[400]">
+                    {selectedEvent.metadata?.location ||
+                      selectedEvent.metadata?.jobLocation ||
+                      "Not provided"}
+                  </p>
+                </Card>
+              </div>
+
+              <Card variant="ghost" className="!p-4 space-y-3">
+                <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
+                  Schedule
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-[#005F6A]/70 mt-[2px]" />
+                    <div>
+                      <p className="text-xs text-[#005F6A]/60">Start</p>
+                      <p className="text-sm text-[#005F6A] font-[400]">
+                        {formatDateTime(selectedEvent.start)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-[#005F6A]/70 mt-[2px]" />
+                    <div>
+                      <p className="text-xs text-[#005F6A]/60">End</p>
+                      <p className="text-sm text-[#005F6A] font-[400]">
+                        {formatDateTime(selectedEvent.end)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card variant="ghost" className="!p-4 space-y-2">
+                <p className="text-xs font-[500] text-[#005F6A]/60 uppercase">
+                  Details
+                </p>
+                <p className="text-sm text-[#005F6A] whitespace-pre-wrap">
+                  {selectedEvent.description || "No additional details"}
+                </p>
+              </Card>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-[#005F6A]/10 flex flex-col sm:flex-row justify-between gap-3">
+              <Button
+                variant="primary"
+                size="md"
+                className="!px-6 !py-3"
+                onClick={() => {
+                  window.location.href = `/jobs/${selectedEvent.metadata?.jobId}`;
+                }}>
+                View Full Job Details
+              </Button>
+              <Button
+                variant="ghost"
+                size="md"
+                className="!px-6 !py-3"
+                onClick={() => {
+                  setShowEventModal(false);
+                  setSelectedEvent(null);
+                }}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Event Details Modal */}
-      {showEventModal && selectedEvent && (
+      {showEventModal && selectedEvent && !isJobEvent && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           {/* Blurred backdrop */}
           <div

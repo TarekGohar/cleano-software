@@ -1,10 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useState,
-  useContext,
-} from "react";
+import React, { createContext, useState, useContext } from "react";
 
 interface ICalendarConfig {
   eventTypes?: Record<string, any>;
@@ -33,8 +29,16 @@ export const CalendarConfigProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  // Default per-type colors (aligned with job types)
+  const defaultEventTypes: Record<string, any> = {
+    "R - Residential": { color: "#fefefe" }, // light blue
+    "C - Commercial": { color: "#F59E0B" }, // amber
+    "PC - Post Construction": { color: "#8B5CF6" }, // violet
+    "F - Follow-up": { color: "#10B981" }, // green
+  };
+
   const [config, setConfig] = useState<ICalendarConfig | null>({
-    eventTypes: {},
+    eventTypes: defaultEventTypes,
     labels: [],
     use24HourClock: false,
     hideNonOfficeHours: false,
@@ -76,4 +80,3 @@ export const useCalendarConfig = () => {
   }
   return context;
 };
-

@@ -100,7 +100,14 @@ export const MonthView = () => {
             const isCurrentMonth = isSameMonth(day, monthStart);
             const isToday = isSameDay(day, new Date());
             const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-            const dayEvents = events.filter((e) => eventOverlapsDay(e, day));
+            // Deduplicate by id so the same event isn't rendered twice for a day
+            const dayEvents = Array.from(
+              new Map(
+                events
+                  .filter((e) => eventOverlapsDay(e, day))
+                  .map((e) => [e.id, e])
+              ).values()
+            );
             const isFirstRow = index < 7;
 
             return (

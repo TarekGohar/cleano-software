@@ -146,7 +146,7 @@ export const WeekView: React.FC = () => {
     currentDate,
     events,
     zoomLevel,
-    eventsLoading,
+    hasMoved,
     setMovingEvent,
     setMoveOriginalDate,
     setMouseDownTime,
@@ -164,6 +164,7 @@ export const WeekView: React.FC = () => {
     setResizeOriginalStart,
     setResizeOriginalEnd,
     openEventDetailsModal,
+    resizingEvent,
     openEventModal,
     // Drag selection state
     isDraggingSelection,
@@ -315,6 +316,19 @@ export const WeekView: React.FC = () => {
       setMoveStartX,
       setMoveStartY,
     ]
+  );
+
+  /** Handle simple click on an event (no drag) */
+  const handleEventClick = useCallback(
+    (e: React.MouseEvent, event: CalendarEvent) => {
+      e.stopPropagation();
+
+      // Ignore clicks that were part of a drag/resize or preview events
+      if (hasMoved || resizingEvent || event.id === "preview") return;
+
+      openEventDetailsModal(event);
+    },
+    [hasMoved, resizingEvent, openEventDetailsModal]
   );
 
   /** Handle resize start */
@@ -743,7 +757,8 @@ export const WeekView: React.FC = () => {
             width: position.width,
             boxShadow: getEventBoxShadow(styleInfo),
           }}
-          onMouseDown={(e) => handleEventMouseDown(e, event, day)}>
+          onMouseDown={(e) => handleEventMouseDown(e, event, day)}
+          onClick={(e) => handleEventClick(e, event)}>
           {/* Diagonal stripes overlay for blocks */}
           {styleInfo.isBlock && (
             <div
@@ -800,28 +815,6 @@ export const WeekView: React.FC = () => {
       handleEventMouseDown,
       handleResizeStart,
     ]
-  );
-
-  const renderSkeletonEvents = useCallback(
-    (dayIndex: number) => {
-      if (!eventsLoading) return null;
-      // Render 3 placeholder blocks per day
-      return [0, 1, 2].map((i) => {
-        const top = 20 + i * (zoomLevel * 1.2);
-        const height = Math.max(MIN_EVENT_HEIGHT, zoomLevel * 0.8);
-        return (
-          <div
-            key={`skeleton-${dayIndex}-${i}`}
-            className="absolute z-20 left-1 right-1 rounded-lg bg-[#005F6A]/10 animate-pulse"
-            style={{
-              top,
-              height,
-            }}
-          />
-        );
-      });
-    },
-    [eventsLoading, zoomLevel]
   );
 
   // ---------------------------------------------------------------------------
@@ -965,9 +958,6 @@ export const WeekView: React.FC = () => {
                   style={{ minHeight: `${gridHeight}px` }}
                   onDrop={(e) => handlePresetDrop(e, day)}
                   onDragOver={(e) => e.preventDefault()}>
-                  {/* Skeletons */}
-                  {eventsLoading && renderSkeletonEvents(index)}
-
                   {/* Schedule Blocks */}
                   {renderScheduleBlocks(day)}
 
