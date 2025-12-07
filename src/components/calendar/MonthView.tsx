@@ -31,7 +31,7 @@ export const MonthView = () => {
     openEventDetailsModal,
     setCurrentDate,
     setView,
-    tdoLoading: isLoading,
+    eventsLoading: isLoading,
   } = useCalendar();
   const { config: calendarConfig } = useCalendarConfig();
 
@@ -132,11 +132,14 @@ export const MonthView = () => {
                 {/* Events */}
                 <div className="space-y-1">
                   {isLoading ? (
-                    // Skeleton loading state - matches event card size
-                    <div className="px-2 py-1 rounded-lg bg-[#005F6A]/5 animate-pulse">
-                      <div className="h-[14px] bg-[#005F6A]/8 rounded mb-1" />
-                      <div className="h-[12px] bg-[#005F6A]/4 rounded w-2/3" />
-                    </div>
+                    <>
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={`skeleton-${day.toISOString()}-${i}`}
+                          className="px-2 py-1 rounded-lg bg-[#005F6A]/10 animate-pulse h-[40px]"
+                        />
+                      ))}
+                    </>
                   ) : (
                     <>
                       {dayEvents.slice(0, 3).map((event) => {

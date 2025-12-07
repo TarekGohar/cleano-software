@@ -178,7 +178,7 @@ export default function EmployeesView({
           <h1 className="text-3xl !font-light tracking-tight text-[#005F6A]">
             Employees
           </h1>
-          <p className="text-sm text-[#005F6A]/70 mt-1">
+          <p className="text-sm text-[#005F6A]/70 !font-light mt-1">
             Manage your team members and their assignments
           </p>
         </div>
@@ -222,7 +222,7 @@ export default function EmployeesView({
                 onPageChange(1);
                 updateURLParams({ search: e.target.value, page: 1 });
               }}
-              className="pl-10 h-[42px] py-3"
+              className="pl-10 h-[42px] py-3 placeholder:!text-[#005F6A]/40 placeholder:!font-[350]"
               variant="form"
               border={false}
             />

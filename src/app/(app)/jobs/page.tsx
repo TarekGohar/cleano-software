@@ -107,15 +107,17 @@ export default async function JobsPage({
   };
 
   return (
-    <JobsPageClient
-      initialJobs={jobsData}
-      initialStats={stats}
-      initialSearch={search}
-      initialStatus={status}
-      initialPayment={payment}
-      initialPage={page}
-      initialRowsPerPage={rowsPerPage}
-      users={users}
-    />
+    <div className="h-full overflow-hidden p-8">
+      <JobsPageClient
+        initialJobs={jobsData}
+        initialStats={stats}
+        initialSearch={search}
+        initialStatus={status}
+        initialPayment={payment}
+        initialPage={page}
+        initialRowsPerPage={rowsPerPage}
+        users={users}
+      />
+    </div>
   );
 }

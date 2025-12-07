@@ -72,8 +72,8 @@ export function getEventStyleInfo(
         jobColor = DEFAULT_EVENT_COLOR;
     }
 
-    const isUnconfirmed = jobStatus === "CREATED";
-    return { color: jobColor, isBlock: false, isUnconfirmed };
+    // All jobs are shown as confirmed (solid styling)
+    return { color: jobColor, isBlock: false, isUnconfirmed: false };
   }
 
   // Get color from event type config, fallback to default

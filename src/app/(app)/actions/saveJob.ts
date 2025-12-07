@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
+import { invalidateCalendarDay } from "./invalidateCalendarDay";
 
 export async function saveJob(formData: FormData) {
   const session = await auth.api.getSession({
@@ -70,6 +71,9 @@ export async function saveJob(formData: FormData) {
         },
       });
 
+      if (jobData.startTime) {
+        await invalidateCalendarDay(jobData.startTime.toISOString().slice(0, 10));
+      }
       revalidatePath("/jobs");
       revalidatePath(`/jobs/${editingJobId}`);
       return { success: true };
@@ -86,6 +90,9 @@ export async function saveJob(formData: FormData) {
         data: jobData,
       });
 
+      if (jobData.startTime) {
+        await invalidateCalendarDay(jobData.startTime.toISOString().slice(0, 10));
+      }
       revalidatePath("/jobs");
       return { success: true, jobId: newJob.id };
     }

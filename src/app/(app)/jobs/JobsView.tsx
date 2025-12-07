@@ -223,7 +223,7 @@ export default function JobsView({
           <h1 className="text-3xl !font-light tracking-tight text-[#005F6A]">
             Cleaning Jobs
           </h1>
-          <p className="text-sm text-[#005F6A]/70 mt-1">
+          <p className="text-sm text-[#005F6A]/70 !font-light mt-1">
             Manage your cleaning jobs and track your revenue
           </p>
         </div>
@@ -280,7 +280,7 @@ export default function JobsView({
                 onPageChange(1);
                 updateURLParams({ search: e.target.value, page: 1 });
               }}
-              className="pl-10 h-[42px] py-3"
+              className="pl-10 h-[42px] py-3 placeholder:!text-[#005F6A]/40 placeholder:!font-[350]"
               variant="form"
               border={false}
             />
@@ -475,12 +475,12 @@ export default function JobsView({
                       { label: "Client", className: "w-[180px] text-left" },
                       { label: "Type", className: "w-[60px] text-center" },
                       { label: "Cleaners", className: "w-[180px] text-left" },
-                      { label: "Start", className: "w-[88px] text-center" },
-                      { label: "End", className: "w-[88px] text-center" },
-                      { label: "OT", className: "w-[88px] text-center" },
-                      { label: "Price", className: "w-[90px] text-right" },
+                      { label: "Start", className: "w-[120px] text-center" },
+                      { label: "End", className: "w-[120px] text-center" },
+                      { label: "OT", className: "w-[120px] text-center" },
+                      { label: "Price", className: "w-[120px] text-right" },
                       { label: "Status", className: "w-[110px] text-center" },
-                      { label: "Payment", className: "w-[80px] text-center" },
+                      { label: "Payment", className: "w-[120px] text-center" },
                       { label: "Actions", className: "w-[160px] text-left" },
                     ].map((col) => (
                       <div
@@ -514,7 +514,7 @@ export default function JobsView({
                               {job.clientName}
                             </p>
                             {job.location && (
-                              <p className="app-subtitle text-[#005F6A]/50 truncate">
+                              <p className="app-subtitle !text-[#005F6A]/50 truncate">
                                 {job.location}
                               </p>
                             )}
@@ -523,7 +523,7 @@ export default function JobsView({
                           {/* Type */}
                           <div className="w-[60px] p-4 flex justify-center">
                             {getJobTypeBadge(job.jobType) || (
-                              <span className="!app-subtitle text-[#005F6A]/40">
+                              <span className="!app-subtitle !text-[#005F6A]/40">
                                 -
                               </span>
                             )}
@@ -544,8 +544,8 @@ export default function JobsView({
                           </div>
 
                           {/* Start */}
-                          <div className="w-[88px] p-4 text-center">
-                            <p className="app-title-small text-[#005F6A]/70">
+                          <div className="w-[120px] p-4 text-center">
+                            <p className="app-title-small !text-[#005F6A]/70">
                               {new Date(job.startTime).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
@@ -554,8 +554,8 @@ export default function JobsView({
                           </div>
 
                           {/* End */}
-                          <div className="w-[88px] p-4 text-center">
-                            <p className="app-title-small text-[#005F6A]/70">
+                          <div className="w-[120px] p-4 text-center">
+                            <p className="app-title-small !text-[#005F6A]/70">
                               {job.endTime
                                 ? new Date(job.endTime).toLocaleTimeString([], {
                                     hour: "2-digit",
@@ -566,21 +566,21 @@ export default function JobsView({
                           </div>
 
                           {/* Overtime */}
-                          <div className="w-[88px] p-4 text-center">
+                          <div className="w-[120px] p-4 text-center">
                             {overtime ? (
                               <span className="text-sm font-[400] text-orange-600">
                                 {overtime}h
                               </span>
                             ) : (
-                              <span className="!app-subtitle text-[#005F6A]/40">
+                              <span className="!app-subtitle !text-[#005F6A]/40">
                                 -
                               </span>
                             )}
                           </div>
 
                           {/* Price */}
-                          <div className="w-[90px] p-4 text-right">
-                            <p className="app-title-small text-[#005F6A]">
+                          <div className="w-[120px] p-4 text-right">
+                            <p className="app-title-small !text-[#005F6A]">
                               {job.price ? `$${job.price.toFixed(2)}` : "-"}
                             </p>
                           </div>
@@ -591,10 +591,10 @@ export default function JobsView({
                           </div>
 
                           {/* Payment */}
-                          <div className="w-[80px] p-4 flex justify-center gap-1">
+                          <div className="w-[120px] p-4 flex justify-center gap-1">
                             <div title="Payment Received">
                               <CheckCircle2
-                                strokeWidth={1.5}
+                                strokeWidth={1.2}
                                 className={`w-4 h-4 ${
                                   job.paymentReceived
                                     ? "text-[#005F6A]"
@@ -609,7 +609,7 @@ export default function JobsView({
                                     ? "text-[#005F6A]"
                                     : "text-[#005F6A]/20"
                                 }`}
-                                strokeWidth={1.5}
+                                strokeWidth={1.2}
                               />
                             </div>
                           </div>

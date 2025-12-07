@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
+import { invalidateCalendarDay } from "./invalidateCalendarDay";
 
 export async function deleteJob(jobId: string) {
   const session = await auth.api.getSession({
@@ -36,6 +37,9 @@ export async function deleteJob(jobId: string) {
       where: { id: jobId },
     });
 
+    if (job.startTime) {
+      await invalidateCalendarDay(job.startTime.toISOString().slice(0, 10));
+    }
     revalidatePath("/jobs");
     return { success: true };
   } catch (error) {

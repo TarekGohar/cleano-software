@@ -104,6 +104,7 @@ export const DayView: React.FC = () => {
     currentDate,
     events,
     zoomLevel,
+    eventsLoading,
     setMovingEvent,
     setMoveOriginalDate,
     setMouseDownTime,
@@ -284,7 +285,7 @@ export const DayView: React.FC = () => {
 
   /** Check if an event can be resized */
   const isEventResizable = useCallback((event: CalendarEvent): boolean => {
-    if (event.metadata?.isTdoAppointment) return false;
+    if (event.metadata?.jobId) return true;
     return !event.metadata?.selectedEventType;
   }, []);
 
@@ -293,9 +294,6 @@ export const DayView: React.FC = () => {
     (e: React.MouseEvent, event: CalendarEvent, originalDate: Date) => {
       e.stopPropagation();
 
-      // All events (including TDO appointments) are now draggable
-      // The CalendarContext will route to the appropriate API based on event source
-
       setMouseDownTime(Date.now());
       setHasMoved(false);
       setClickedEvent(event);
@@ -303,6 +301,13 @@ export const DayView: React.FC = () => {
       setMoveOriginalDate(originalDate);
       setMoveStartX(e.clientX);
       setMoveStartY(e.clientY);
+      console.log("[DayView] mousedown event", {
+        id: event.id,
+        title: event.title,
+        originalDate,
+        start: event.start,
+        end: event.end,
+      });
     },
     [
       setMouseDownTime,
@@ -479,7 +484,9 @@ export const DayView: React.FC = () => {
         const toTimeStr = (mins: number) => {
           const h = Math.floor(mins / 60);
           const m = mins % 60;
-          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+          return `${h.toString().padStart(2, "0")}:${m
+            .toString()
+            .padStart(2, "0")}`;
         };
 
         const startTimeStr = toTimeStr(startMinutes);
@@ -517,7 +524,9 @@ export const DayView: React.FC = () => {
       const toTimeStr = (mins: number) => {
         const h = Math.floor(mins / 60);
         const m = mins % 60;
-        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        return `${h.toString().padStart(2, "0")}:${m
+          .toString()
+          .padStart(2, "0")}`;
       };
 
       const startTimeStr = toTimeStr(startMinutes);
@@ -768,7 +777,7 @@ export const DayView: React.FC = () => {
               {event.label}
             </div>
           )}
-          
+
           {position.height > 50 && event.metadata?.location && (
             <div
               className="app-subtitle truncate text-[10px]"
@@ -852,7 +861,9 @@ export const DayView: React.FC = () => {
                   <div
                     className="absolute left-0 right-0 border-t-1 border-[#005F6A]/5"
                     style={{
-                      top: `${(hour - (officeHours?.start || 0)) * zoomLevel}px`,
+                      top: `${
+                        (hour - (officeHours?.start || 0)) * zoomLevel
+                      }px`,
                     }}
                   />
                   {/* 15-minute interval lines */}
@@ -861,7 +872,10 @@ export const DayView: React.FC = () => {
                       key={`${hour}-${minutes}`}
                       className="absolute left-0 right-0 border-t-1 border-[#005F6A]/[0.025]"
                       style={{
-                        top: `${(hour - (officeHours?.start || 0)) * zoomLevel + (minutes * zoomLevel) / 60}px`,
+                        top: `${
+                          (hour - (officeHours?.start || 0)) * zoomLevel +
+                          (minutes * zoomLevel) / 60
+                        }px`,
                       }}
                     />
                   ))}
@@ -913,12 +927,29 @@ export const DayView: React.FC = () => {
                   data-room-name={roomName}
                   className={`relative min-w-[200px] flex-1 ${
                     roomIndex > 0 ? "border-l border-[#005F6A]/10" : ""
-                  } ${roomName === "Unassigned Events" ? "bg-[#005F6A]/[0.02]" : ""}`}
+                  } ${
+                    roomName === "Unassigned Events"
+                      ? "bg-[#005F6A]/[0.02]"
+                      : ""
+                  }`}
                   style={{ minHeight: `${gridHeight}px` }}
                   onDrop={(e) => handlePresetDrop(e, roomName)}
                   onDragOver={(e) => e.preventDefault()}>
                   {/* Schedule Blocks */}
                   {renderScheduleBlocks(currentDate, roomName)}
+
+                  {/* Skeletons during loading */}
+                  {eventsLoading &&
+                    [0, 1, 2].map((i) => (
+                      <div
+                        key={`skeleton-${roomName}-${i}`}
+                        className="absolute left-2 right-2 rounded-lg bg-[#005F6A]/10 animate-pulse"
+                        style={{
+                          top: 20 + i * (zoomLevel * 1.4),
+                          height: Math.max(MIN_EVENT_HEIGHT, zoomLevel * 0.9),
+                        }}
+                      />
+                    ))}
 
                   {/* Events */}
                   {columnEvents.map((event) => {
@@ -938,7 +969,9 @@ export const DayView: React.FC = () => {
                             : "cursor-pointer hover:bg-[#005F6A]/[0.06]"
                         }`}
                         style={{
-                          top: `${hourIndex * zoomLevel + (minutes * zoomLevel) / 60}px`,
+                          top: `${
+                            hourIndex * zoomLevel + (minutes * zoomLevel) / 60
+                          }px`,
                           height: `${zoomLevel / 4}px`,
                         }}
                         onMouseDown={(e) =>

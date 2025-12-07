@@ -413,7 +413,7 @@ export default function ProductDetailView({
                     setSearchTerm(e.target.value);
                     setPage(1);
                   }}
-                  className="pl-10 h-[42px] py-3"
+                  className="pl-10 h-[42px] py-3 placeholder:!text-[#005F6A]/40 placeholder:!font-[350]"
                   variant="form"
                   border={false}
                 />

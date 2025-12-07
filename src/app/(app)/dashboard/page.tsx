@@ -221,7 +221,7 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl !font-light tracking-tight text-[#005F6A]">

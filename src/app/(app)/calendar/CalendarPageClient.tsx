@@ -1,41 +1,50 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useMemo, useRef } from "react";
 import Calendar from "@/components/calendar/Calendar";
 import { CalendarRef, CalendarEvent } from "@/components/calendar/types";
 import { CalendarProvider } from "@/components/calendar/CalendarContext";
+import { useCalendarData } from "@/hooks/useCalendarData";
 
-interface CalendarPageClientProps {
-  initialEvents: Array<{
-    id: string;
-    title: string;
-    description?: string;
-    label?: string;
-    start: string;
-    end?: string;
-    confirmed?: boolean;
-    importance?: number | null;
-    metadata?: Record<string, any>;
-  }>;
-}
-
-export default function CalendarPageClient({
-  initialEvents,
-}: CalendarPageClientProps) {
+export default function CalendarPageClient() {
   const calendarRef = useRef<CalendarRef>(null);
 
-  // Transform the initial events from server (with ISO strings) to CalendarEvent format (with Date objects)
-  const events: CalendarEvent[] = initialEvents.map((event) => ({
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    label: event.label || null,
-    start: new Date(event.start),
-    end: event.end ? new Date(event.end) : undefined,
-    confirmed: event.confirmed,
-    importance: event.importance,
-    metadata: event.metadata,
-  }));
+  // Default range: current month (will be refined with view-aware range in Phase 7)
+  const { startDate, endDate } = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { startDate: start, endDate: end };
+  }, []);
+
+  const { events: rawEvents, mutateRange } = useCalendarData(
+    startDate,
+    endDate
+  );
+
+  const events: CalendarEvent[] = useMemo(
+    () =>
+      rawEvents.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        label: event.label || null,
+        start: new Date(event.start),
+        end: event.end ? new Date(event.end) : undefined,
+        confirmed: event.confirmed,
+        importance: event.importance,
+        metadata: event.metadata,
+      })),
+    [rawEvents]
+  );
+
+  // Expose mutateRange globally for CalendarContext to call when invalidating
+  React.useEffect(() => {
+    (window as any).__calendarMutateRange = mutateRange;
+    return () => {
+      delete (window as any).__calendarMutateRange;
+    };
+  }, [mutateRange]);
 
   return (
     <CalendarProvider initialEvents={events}>

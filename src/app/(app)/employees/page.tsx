@@ -78,14 +78,16 @@ export default async function EmployeesPage({
   };
 
   return (
-    <EmployeesPageClient
-      initialEmployees={employeesData}
-      initialStats={stats}
-      initialSearch={search}
-      initialRole={role}
-      initialJobStatus={jobStatus}
-      initialPage={page}
-      initialRowsPerPage={rowsPerPage}
-    />
+    <div className="h-full overflow-hidden p-8">
+      <EmployeesPageClient
+        initialEmployees={employeesData}
+        initialStats={stats}
+        initialSearch={search}
+        initialRole={role}
+        initialJobStatus={jobStatus}
+        initialPage={page}
+        initialRowsPerPage={rowsPerPage}
+      />
+    </div>
   );
 }

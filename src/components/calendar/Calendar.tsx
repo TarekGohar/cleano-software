@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import Button from "@/components/ui/Button";
 import { useCalendar } from "@/components/calendar/CalendarContext";
 import { useCalendarConfig } from "@/contexts/CalendarConfigContext";
@@ -13,6 +13,7 @@ import { format, addDays, startOfWeek } from "@/components/calendar/utils";
 import { CalendarRef, CalendarEvent } from "@/components/calendar/types";
 import Card from "@/components/ui/Card";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { OfficeHours } from "@/components/calendar/calendar-helpers";
 
 interface CalendarProps {
   initialDate?: Date;
@@ -36,6 +37,8 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     setShowModal,
     events,
     movingEvent,
+    setMovingEvent,
+    zoomLevel,
     finalizeEventMove,
     resizingEvent,
     resizeEdge,
@@ -48,10 +51,25 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     moveStartX,
     moveStartY,
     setHasMoved,
-    setMovingTdoEventPosition,
   } = useCalendar();
 
   const { config: calendarConfig } = useCalendarConfig();
+
+  const officeHours = useMemo((): OfficeHours | null => {
+    if (
+      !calendarConfig?.hideNonOfficeHours ||
+      !calendarConfig?.officeHoursStart ||
+      !calendarConfig?.officeHoursEnd
+    ) {
+      return null;
+    }
+    const start = parseInt(calendarConfig.officeHoursStart.split(":")[0], 10);
+    const end = parseInt(calendarConfig.officeHoursEnd.split(":")[0], 10);
+    if (start >= 0 && start <= 23 && end >= 0 && end <= 23 && start < end) {
+      return { start, end };
+    }
+    return null;
+  }, [calendarConfig]);
 
   React.useImperativeHandle(ref, () => ({
     openEventModal: (date: Date) => {
@@ -83,20 +101,37 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
         if (deltaX > 3 || deltaY > 3) {
           setHasMoved(true);
         }
+        console.log("[Calendar] mousemove drag", {
+          id: movingEvent.id,
+          deltaX,
+          deltaY,
+          start: movingEvent.start,
+          end: movingEvent.end,
+        });
         const calcNewTimes = () => {
-          const deltaYFull = e.clientY - moveStartY;
-          const originalMinutes =
-            movingEvent.start.getHours() * 60 + movingEvent.start.getMinutes();
-          const rawNewMinutes = originalMinutes + deltaYFull;
-          const newMinutes = Math.max(
-            0,
-            Math.min(24 * 60 - 15, Math.round(rawNewMinutes / 15) * 15)
-          );
-          const newHour = Math.floor(newMinutes / 60);
-          const newMin = newMinutes % 60;
+          const snapTo15 = (mins: number) =>
+            Math.max(0, Math.min(24 * 60 - 15, Math.round(mins / 15) * 15));
+
+          const officeStartMinutes = (officeHours?.start || 0) * 60;
+          const officeEndMinutes =
+            officeHours && officeHours.end > (officeHours?.start || 0)
+              ? officeHours.end * 60
+              : 24 * 60;
+
+          const computeMinutesFromPosition = (
+            yOffset: number,
+            rectHeight: number
+          ) => {
+            const clampedY = Math.max(0, Math.min(rectHeight, yOffset));
+            const minutesFromTop = (clampedY / zoomLevel) * 60;
+            const rawMinutes = minutesFromTop + officeStartMinutes;
+            const snapped = snapTo15(rawMinutes);
+            return Math.min(officeEndMinutes - 15, snapped);
+          };
 
           let baseDate = new Date(moveOriginalDate);
           let newRoom = movingEvent.label;
+          let minutesFromMidnight: number | null = null;
 
           if (view === "week") {
             // Query all day columns by their data attribute
@@ -113,6 +148,10 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
                   );
                   const weekStartConst = startOfWeek(currentDate);
                   baseDate = addDays(weekStartConst, dayIndex);
+                  minutesFromMidnight = computeMinutesFromPosition(
+                    e.clientY - rect.top,
+                    rect.height
+                  );
                   break;
                 }
               }
@@ -128,6 +167,10 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
 
                 if (e.clientX >= rect.left && e.clientX <= rect.right) {
                   targetRoomName = roomColumn.getAttribute("data-room-name");
+                  minutesFromMidnight = computeMinutesFromPosition(
+                    e.clientY - rect.top,
+                    rect.height
+                  );
                   break;
                 }
               }
@@ -145,6 +188,22 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
             }
           }
 
+          // Fallback to delta-based calc if no column detected
+          if (minutesFromMidnight === null) {
+            const deltaMinutes = ((e.clientY - moveStartY) / zoomLevel) * 60;
+            const originalMinutes =
+              movingEvent.start.getHours() * 60 +
+              movingEvent.start.getMinutes();
+            minutesFromMidnight = snapTo15(originalMinutes + deltaMinutes);
+          }
+
+          const boundedMinutes = Math.max(
+            0,
+            Math.min(24 * 60 - 15, minutesFromMidnight)
+          );
+          const newHour = Math.floor(boundedMinutes / 60);
+          const newMin = boundedMinutes % 60;
+
           const newStart = new Date(baseDate);
           newStart.setHours(newHour, newMin, 0, 0);
 
@@ -159,27 +218,29 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
 
         const { newStart, newEnd, newRoom } = calcNewTimes();
 
-        // Check if this is a TDO event
-        const isTdoEvent = movingEvent.metadata?.isTdoAppointment;
+        // Build updated event object so downstream handlers use latest dates
+        const updatedEvent: CalendarEvent = {
+          ...movingEvent,
+          start: newStart,
+          end: newEnd,
+          label: newRoom,
+        };
 
-        if (isTdoEvent) {
-          // For TDO events, update the position through the dedicated state
-          setMovingTdoEventPosition({
-            id: movingEvent.id,
-            start: newStart,
-            end: newEnd,
-            label: newRoom,
-          });
-        } else {
-          // For local events, update through setEvents
-          setEvents(
-            events.map((ev: CalendarEvent) =>
-              ev.id === movingEvent.id
-                ? { ...ev, start: newStart, end: newEnd, label: newRoom }
-                : ev
-            )
-          );
-        }
+        console.log("[Calendar] mousemove new times", {
+          id: movingEvent.id,
+          newStart,
+          newEnd,
+          newRoom,
+        });
+
+        // Update through setEvents
+        setEvents((prev) =>
+          prev.map((ev: CalendarEvent) =>
+            ev.id === movingEvent.id ? updatedEvent : ev
+          )
+        );
+        // Keep movingEvent in sync so finalizeEventMove sees the new times
+        setMovingEvent(updatedEvent);
       }
 
       if (resizingEvent && resizeStartY !== null && resizeEdge) {
@@ -246,7 +307,6 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     finalizeEventMove,
     finalizeEventResize,
     setEvents,
-    setMovingTdoEventPosition,
     moveOriginalDate,
     moveStartX,
     moveStartY,
@@ -254,6 +314,9 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     events,
     view,
     currentDate,
+    setMovingEvent,
+    zoomLevel,
+    officeHours,
   ]);
 
   return (

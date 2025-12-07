@@ -7,6 +7,8 @@ import React, {
   ReactNode,
   FormEvent,
   useCallback,
+  useEffect,
+  useMemo,
 } from "react";
 import { CalendarEvent } from "@/components/calendar/types";
 import {
@@ -19,6 +21,9 @@ import {
   format,
 } from "@/components/calendar/utils";
 import { useCalendarConfig } from "@/contexts/CalendarConfigContext";
+import { Toast } from "@/components/ui/Toast";
+import { mutate as swrMutate } from "swr";
+import { useCalendarData } from "@/hooks/useCalendarData";
 
 interface CalendarState {
   currentDate: Date;
@@ -29,6 +34,7 @@ interface CalendarState {
   setZoomLevel: (level: number) => void;
   events: CalendarEvent[];
   setEvents: (events: CalendarEvent[]) => void;
+  eventsLoading: boolean;
 
   showModal: boolean;
   setShowModal: (show: boolean) => void;
@@ -131,12 +137,6 @@ interface CalendarState {
     message: string
   ) => void;
 
-  // TDO appointments
-  tdoAppointments: any[];
-  tdoLoading: boolean;
-  tdoError: string | null;
-  hasTdoAccess: boolean | null;
-
   // Prefetching control
   prefetchEnabled: boolean;
   setPrefetchEnabled: (enabled: boolean) => void;
@@ -151,16 +151,6 @@ interface CalendarState {
   dragStartPosition: { x: number; y: number } | null;
   setDragStartPosition: (pos: { x: number; y: number } | null) => void;
 
-  // TDO event move state
-  movingTdoEventPosition: {
-    id: string;
-    start: Date;
-    end?: Date;
-    label?: string | null;
-  } | null;
-  setMovingTdoEventPosition: (
-    pos: { id: string; start: Date; end?: Date; label?: string | null } | null
-  ) => void;
 }
 
 const CalendarContext = createContext<CalendarState | undefined>(undefined);
@@ -178,13 +168,16 @@ export const CalendarProvider = ({
 
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [view, setView] = useState<"month" | "week" | "day">("month");
-  const [localEvents, setLocalEvents] = useState<CalendarEvent[]>(initialEvents);
+  const [localEvents, setLocalEvents] =
+    useState<CalendarEvent[]>(initialEvents);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
 
   const [showModal, setShowModal] = useState(false);
   const [modalDate, setModalDate] = useState<Date | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null
+  );
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   const [modalTitle, setModalTitle] = useState("");
@@ -207,37 +200,113 @@ export const CalendarProvider = ({
   const [clickedEvent, setClickedEvent] = useState<CalendarEvent | null>(null);
   const [mouseDownTime, setMouseDownTime] = useState<number | null>(null);
   const [moveOriginalDate, setMoveOriginalDate] = useState<Date | null>(null);
+  const [moveOriginalEvent, setMoveOriginalEvent] =
+    useState<CalendarEvent | null>(null);
   const [moveStartX, setMoveStartX] = useState<number | null>(null);
   const [moveStartY, setMoveStartY] = useState<number | null>(null);
 
   const [previewEvent, setPreviewEvent] = useState<CalendarEvent | null>(null);
-  const [resizingEvent, setResizingEvent] = useState<CalendarEvent | null>(null);
+  const [resizingEvent, setResizingEvent] = useState<CalendarEvent | null>(
+    null
+  );
   const [resizeEdge, setResizeEdge] = useState<"start" | "end" | null>(null);
   const [resizeStartY, setResizeStartY] = useState<number | null>(null);
-  const [resizeOriginalStart, setResizeOriginalStart] = useState<Date | null>(null);
+  const [resizeOriginalStart, setResizeOriginalStart] = useState<Date | null>(
+    null
+  );
   const [resizeOriginalEnd, setResizeOriginalEnd] = useState<Date | null>(null);
 
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [recommendationsLoading, setRecommendationsLoading] = useState(false);
 
-  const [tdoAppointments, setTdoAppointments] = useState<any[]>([]);
-  const [tdoLoading, setTdoLoading] = useState(false);
-  const [tdoError, setTdoError] = useState<string | null>(null);
-  const [hasTdoAccess, setHasTdoAccess] = useState<boolean | null>(null);
-
   const [prefetchEnabled, setPrefetchEnabled] = useState<boolean>(true);
 
   const [isDraggingSelection, setIsDraggingSelection] = useState(false);
-  const [dragSelectionStart, setDragSelectionStart] = useState<{ day: Date; minutes: number } | null>(null);
-  const [dragSelectionEnd, setDragSelectionEnd] = useState<{ day: Date; minutes: number } | null>(null);
-  const [dragStartPosition, setDragStartPosition] = useState<{ x: number; y: number } | null>(null);
-
-  const [movingTdoEventPosition, setMovingTdoEventPosition] = useState<{
-    id: string;
-    start: Date;
-    end?: Date;
-    label?: string | null;
+  const [dragSelectionStart, setDragSelectionStart] = useState<{
+    day: Date;
+    minutes: number;
   } | null>(null);
+  const [dragSelectionEnd, setDragSelectionEnd] = useState<{
+    day: Date;
+    minutes: number;
+  } | null>(null);
+  const [dragStartPosition, setDragStartPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const [toasts, setToasts] = useState<
+    Array<{
+      id: string;
+      type: "success" | "error" | "loading";
+      title: string;
+      message: string;
+    }>
+  >([]);
+
+  // Visible range based on view/currentDate
+  const { visibleStart, visibleEnd } = useMemo(() => {
+    if (view === "month") {
+      return {
+        visibleStart: startOfMonth(currentDate),
+        visibleEnd: endOfMonth(currentDate),
+      };
+    }
+    if (view === "week") {
+      const start = startOfWeek(currentDate);
+      return { visibleStart: start, visibleEnd: addDays(start, 6) };
+    }
+    return { visibleStart: currentDate, visibleEnd: currentDate };
+  }, [view, currentDate]);
+
+  // Fetch calendar data for visible range via SWR
+  const {
+    events: swrEvents,
+    mutateRange: mutateRangeCache,
+    isLoading: swrLoading,
+  } = useCalendarData(visibleStart, visibleEnd);
+
+  // Sync local events when server data changes (from SWR)
+  useEffect(() => {
+    // Keep SWR sync from overriding in-flight drag/resize state; only sync on data changes.
+    if (movingEvent || resizingEvent) return;
+
+    if (swrEvents.length) {
+      // Normalize SWR payload (strings) into CalendarEvent objects with Date instances
+      const normalized = swrEvents.map((e) => ({
+        ...e,
+        start: new Date(e.start),
+        end: e.end ? new Date(e.end) : undefined,
+      }));
+      setLocalEvents(normalized);
+    } else {
+      setLocalEvents(initialEvents);
+    }
+    // We intentionally exclude movingEvent/resizingEvent from deps to avoid resync on drag end.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialEvents, swrEvents]);
+
+  // Helper to format YYYY-MM-DD
+  const toDateStr = useCallback((date: Date) => {
+    const y = date.getFullYear();
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    const d = `${date.getDate()}`.padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }, []);
+
+  const invalidateDays = useCallback(
+    (dates: string[]) => {
+      console.log("[CalendarContext] invalidateDays", dates);
+      dates.forEach((d) => {
+        const key = `calendar-range:${d}:${d}`;
+        swrMutate(key);
+      });
+      if (mutateRangeCache) {
+        mutateRangeCache();
+      }
+    },
+    [mutateRangeCache]
+  );
 
   const handlePrev = useCallback(() => {
     if (view === "month") {
@@ -248,6 +317,13 @@ export const CalendarProvider = ({
       setCurrentDate((prev) => addDays(prev, -1));
     }
   }, [view]);
+
+  // Capture original event snapshot when a move starts
+  useEffect(() => {
+    if (movingEvent && !moveOriginalEvent) {
+      setMoveOriginalEvent({ ...movingEvent });
+    }
+  }, [movingEvent, moveOriginalEvent]);
 
   const handleNext = useCallback(() => {
     if (view === "month") {
@@ -282,11 +358,17 @@ export const CalendarProvider = ({
     setModalDescription(event.description || "");
     setModalLabel(event.label || "");
     setStartTime(
-      `${event.start.getHours().toString().padStart(2, "0")}:${event.start.getMinutes().toString().padStart(2, "0")}`
+      `${event.start.getHours().toString().padStart(2, "0")}:${event.start
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`
     );
     if (event.end) {
       setEndTime(
-        `${event.end.getHours().toString().padStart(2, "0")}:${event.end.getMinutes().toString().padStart(2, "0")}`
+        `${event.end.getHours().toString().padStart(2, "0")}:${event.end
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}`
       );
     }
     setModalConfirmed(event.confirmed ?? false);
@@ -299,33 +381,37 @@ export const CalendarProvider = ({
     setShowEventModal(true);
   }, []);
 
-  const openEventModal = useCallback((
-    date: Date,
-    startTimeStr?: string,
-    endTimeStr?: string
-  ) => {
-    setModalDate(date);
-    if (startTimeStr) setStartTime(startTimeStr);
-    if (endTimeStr) setEndTime(endTimeStr);
-    setShowModal(true);
-  }, []);
+  const openEventModal = useCallback(
+    (date: Date, startTimeStr?: string, endTimeStr?: string) => {
+      setModalDate(date);
+      if (startTimeStr) setStartTime(startTimeStr);
+      if (endTimeStr) setEndTime(endTimeStr);
+      setShowModal(true);
+    },
+    []
+  );
 
-  const openEventModalAtTime = useCallback((
-    date: Date,
-    yPosition: number,
-    containerHeight: number,
-    officeHours?: { start: number; end: number },
-    zoomLevel?: number
-  ) => {
-    // Calculate time from y position
-    const officeStart = officeHours?.start || 0;
-    const hoursFromTop = yPosition / (zoomLevel || 100);
-    const totalMinutes = (officeStart * 60) + (hoursFromTop * 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = Math.floor(totalMinutes % 60);
-    const timeStr = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-    openEventModal(date, timeStr);
-  }, [openEventModal]);
+  const openEventModalAtTime = useCallback(
+    (
+      date: Date,
+      yPosition: number,
+      containerHeight: number,
+      officeHours?: { start: number; end: number },
+      zoomLevel?: number
+    ) => {
+      // Calculate time from y position
+      const officeStart = officeHours?.start || 0;
+      const hoursFromTop = yPosition / (zoomLevel || 100);
+      const totalMinutes = officeStart * 60 + hoursFromTop * 60;
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = Math.floor(totalMinutes % 60);
+      const timeStr = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+      openEventModal(date, timeStr);
+    },
+    [openEventModal]
+  );
 
   const openModalWithPreset = useCallback((preset: any, startTime: Date) => {
     setModalDate(startTime);
@@ -339,29 +425,238 @@ export const CalendarProvider = ({
     setSelectedEvent(null);
   }, []);
 
+  const showNotification = useCallback(
+    (type: "success" | "error" | "loading", title: string, message: string) => {
+      const id = Math.random().toString(36);
+      setToasts((prev) => {
+        // If there's a loading toast, replace it
+        const filtered = prev.filter((t) => t.type !== "loading");
+        return [...filtered, { id, type, title, message }];
+      });
+
+      // Auto-remove non-loading toasts
+      if (type !== "loading") {
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((t) => t.id !== id));
+        }, 3000);
+      }
+    },
+    []
+  );
+
   const finalizeEventMove = useCallback(async () => {
+    console.log("[CalendarContext] finalizeEventMove enter", {
+      movingEvent,
+      hasMoved,
+      moveOriginalEvent,
+    });
+    if (movingEvent && hasMoved && moveOriginalEvent) {
+      // Check if this is a job event
+      if (movingEvent.metadata?.jobId) {
+        try {
+          showNotification(
+            "loading",
+            "Updating Job",
+            "Saving new date and time..."
+          );
+
+          // Import the update action dynamically
+          const { updateJobDates } = await import(
+            "@/app/(app)/actions/updateJobDates"
+          );
+
+          console.log("[CalendarContext] updateJobDates payload", {
+            jobId: movingEvent.metadata.jobId,
+            start: movingEvent.start,
+            end: movingEvent.end,
+          });
+
+          const result = await updateJobDates(
+            movingEvent.metadata.jobId,
+            movingEvent.start,
+            movingEvent.end
+          );
+
+          console.log("[CalendarContext] updateJobDates result", result);
+
+          if (result.success) {
+            showNotification(
+              "success",
+              "Job Updated",
+              "Job date and time updated successfully"
+            );
+            // Update local state to reflect the change - keep the new position
+            setLocalEvents((prev) =>
+              prev.map((e) =>
+                e.id === movingEvent.id
+                  ? { ...e, start: movingEvent.start, end: movingEvent.end }
+                  : e
+              )
+            );
+
+            // Invalidate affected days
+            const oldDay = toDateStr(moveOriginalEvent.start);
+            const newDay = toDateStr(movingEvent.start);
+            invalidateDays(oldDay === newDay ? [oldDay] : [oldDay, newDay]);
+          } else {
+            showNotification(
+              "error",
+              "Update Failed",
+              result.error || "Failed to update job"
+            );
+            // Revert to original event state on error
+            setLocalEvents((prev) =>
+              prev.map((e) =>
+                e.id === movingEvent.id
+                  ? {
+                      ...e,
+                      start: moveOriginalEvent.start,
+                      end: moveOriginalEvent.end,
+                    }
+                  : e
+              )
+            );
+          }
+        } catch (error) {
+          showNotification(
+            "error",
+            "Update Failed",
+            "An error occurred while updating the job"
+          );
+          // Revert to original event state on error
+          if (moveOriginalEvent) {
+            setLocalEvents((prev) =>
+              prev.map((e) =>
+                e.id === movingEvent.id
+                  ? {
+                      ...e,
+                      start: moveOriginalEvent.start,
+                      end: moveOriginalEvent.end,
+                    }
+                  : e
+              )
+            );
+          }
+          console.error("Error updating job:", error);
+        }
+      }
+    }
+
     setMovingEvent(null);
     setMoveOriginalDate(null);
+    setMoveOriginalEvent(null);
     setMoveStartX(null);
     setMoveStartY(null);
     setHasMoved(false);
-  }, []);
+  }, [
+    movingEvent,
+    hasMoved,
+    moveOriginalEvent,
+    showNotification,
+    toDateStr,
+    invalidateDays,
+  ]);
 
   const resetEventMove = useCallback(() => {
     setMovingEvent(null);
     setMoveOriginalDate(null);
+    setMoveOriginalEvent(null);
     setMoveStartX(null);
     setMoveStartY(null);
     setHasMoved(false);
   }, []);
 
   const finalizeEventResize = useCallback(async () => {
+    console.log("[CalendarContext] finalizeEventResize enter", {
+      resizingEvent,
+      resizeOriginalStart,
+      resizeOriginalEnd,
+    });
+    if (resizingEvent) {
+      // Check if this is a job event
+      if (resizingEvent.metadata?.jobId) {
+        try {
+          showNotification("loading", "Updating Job", "Saving new duration...");
+
+          // Import the update action dynamically
+          const { updateJobDates } = await import(
+            "@/app/(app)/actions/updateJobDates"
+          );
+
+          console.log("[CalendarContext] updateJobDates payload (resize)", {
+            jobId: resizingEvent.metadata.jobId,
+            start: resizingEvent.start,
+            end: resizingEvent.end,
+          });
+
+          const result = await updateJobDates(
+            resizingEvent.metadata.jobId,
+            resizingEvent.start,
+            resizingEvent.end
+          );
+
+          console.log("[CalendarContext] updateJobDates result (resize)", result);
+
+          if (result.success) {
+            showNotification(
+              "success",
+              "Job Updated",
+              "Job duration updated successfully"
+            );
+            // Update local state to reflect the change
+            setLocalEvents((prev) =>
+              prev.map((e) =>
+                e.id === resizingEvent.id
+                  ? { ...e, start: resizingEvent.start, end: resizingEvent.end }
+                  : e
+              )
+            );
+
+            const day = toDateStr(resizeOriginalStart || resizingEvent.start);
+            invalidateDays([day]);
+          } else {
+            showNotification(
+              "error",
+              "Update Failed",
+              result.error || "Failed to update job"
+            );
+            // Revert the change on error
+            setLocalEvents((prev) =>
+              prev.map((e) =>
+                e.id === resizingEvent.id
+                  ? {
+                      ...e,
+                      start: resizeOriginalStart || e.start,
+                      end: resizeOriginalEnd || e.end,
+                    }
+                  : e
+              )
+            );
+          }
+        } catch (error) {
+          showNotification(
+            "error",
+            "Update Failed",
+            "An error occurred while updating the job"
+          );
+          console.error("Error updating job:", error);
+        }
+      }
+    }
+
     setResizingEvent(null);
     setResizeEdge(null);
     setResizeStartY(null);
     setResizeOriginalStart(null);
     setResizeOriginalEnd(null);
-  }, []);
+  }, [
+    resizingEvent,
+    resizeOriginalStart,
+    resizeOriginalEnd,
+    showNotification,
+    toDateStr,
+    invalidateDays,
+  ]);
 
   const generateRecommendations = useCallback(() => {
     setRecommendationsLoading(true);
@@ -379,15 +674,6 @@ export const CalendarProvider = ({
     // UI-only: no-op
   }, []);
 
-  const showNotification = useCallback((
-    type: "success" | "error" | "loading",
-    title: string,
-    message: string
-  ) => {
-    // UI-only: no-op
-    console.log(`[${type}] ${title}: ${message}`);
-  }, []);
-
   const value: CalendarState = {
     currentDate,
     setCurrentDate,
@@ -397,6 +683,7 @@ export const CalendarProvider = ({
     setZoomLevel,
     events: localEvents,
     setEvents: setLocalEvents,
+    eventsLoading: swrLoading,
     showModal,
     setShowModal,
     modalDate,
@@ -482,10 +769,6 @@ export const CalendarProvider = ({
     selectRecommendation,
     refreshEvents,
     showNotification,
-    tdoAppointments,
-    tdoLoading,
-    tdoError,
-    hasTdoAccess,
     prefetchEnabled,
     setPrefetchEnabled,
     isDraggingSelection,
@@ -496,13 +779,23 @@ export const CalendarProvider = ({
     setDragSelectionEnd,
     dragStartPosition,
     setDragStartPosition,
-    movingTdoEventPosition,
-    setMovingTdoEventPosition,
   };
 
   return (
     <CalendarContext.Provider value={value}>
       {children}
+      {/* Toast Notifications */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onClose={() =>
+            setToasts((prev) => prev.filter((t) => t.id !== toast.id))
+          }
+        />
+      ))}
     </CalendarContext.Provider>
   );
 };
@@ -514,4 +807,3 @@ export const useCalendar = () => {
   }
   return context;
 };
-

@@ -135,7 +135,7 @@ export default function InventoryView({
           <h1 className="text-3xl !font-light tracking-tight text-[#005F6A]">
             Inventory
           </h1>
-          <p className="text-sm text-[#005F6A]/70 mt-1">
+          <p className="text-sm text-[#005F6A]/70 !font-light mt-1">
             Manage your inventory and track your stock levels
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function InventoryView({
                 onPageChange(1);
                 updateURLParams({ search: e.target.value, page: 1 });
               }}
-              className="pl-10 h-[42px] py-3"
+              className="pl-10 h-[42px] py-3 placeholder:!text-[#005F6A]/40 placeholder:!font-[350]"
               variant="form"
               border={false}
             />
@@ -295,14 +295,14 @@ export default function InventoryView({
                   {/* Header */}
                   <div className="flex bg-[#005F6A]/5 rounded-t-2xl">
                     {[
-                      { label: "Product Name", className: "w-[200px]" },
-                      { label: "Description", className: "w-[250px]" },
-                      { label: "Stock Level", className: "w-[120px]" },
-                      { label: "Min Stock", className: "w-[120px]" },
-                      { label: "Assigned", className: "w-[120px]" },
-                      { label: "Employees", className: "w-[120px]" },
-                      { label: "Status", className: "w-[120px]" },
-                      { label: "Actions", className: "w-[200px]" },
+                      { label: "Product Name", className: "w-[220px]" },
+                      { label: "Description", className: "w-[260px]" },
+                      { label: "Stock Level", className: "w-[150px]" },
+                      { label: "Min Stock", className: "w-[150px]" },
+                      { label: "Assigned", className: "w-[150px]" },
+                      { label: "Employees", className: "w-[150px]" },
+                      { label: "Status", className: "w-[150px]" },
+                      { label: "Actions", className: "w-[210px]" },
                     ].map((col) => (
                       <div
                         key={col.label}
@@ -318,52 +318,52 @@ export default function InventoryView({
                         key={product.id}
                         className="flex items-center hover:bg-[#005F6A]/1 transition-colors">
                         {/* Product Name */}
-                        <div className="w-[200px] p-4">
+                        <div className="w-[220px] p-4">
                           <p className="text-sm font-[350] text-[#005F6A] truncate">
                             {product.name}
                           </p>
-                          <p className="text-xs text-[#005F6A]/50 truncate mt-0.5">
+                          <p className="text-xs text-[#005F6A]/50 font-[350] truncate mt-0.5">
                             ${product.costPerUnit.toFixed(2)} / {product.unit}
                           </p>
                         </div>
 
                         {/* Description */}
-                        <div className="w-[250px] p-4">
-                          <p className="text-sm font-[350] text-[#005F6A]/80 truncate">
+                        <div className="w-[260px] p-4">
+                          <p className="text-sm font-[350] text-[#005F6A]/100 truncate">
                             {product.description || "-"}
                           </p>
                         </div>
 
                         {/* Stock Level */}
-                        <div className="w-[120px] p-4">
-                          <p className="text-sm font-[350] text-[#005F6A]/80 truncate">
+                        <div className="w-[150px] p-4">
+                          <p className="text-sm font-[350] text-[#005F6A]/100 truncate">
                             {product.stockLevel} {product.unit}
                           </p>
                         </div>
 
                         {/* Min Stock */}
-                        <div className="w-[120px] p-4">
-                          <p className="text-sm font-[350] text-[#005F6A]/80 truncate">
+                        <div className="w-[150px] p-4">
+                          <p className="text-sm font-[350] text-[#005F6A]/100 truncate">
                             {product.minStock} {product.unit}
                           </p>
                         </div>
 
                         {/* Assigned */}
-                        <div className="w-[120px] p-4">
+                        <div className="w-[150px] p-4">
                           {product.totalAssigned > 0 ? (
                             <Badge variant="alara" size="sm">
                               {product.totalAssigned} {product.unit}
                             </Badge>
                           ) : (
-                            <p className="text-sm font-[350] text-[#005F6A]/40">
+                            <p className="text-sm font-[350] text-[#005F6A]/100">
                               0
                             </p>
                           )}
                         </div>
 
                         {/* Employees */}
-                        <div className="w-[120px] p-4">
-                          <p className="text-sm font-[350] text-[#005F6A]/80 truncate">
+                        <div className="w-[150px] p-4">
+                          <p className="text-sm font-[350] text-[#005F6A]/100 truncate">
                             {product.employeeCount > 0
                               ? product.employeeCount
                               : "-"}
@@ -371,12 +371,12 @@ export default function InventoryView({
                         </div>
 
                         {/* Status */}
-                        <div className="w-[120px] p-4">
+                        <div className="w-[150px] p-4">
                           {getProductStatusBadge(product)}
                         </div>
 
                         {/* Actions */}
-                        <div className="w-[200px] p-4">
+                        <div className="w-[210px] p-4">
                           <div className="flex items-center gap-2">
                             <Button
                               variant="default"

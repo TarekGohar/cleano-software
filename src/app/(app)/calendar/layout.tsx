@@ -60,7 +60,15 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
   };
 
   const activeMenuItem = getActiveMenuItem();
-  const weekdayLabels = ["M", "T", "W", "T", "F", "S", "S"];
+  const weekdayLabels = [
+    { key: "mon", label: "M" },
+    { key: "tue", label: "T" },
+    { key: "wed", label: "W" },
+    { key: "thu", label: "T" },
+    { key: "fri", label: "F" },
+    { key: "sat", label: "S" },
+    { key: "sun", label: "S" },
+  ];
   const monthLabel = miniCalendarDate.toLocaleString("default", {
     month: "long",
     year: "numeric",
@@ -189,8 +197,8 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
               {/* Weekday Labels */}
               <div className="grid grid-cols-7 gap-2 app-title-small !font-[450] !mb-0">
                 {weekdayLabels.map((day) => (
-                  <span key={day} className="text-center">
-                    {day}
+                  <span key={day.key} className="text-center">
+                    {day.label}
                   </span>
                 ))}
               </div>
@@ -211,8 +219,8 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
                         isToday
                           ? "bg-[#D7F0F1] !text-[#005F6A] rounded-xl"
                           : isCurrentMonth
-                            ? "!text-[#005F6A]"
-                            : "!text-[#005F6A]/30"
+                          ? "!text-[#005F6A]"
+                          : "!text-[#005F6A]/30"
                       }`}>
                       {day}
                     </div>
@@ -241,4 +249,3 @@ export default function CalendarLayout({
     </CalendarConfigProvider>
   );
 }
-

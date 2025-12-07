@@ -361,17 +361,19 @@ export default async function AnalyticsPage() {
   }));
 
   return (
-    <AnalyticsView
-      jobStats={jobStats}
-      revenueStats={revenueStats}
-      inventoryStats={inventoryStats}
-      employeeStats={employeeStats}
-      productUsage={productUsage}
-      employeePerformance={employeePerformance}
-      lowStockProducts={lowStockData}
-      jobTypeBreakdown={jobTypeBreakdown}
-      monthlyData={monthlyData}
-      recentJobs={recentJobs}
-    />
+    <div className="h-full overflow-hidden p-8">
+      <AnalyticsView
+        jobStats={jobStats}
+        revenueStats={revenueStats}
+        inventoryStats={inventoryStats}
+        employeeStats={employeeStats}
+        productUsage={productUsage}
+        employeePerformance={employeePerformance}
+        lowStockProducts={lowStockData}
+        jobTypeBreakdown={jobTypeBreakdown}
+        monthlyData={monthlyData}
+        recentJobs={recentJobs}
+      />
+    </div>
   );
 }

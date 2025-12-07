@@ -73,12 +73,14 @@ export default async function InventoryPage({
   });
 
   return (
-    <InventoryPageClient
-      initialProducts={productsWithStats}
-      initialSearch={search}
-      initialStatus={status}
-      initialPage={page}
-      initialRowsPerPage={rowsPerPage}
-    />
+    <div className="h-full overflow-hidden p-8">
+      <InventoryPageClient
+        initialProducts={productsWithStats}
+        initialSearch={search}
+        initialStatus={status}
+        initialPage={page}
+        initialRowsPerPage={rowsPerPage}
+      />
+    </div>
   );
 }
