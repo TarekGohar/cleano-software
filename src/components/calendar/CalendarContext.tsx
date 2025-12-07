@@ -9,6 +9,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { CalendarEvent } from "@/components/calendar/types";
 import {
@@ -267,24 +268,73 @@ export const CalendarProvider = ({
   } = useCalendarData(visibleStart, visibleEnd);
 
   // Sync local events when server data changes (from SWR)
+  const lastSwrSignatureRef = useRef<string>("");
+  const localDirtyRef = useRef<boolean>(false);
+
+  // Mark local state as "dirty" during drag/resize so SWR won't clobber it until it matches.
+  useEffect(() => {
+    if (movingEvent || resizingEvent) {
+      localDirtyRef.current = true;
+    }
+  }, [movingEvent, resizingEvent]);
+
   useEffect(() => {
     // Keep SWR sync from overriding in-flight drag/resize state; only sync on data changes.
     if (movingEvent || resizingEvent) return;
 
-    if (swrEvents.length) {
-      // Normalize SWR payload (strings) into CalendarEvent objects with Date instances
-      const normalized = swrEvents.map((e) => ({
+    const normalize = (list: CalendarEvent[]) =>
+      list.map((e) => ({
         ...e,
-        start: new Date(e.start),
-        end: e.end ? new Date(e.end) : undefined,
+        start: e.start instanceof Date ? e.start : new Date(e.start),
+        end:
+          e.end instanceof Date
+            ? e.end
+            : e.end
+            ? new Date(e.end)
+            : undefined,
       }));
-      setLocalEvents(normalized);
-    } else {
-      setLocalEvents(initialEvents);
+
+    const signatureFor = (list: CalendarEvent[]) =>
+      JSON.stringify(
+        list.map((e) => ({
+          id: e.id,
+          start: e.start instanceof Date ? e.start.toISOString() : e.start,
+          end:
+            e.end instanceof Date
+              ? e.end.toISOString()
+              : e.end
+              ? e.end
+              : null,
+        }))
+      );
+
+    const normalizedSwr = swrEvents.length ? normalize(swrEvents) : [];
+    const swrSignature = signatureFor(normalizedSwr);
+
+    // If SWR data hasn't changed since last apply, skip.
+    if (swrSignature === lastSwrSignatureRef.current) return;
+
+    // If we have local dirty state and SWR does not match local yet, do not override.
+    const localSignature = signatureFor(localEvents);
+    if (localDirtyRef.current && swrSignature !== localSignature) {
+      return;
     }
-    // We intentionally exclude movingEvent/resizingEvent from deps to avoid resync on drag end.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialEvents, swrEvents]);
+
+    // Apply SWR payload.
+    if (normalizedSwr.length) {
+      setLocalEvents(normalizedSwr);
+      lastSwrSignatureRef.current = swrSignature;
+      // If SWR now matches local, clear dirty flag.
+      if (swrSignature === localSignature) {
+        localDirtyRef.current = false;
+      }
+    } else {
+      const normalizedInitial = normalize(initialEvents);
+      setLocalEvents(normalizedInitial);
+      lastSwrSignatureRef.current = signatureFor(normalizedInitial);
+      localDirtyRef.current = false;
+    }
+  }, [initialEvents, swrEvents, localEvents, movingEvent, resizingEvent]);
 
   // Helper to format YYYY-MM-DD
   const toDateStr = useCallback((date: Date) => {
@@ -573,6 +623,13 @@ export const CalendarProvider = ({
       resizeOriginalEnd,
     });
     if (resizingEvent) {
+      console.log("[CalendarContext] finalizeEventResize using", {
+        id: resizingEvent.id,
+        start: resizingEvent.start?.toISOString(),
+        end: resizingEvent.end?.toISOString(),
+        originalStart: resizeOriginalStart?.toISOString(),
+        originalEnd: resizeOriginalEnd?.toISOString(),
+      });
       // Check if this is a job event
       if (resizingEvent.metadata?.jobId) {
         try {

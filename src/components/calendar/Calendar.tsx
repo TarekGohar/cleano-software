@@ -41,6 +41,7 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     zoomLevel,
     finalizeEventMove,
     resizingEvent,
+    setResizingEvent,
     resizeEdge,
     resizeStartY,
     resizeOriginalStart,
@@ -248,6 +249,16 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
         const rawMinutes = Math.round(deltaY);
         const snappedMinutes = Math.round(rawMinutes / 15) * 15;
 
+        let updatedResizing: CalendarEvent | null = null;
+
+        console.log("[Calendar] resize mousemove", {
+          id: resizingEvent.id,
+          deltaY,
+          rawMinutes,
+          snappedMinutes,
+          edge: resizeEdge,
+        });
+
         const newEvents = events.map((ev) => {
           if (ev.id !== resizingEvent.id) return ev;
           let newStart = new Date(ev.start);
@@ -275,9 +286,24 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
             }
           }
 
-          return { ...ev, start: newStart, end: newEnd };
+          updatedResizing = { ...ev, start: newStart, end: newEnd };
+
+          console.log("[Calendar] resize computed", {
+            id: ev.id,
+            edge: resizeEdge,
+            newStart: newStart.toISOString(),
+            newEnd: newEnd?.toISOString(),
+            origStart: ev.start.toISOString(),
+            origEnd: ev.end?.toString(),
+          });
+
+          return updatedResizing;
         });
+
         setEvents(newEvents);
+        if (updatedResizing) {
+          setResizingEvent(updatedResizing);
+        }
       }
     };
 
@@ -317,6 +343,7 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     setMovingEvent,
     zoomLevel,
     officeHours,
+    setResizingEvent,
   ]);
 
   return (
