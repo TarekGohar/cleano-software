@@ -73,7 +73,7 @@ export default async function InventoryPage({
   });
 
   return (
-    <div className="h-full overflow-hidden p-8">
+    <div className="h-full overflow-hidden overflow-y-auto p-8">
       <InventoryPageClient
         initialProducts={productsWithStats}
         initialSearch={search}

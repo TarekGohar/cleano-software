@@ -8,7 +8,6 @@ import { MonthView } from "@/components/calendar/MonthView";
 import { WeekView } from "@/components/calendar/WeekView";
 import { DayView } from "@/components/calendar/DayView";
 import { ListView } from "@/components/calendar/ListView";
-import { EventModals } from "@/components/calendar/EventModals";
 import ZoomControls from "@/components/calendar/ZoomControls";
 import { format, addDays, startOfWeek } from "@/components/calendar/utils";
 import { CalendarRef, CalendarEvent } from "@/components/calendar/types";
@@ -21,6 +20,8 @@ import {
   Plus,
 } from "lucide-react";
 import { OfficeHours } from "@/components/calendar/calendar-helpers";
+import JobModal from "../../app/(app)/jobs/JobModal";
+import { saveJob } from "../../app/(app)/actions/saveJob";
 
 interface CalendarProps {
   initialDate?: Date;
@@ -59,7 +60,24 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
     moveStartX,
     moveStartY,
     setHasMoved,
+    showJobModal,
+    setShowJobModal,
+    jobModalData,
+    setJobModalData,
   } = useCalendar();
+
+  const toLocalDateStr = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  const buildUTCDateTime = (date: Date, time?: string) => {
+    if (!time) return "";
+    // Keep the intended local clock time by storing as UTC literal
+    return `${toLocalDateStr(date)}T${time}:00Z`;
+  };
 
   // Track latest move/resize targets for global pointer-up guard
   const movingEventRef = useRef<CalendarEvent | null>(null);
@@ -488,10 +506,9 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
               size="md"
               className="px-6 py-3"
               onClick={() => {
-                setModalDate(currentDate);
-                setShowModal(true);
+                setShowJobModal(true);
               }}>
-              New Event
+              New Job
             </Button>
           </div>
         </div>
@@ -502,7 +519,59 @@ const Calendar = React.forwardRef<CalendarRef, CalendarProps>((props, ref) => {
         {renderCurrentView()}
       </div>
 
-      <EventModals />
+      <JobModal
+        isOpen={showJobModal}
+        onClose={() => setShowJobModal(false)}
+        job={
+          jobModalData
+            ? {
+                id: "",
+                clientName: "",
+                location: "",
+                description: "",
+                jobType: "",
+                jobDate: null,
+                startTime: buildUTCDateTime(
+                  jobModalData.date,
+                  jobModalData.startTime
+                ),
+                endTime: buildUTCDateTime(
+                  jobModalData.date,
+                  jobModalData.endTime
+                ),
+                price: null,
+                employeePay: null,
+                totalTip: null,
+                parking: null,
+                notes: null,
+                cleaners: [],
+              }
+            : null
+        }
+        mode="create"
+        users={[]}
+        onSubmit={async (formData) => {
+          // Prefill times if provided by drag selection
+          if (jobModalData?.date) {
+            const dateStr = jobModalData.date.toISOString().split("T")[0];
+            if (jobModalData.startTime) {
+              formData.set("startDate", dateStr);
+              formData.set("startTime", jobModalData.startTime);
+            }
+            if (jobModalData.endTime) {
+              formData.set("endDate", dateStr);
+              formData.set("endTime", jobModalData.endTime);
+            }
+          }
+
+          const result = await saveJob(formData);
+          if (result.success) {
+            setShowJobModal(false);
+            setJobModalData(null);
+          }
+          return result;
+        }}
+      />
     </div>
   );
 });

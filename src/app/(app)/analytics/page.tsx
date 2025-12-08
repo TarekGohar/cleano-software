@@ -361,7 +361,7 @@ export default async function AnalyticsPage() {
   }));
 
   return (
-    <div className="h-full overflow-hidden p-8">
+    <div className="h-full overflow-hidden overflow-y-auto p-8">
       <AnalyticsView
         jobStats={jobStats}
         revenueStats={revenueStats}

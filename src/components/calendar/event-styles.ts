@@ -9,7 +9,7 @@ import { hexToRgba } from "./utils";
 export const DEFAULT_EVENT_COLOR = "#005F6A";
 
 /** Background opacity for confirmed events */
-export const EVENT_BG_OPACITY = 0.4;
+export const EVENT_BG_OPACITY = 0.2;
 
 /** Background opacity multiplier for unconfirmed events */
 export const UNCONFIRMED_OPACITY_MULTIPLIER = 0.4;

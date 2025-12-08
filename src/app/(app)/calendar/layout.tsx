@@ -111,7 +111,7 @@ function CalendarLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-full flex overflow-hidden">
       {/* Left Sidebar Navigation */}
-      <div className="w-[14rem] flex-shrink-0 bg-[#005F6A]/2 rounded-2xl !my-2">
+      <div className="w-[14rem] flex-shrink-0 bg-[#005F6A]/2 rounded-2xl !my-2 hidden">
         <div className="p-2 py-3 h-full overflow-y-auto flex flex-col gap-4">
           {/* Menu */}
           <div className="!p-0 flex-1">

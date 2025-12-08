@@ -154,6 +154,14 @@ interface CalendarState {
   dragStartPosition: { x: number; y: number } | null;
   setDragStartPosition: (pos: { x: number; y: number } | null) => void;
 
+  // Job modal trigger (replaces legacy EventModals)
+  showJobModal: boolean;
+  setShowJobModal: (open: boolean) => void;
+  jobModalData: { date: Date; startTime?: string; endTime?: string } | null;
+  setJobModalData: (
+    data: { date: Date; startTime?: string; endTime?: string } | null
+  ) => void;
+
 }
 
 const CalendarContext = createContext<CalendarState | undefined>(undefined);
@@ -238,6 +246,12 @@ export const CalendarProvider = ({
   const [dragStartPosition, setDragStartPosition] = useState<{
     x: number;
     y: number;
+  } | null>(null);
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [jobModalData, setJobModalData] = useState<{
+    date: Date;
+    startTime?: string;
+    endTime?: string;
   } | null>(null);
 
   const [toasts, setToasts] = useState<
@@ -443,10 +457,12 @@ export const CalendarProvider = ({
 
   const openEventModal = useCallback(
     (date: Date, startTimeStr?: string, endTimeStr?: string) => {
-      setModalDate(date);
-      if (startTimeStr) setStartTime(startTimeStr);
-      if (endTimeStr) setEndTime(endTimeStr);
-      setShowModal(true);
+      setJobModalData({
+        date,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+      });
+      setShowJobModal(true);
     },
     []
   );
@@ -857,6 +873,10 @@ export const CalendarProvider = ({
     setDragSelectionEnd,
     dragStartPosition,
     setDragStartPosition,
+    showJobModal,
+    setShowJobModal,
+    jobModalData,
+    setJobModalData,
   };
 
   return (

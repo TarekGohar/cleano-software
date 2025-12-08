@@ -78,7 +78,7 @@ export default async function EmployeesPage({
   };
 
   return (
-    <div className="h-full overflow-hidden p-8">
+    <div className="h-full overflow-hidden overflow-y-auto p-8">
       <EmployeesPageClient
         initialEmployees={employeesData}
         initialStats={stats}
